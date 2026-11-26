@@ -143,15 +143,54 @@ class ASTCompiler:
             doc_styles.append(f"border-radius: {html.escape(str(radius))}")
 
         style_attr = f' style="{"; ".join(doc_styles)}"' if doc_styles else ""
+        css_collector: list[str] = []
         buffer.append(f'<div class="builder-document" dir="rtl"{style_attr}>')
         for el in ast.root_elements:
-            compiled = cls._compile_element(el, is_authenticated=is_authenticated)
+            compiled = cls._compile_element(el, is_authenticated=is_authenticated, css_collector=css_collector)
             if compiled:
                 buffer.append(compiled)
         buffer.append("</div>")
 
         raw_html = "".join(buffer)
-        return sanitize_html(raw_html)
+        sanitized = sanitize_html(raw_html)
+        if css_collector:
+            css_block = cls._sanitize_generated_css("\n".join(css_collector))
+            if css_block:
+                style_tag = f'<style data-builder-responsive="1">{css_block}</style>'
+                marker = '<div class="builder-document" dir="rtl"'
+                idx = sanitized.find(marker)
+                if idx != -1:
+                    gt = sanitized.find(">", idx)
+                    if gt != -1:
+                        return sanitized[: gt + 1] + style_tag + sanitized[gt + 1 :]
+                return style_tag + sanitized
+        return sanitized
+
+    @classmethod
+    def _sanitize_generated_css(cls, css_text: str) -> str:
+        """Strip unsafe directives from compiler-generated CSS rules."""
+        import re as _re
+
+        if not css_text:
+            return ""
+        cleaned = css_text.replace("</style", "").replace("<", "")
+        cleaned = _re.sub(r"@import[^;]*;?", "", cleaned, flags=_re.IGNORECASE)
+        cleaned = _re.sub(
+            r"(?:expression\s*\(|javascript\s*:|vbscript\s*:|behavior\s*:|-moz-binding)",
+            "",
+            cleaned,
+            flags=_re.IGNORECASE,
+        )
+        return cleaned.strip()
+
+    @classmethod
+    def _css_id_selector(cls, element_id: str) -> str:
+        import re as _re
+
+        if _re.match(r"^[A-Za-z_][A-Za-z0-9_-]*$", element_id):
+            return f"#{element_id}"
+        safe = _re.sub(r'["\\<>]', "", element_id)
+        return f'[id="{safe}"]'
 
     @classmethod
     def _parse_custom_attributes(cls, raw: str | dict[str, Any] | None) -> str:
@@ -197,7 +236,12 @@ class ASTCompiler:
         return ""
 
     @classmethod
-    def _compile_element(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
+    def _compile_element(
+        cls,
+        el: BuilderElement,
+        is_authenticated: bool = False,
+        css_collector: list[str] | None = None,
+    ) -> str:
         if el.is_hidden:
             return ""
 
@@ -210,11 +254,11 @@ class ASTCompiler:
 
         if el.type == "container":
             if el.widget_type in ("nested_tabs", "nested_accordion") and not el.children:
-                compiled = cls._compile_widget(el)
+                compiled = cls._compile_widget(el, css_collector=css_collector)
             else:
-                compiled = cls._compile_container(el, is_authenticated=is_authenticated)
+                compiled = cls._compile_container(el, is_authenticated=is_authenticated, css_collector=css_collector)
         elif el.type == "widget":
-            compiled = cls._compile_widget(el)
+            compiled = cls._compile_widget(el, css_collector=css_collector)
         else:
             return ""
 
@@ -238,7 +282,12 @@ class ASTCompiler:
         return compiled
 
     @classmethod
-    def _compile_container(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
+    def _compile_container(
+        cls,
+        el: BuilderElement,
+        is_authenticated: bool = False,
+        css_collector: list[str] | None = None,
+    ) -> str:
         is_form = el.widget_type == "form_container"
         tag = "form" if is_form else "section"
         classes = ["builder-container", "relative"]
@@ -296,7 +345,23 @@ class ASTCompiler:
             style_parts.append(f"max-width: {layout.boxed_width.to_css()}; margin-left: auto; margin-right: auto;")
 
         # Compile responsive padding / margin / advanced layout styles
-        style_parts.extend(cls._compile_styles(el.styles))
+        element_id = el.styles.custom_css_id or el.id
+        has_responsive_overrides = bool(
+            css_collector is not None and (
+                (el.styles.tablet and cls._compile_device_styles(el.styles.tablet))
+                or (el.styles.desktop and cls._compile_device_styles(el.styles.desktop))
+            )
+        )
+        if not has_responsive_overrides:
+            style_parts.extend(cls._compile_styles(el.styles))
+        if css_collector is not None:
+            cls._collect_responsive_rules(
+                element_id=element_id,
+                styles=el.styles,
+                css_collector=css_collector,
+                grid_cols=layout.grid_columns if layout.kind == "grid" else None,
+                include_base_in_css=has_responsive_overrides,
+            )
 
         if el.styles.animation and el.styles.animation != "none":
             classes.append(f"builder-animate-{el.styles.animation}")
@@ -320,8 +385,12 @@ class ASTCompiler:
         if el.styles.custom_attributes:
             extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
 
-        # Compile background overlay if present
-        overlay = el.styles.mobile.background_overlay
+        # Compile background overlay if present (mobile base or desktop/tablet override)
+        overlay = (
+            el.styles.mobile.background_overlay
+            or (el.styles.desktop.background_overlay if el.styles.desktop else None)
+            or (el.styles.tablet.background_overlay if el.styles.tablet else None)
+        )
         overlay_html = ""
         if overlay and overlay.type != "none":
             ov_styles = ["position: absolute;", "inset: 0;", "pointer-events: none;", "border-radius: inherit;"]
@@ -330,7 +399,7 @@ class ASTCompiler:
             if overlay.type == "color" and overlay.color:
                 ov_styles.append(f"background-color: {overlay.color};")
             elif overlay.type == "gradient" and overlay.gradient:
-                dir_map = {"to-r": "to right", "to-l": "to left", "to-b": "to bottom", "to-t": "to top"}
+                dir_map = {"to-r": "to right", "to-l": "to left", "to-b": "to bottom", "to-t": "to top", "to-tr": "to top right", "to-tl": "to top left"}
                 d = dir_map.get(overlay.gradient.direction, "to bottom")
                 ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
             overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
@@ -369,20 +438,35 @@ class ASTCompiler:
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
             children_html = overlay_html + shape_dividers_html + hp_field + "".join(
-                cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
+                cls._compile_element(child, is_authenticated=is_authenticated, css_collector=css_collector) for child in el.children
             )
         else:
             children_html = overlay_html + shape_dividers_html + "".join(
-                cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
+                cls._compile_element(child, is_authenticated=is_authenticated, css_collector=css_collector) for child in el.children
             )
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 
     @classmethod
-    def _compile_widget(cls, el: BuilderElement) -> str:
+    def _compile_widget(cls, el: BuilderElement, css_collector: list[str] | None = None) -> str:
         widget_type = el.widget_type or "unknown"
         props = el.widget_props or {}
-        styles = cls._compile_styles(el.styles)
+        widget_id = el.styles.custom_css_id or el.id
+        has_responsive_overrides = bool(
+            css_collector is not None and (
+                (el.styles.tablet and cls._compile_device_styles(el.styles.tablet))
+                or (el.styles.desktop and cls._compile_device_styles(el.styles.desktop))
+            )
+        )
+        styles = [] if has_responsive_overrides else cls._compile_styles(el.styles)
+        if css_collector is not None:
+            cls._collect_responsive_rules(
+                element_id=widget_id,
+                styles=el.styles,
+                css_collector=css_collector,
+                is_text_editor=widget_type in ("text_editor", "text", "paragraph"),
+                include_base_in_css=has_responsive_overrides,
+            )
 
         classes_list = []
         if not el.visible_on_desktop:
@@ -425,12 +509,13 @@ class ASTCompiler:
 
         elif widget_type in ("text_editor", "text", "paragraph"):
             content = str(props.get("content", props.get("text", "")))
-            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}{extra_attrs}>{content}</div>'
+            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words [&_p]:text-inherit {css_class}"{style_attr}{extra_attrs}>{content}</div>'
 
         elif widget_type == "button":
             label = html.escape(str(props.get("label", "کلیک کنید")))
             url = html.escape(str(props.get("url", "#")))
-            target = ' target="_blank" rel="noopener noreferrer"' if props.get("new_tab") else ""
+            open_new_tab = bool(props.get("new_tab") or props.get("newTab"))
+            target = ' target="_blank" rel="noopener noreferrer"' if open_new_tab else ""
             return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 {css_class}"{target}{style_attr}{extra_attrs}>{label}</a>'
 
         elif widget_type == "image":
@@ -439,11 +524,43 @@ class ASTCompiler:
             return f'<img src="{src}" alt="{alt}"{id_attr} class="rounded-xl object-cover max-w-full h-auto {css_class}" loading="lazy"{style_attr}{extra_attrs} />'
 
         elif widget_type == "divider":
-            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{style_attr}{extra_attrs} />'
+            d_style = str(props.get("style", "solid"))
+            if d_style not in ("solid", "dashed", "dotted", "double"):
+                d_style = "solid"
+            d_styles = list(styles)
+            d_styles.append(f"border-style: {d_style};")
+            w_px = 1
+            if props.get("weight") is not None:
+                try:
+                    w_px = max(1, min(20, int(props["weight"])))
+                except (TypeError, ValueError):
+                    w_px = 1
+            d_styles.append(f"border-width: {w_px}px 0 0 0;")
+            if props.get("width") is not None:
+                try:
+                    pct = max(10, min(100, int(props["width"])))
+                    d_styles.append(f"width: {pct}%;")
+                except (TypeError, ValueError):
+                    pass
+            if props.get("color"):
+                d_col = str(props["color"]).strip()
+                d_col_css = f"hsl({d_col})" if d_col.startswith("var(--") else d_col
+                d_styles.append(f"border-color: {html.escape(d_col_css)};")
+            d_align = str(props.get("align", ""))
+            if d_align == "left":
+                d_styles.append("margin-left: 0; margin-right: auto;")
+            elif d_align == "right":
+                d_styles.append("margin-right: 0; margin-left: auto;")
+            elif d_align == "center":
+                d_styles.append("margin-left: auto; margin-right: auto;")
+            hr_style_attr = f' style="{" ".join(d_styles)}"' if d_styles else ""
+            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{hr_style_attr}{extra_attrs} />'
 
         elif widget_type == "spacer":
-            h = props.get("height", 32)
-            return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"{extra_attrs}></div>'
+            h = int(props.get("height", 32))
+            spacer_styles = [f"height: {h}px;"] + list(styles)
+            spacer_style_attr = f' style="{" ".join(spacer_styles)}"'
+            return f'<div{id_attr} class="w-full {css_class}"{spacer_style_attr} aria-hidden="true"{extra_attrs}></div>'
 
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))
@@ -1878,9 +1995,75 @@ class ASTCompiler:
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'
 
     @classmethod
+    def _collect_responsive_rules(
+        cls,
+        *,
+        element_id: str,
+        styles: ResponsiveStyles,
+        css_collector: list[str],
+        grid_cols: int | None = None,
+        is_text_editor: bool = False,
+        include_base_in_css: bool = False,
+    ) -> None:
+        sel = cls._css_id_selector(element_id)
+        if grid_cols is not None:
+            cols = max(1, min(12, int(grid_cols)))
+            tablet_cols = min(cols, 2)
+            css_collector.append(f"{sel} {{ grid-template-columns: repeat(1, minmax(0, 1fr)); }}")
+            css_collector.append(f"@media (min-width: 768px) {{ {sel} {{ grid-template-columns: repeat({tablet_cols}, minmax(0, 1fr)); }} }}")
+            css_collector.append(f"@media (min-width: 1024px) {{ {sel} {{ grid-template-columns: repeat({cols}, minmax(0, 1fr)); }} }}")
+
+        if include_base_in_css and styles.mobile:
+            mobile_decls = cls._compile_device_styles(styles.mobile)
+            if mobile_decls:
+                css_collector.append(f"{sel} {{ {' '.join(mobile_decls)} }}")
+
+        if styles.tablet:
+            tablet_decls = cls._compile_device_styles(styles.tablet)
+            if tablet_decls:
+                css_collector.append(f"@media (min-width: 768px) {{ {sel} {{ {' '.join(tablet_decls)} }} }}")
+        if styles.desktop:
+            desktop_decls = cls._compile_device_styles(styles.desktop)
+            if desktop_decls:
+                css_collector.append(f"@media (min-width: 1024px) {{ {sel} {{ {' '.join(desktop_decls)} }} }}")
+
+        # Hover rules across active breakpoints (desktop takes precedence visually)
+        for dev, prefix in ((styles.mobile, None), (styles.tablet, "min-width: 768px"), (styles.desktop, "min-width: 1024px")):
+            if not dev:
+                continue
+            hover_decls: list[str] = []
+            if dev.hover_box_shadow and dev.hover_box_shadow != "none":
+                hover_decls.append(f"box-shadow: {dev.hover_box_shadow};")
+            if dev.hover_border and dev.hover_border.style != "none":
+                hb = dev.hover_border
+                hover_decls.append(f"border-style: {hb.style};")
+                if hb.color:
+                    c = f"hsl({hb.color})" if hb.color.startswith("var(--") else hb.color
+                    hover_decls.append(f"border-color: {c};")
+                if hb.width and hb.width.top:
+                    hover_decls.append(f"border-width: {hb.width.top.to_css()};")
+            if hover_decls:
+                rule = f"{sel}:hover {{ {' '.join(hover_decls)} }}"
+                css_collector.append(f"@media ({prefix}) {{ {rule} }}" if prefix else rule)
+
+        if is_text_editor:
+            has_col = any(
+                d and d.typography and d.typography.color
+                for d in (styles.mobile, styles.tablet, styles.desktop)
+            )
+            if has_col:
+                css_collector.append(f"{sel} {{ --tw-prose-body: currentColor; --tw-prose-headings: currentColor; }}")
+                css_collector.append(f"{sel} p {{ color: inherit; }}")
+
+    @classmethod
     def _compile_styles(cls, styles: ResponsiveStyles) -> list[str]:
+        return cls._compile_device_styles(styles.mobile)
+
+    @classmethod
+    def _compile_device_styles(cls, base: Any) -> list[str]:
         parts: list[str] = []
-        base = styles.mobile
+        if not base:
+            return parts
 
         if base.padding:
             p = base.padding
@@ -1938,7 +2121,9 @@ class ASTCompiler:
                         parts.append(f"border-color: {b_color};")
                 if b.width and b.width.top:
                     parts.append(f"border-width: {b.width.top.to_css()};")
-            if b.radius:
+            if getattr(b, "radius_token", None):
+                parts.append(f"border-radius: {b.radius_token};")
+            elif b.radius:
                 r = b.radius
                 parts.append(f"border-radius: {r.top.to_css()} {r.right.to_css()} {r.bottom.to_css()} {r.left.to_css()};")
 
@@ -1950,7 +2135,15 @@ class ASTCompiler:
                 parts.append(f"background-color: {bg_color};")
         elif base.background and base.background.gradient:
             grad = base.background.gradient
-            direction_css = grad.direction.replace("to-", "to ")
+            dir_map = {
+                "to-r": "to right",
+                "to-l": "to left",
+                "to-b": "to bottom",
+                "to-t": "to top",
+                "to-tr": "to top right",
+                "to-tl": "to top left",
+            }
+            direction_css = dir_map.get(grad.direction, "to right")
             parts.append(f"background-image: linear-gradient({direction_css}, {grad.from_color}, {grad.to_color});")
         elif base.background and base.background.image_url:
             parts.append(f"background-image: url('{base.background.image_url}');")
@@ -2004,12 +2197,8 @@ class ASTCompiler:
             parts.append(f"gap: {base.gap.to_css()};")
         if base.grid_template_columns:
             parts.append(f"grid-template-columns: {base.grid_template_columns};")
-        if base.opacity is not None:
-            parts.append(f"opacity: {base.opacity};")
         if base.filter:
             parts.append(f"filter: {base.filter};")
-        if base.box_shadow:
-            parts.append(f"box-shadow: {base.box_shadow};")
 
         # Transform (Elementor Parity Wave 1)
         if base.transform:

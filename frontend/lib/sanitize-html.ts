@@ -86,4 +86,140 @@ export function cleanHtml(dirty: string, options?: sanitizeHtmlLib.IOptions): st
   return withResponsiveImages(withoutStrangers);
 }
 
+import { sanitizeScopedCss } from "./builder/scoped-css";
+
+const BUILDER_ALLOWED_TAGS: string[] = Array.from(
+  new Set([
+    ...ALLOWED_TAGS,
+    "svg", "path", "polygon", "circle", "rect", "line", "polyline", "g",
+    "button", "label", "input", "textarea", "select", "option", "form",
+  ])
+);
+
+const BUILDER_SAFE_CSS_VALUE_RE =
+  /^(?!.*(?:expression\s*\(|javascript\s*:|vbscript\s*:|@import|behavior\s*:|-moz-binding|url\s*\(\s*["']?\s*(?:https?:|data:|\/\/))).+$/i;
+
+const BUILDER_ALLOWED_CSS_PROPS = new Set([
+  "color", "background-color", "background-image", "background-position",
+  "background-size", "background-repeat", "background",
+  "font-size", "font-weight", "font-style", "font-family", "line-height",
+  "letter-spacing", "text-align", "text-decoration", "text-transform",
+  "text-shadow", "margin", "margin-top", "margin-right", "margin-bottom",
+  "margin-left", "margin-inline-start", "margin-inline-end",
+  "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+  "padding-inline-start", "padding-inline-end",
+  "border", "border-top", "border-right", "border-bottom", "border-left",
+  "border-radius", "border-color", "border-width", "border-style",
+  "border-top-style", "border-top-width", "border-top-color",
+  "width", "height", "max-width", "max-height", "min-width", "min-height",
+  "display", "gap", "row-gap", "column-gap", "grid-template-columns",
+  "grid-auto-flow", "flex", "flex-direction", "flex-wrap", "flex-grow",
+  "order", "justify-content", "align-items", "align-self", "opacity",
+  "box-shadow", "overflow", "vertical-align", "white-space",
+  "position", "top", "bottom", "left", "right", "inset", "z-index",
+  "pointer-events", "direction", "animation-duration", "animation-delay",
+  "animation-name", "transform", "filter", "backdrop-filter",
+  "-webkit-backdrop-filter", "mask-image", "-webkit-mask-image", "mask-size",
+  "-webkit-mask-size", "mask-position", "-webkit-mask-position", "mask-repeat",
+  "-webkit-mask-repeat", "clip-path", "transition",
+]);
+
+function filterBuilderInlineStyle(rawStyle: string | undefined): string | undefined {
+  if (!rawStyle) return undefined;
+  const kept: string[] = [];
+  for (const decl of rawStyle.split(";")) {
+    const colon = decl.indexOf(":");
+    if (colon <= 0) continue;
+    const prop = decl.slice(0, colon).trim().toLowerCase();
+    const val = decl.slice(colon + 1).trim();
+    if (!prop || !val || !BUILDER_ALLOWED_CSS_PROPS.has(prop)) continue;
+    if (!BUILDER_SAFE_CSS_VALUE_RE.test(val)) continue;
+    kept.push(`${prop}: ${val}`);
+  }
+  return kept.length > 0 ? `${kept.join("; ")};` : undefined;
+}
+
+const BUILDER_RESPONSIVE_STYLE_RE =
+  /<style\b[^>]*data-builder-responsive="1"[^>]*>([\s\S]*?)<\/style>/gi;
+
+/**
+ * Sanitize ASTCompiler-rendered Visual Page Builder SSR HTML without stripping
+ * responsive styles, CSS tokens (hsl(var(--...))), transforms, dividers, spacers,
+ * interactive form elements, or SVG shapes.
+ */
+export function cleanBuilderHtml(dirty: string): string {
+  if (!dirty) return "";
+
+  const preservedStyles: string[] = [];
+  const withoutResponsiveStyles = dirty.replace(
+    BUILDER_RESPONSIVE_STYLE_RE,
+    (_m, cssText: string) => {
+      const safeCss = sanitizeScopedCss(cssText || "");
+      if (safeCss) preservedStyles.push(safeCss);
+      return "";
+    }
+  );
+
+  const options: sanitizeHtmlLib.IOptions = {
+    allowedTags: BUILDER_ALLOWED_TAGS,
+    allowedAttributes: {
+      ...ALLOWED_ATTR_BY_TAG,
+      "*": [
+        ...ALLOWED_ATTR,
+        "data-*", "aria-*", "tabindex",
+      ],
+      form: ["action", "method", "enctype", "novalidate", "name", "target"],
+      input: [
+        "type", "name", "value", "placeholder", "required", "disabled",
+        "readonly", "checked", "autocomplete",
+      ],
+      textarea: ["name", "placeholder", "rows", "cols", "required", "disabled", "readonly"],
+      select: ["name", "required", "disabled"],
+      option: ["value", "selected"],
+      button: ["type", "disabled"],
+      label: ["for"],
+      svg: [
+        "xmlns", "viewbox", "viewBox", "width", "height", "fill", "stroke",
+        "stroke-width", "stroke-linecap", "stroke-linejoin",
+        "preserveaspectratio", "preserveAspectRatio",
+      ],
+      path: ["d", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "opacity"],
+      polygon: ["points", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"],
+      circle: ["cx", "cy", "r", "fill", "stroke", "stroke-width"],
+      rect: ["x", "y", "width", "height", "rx", "ry", "fill", "stroke", "stroke-width"],
+      line: ["x1", "y1", "x2", "y2", "stroke", "stroke-width", "stroke-linecap"],
+      polyline: ["points", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"],
+      g: ["fill", "stroke", "stroke-width", "transform"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowedSchemesAppliedToAttributes: ["href", "src", "cite"],
+    allowedSchemesByTag: { img: ["http", "https", "data"] },
+    transformTags: {
+      "*": (tagName, attribs) => {
+        if (attribs.style) {
+          const filtered = filterBuilderInlineStyle(attribs.style);
+          if (filtered) attribs.style = filtered;
+          else delete attribs.style;
+        }
+        return { tagName, attribs };
+      },
+    },
+  };
+
+  const clean = sanitizeHtmlLib(withoutResponsiveStyles, options);
+  const withoutStrangers = clean.replace(
+    /<iframe\b[^>]*\bsrc="([^"]*)"[^>]*>(?:<\/iframe>)?/gi,
+    (match, src: string) => (isAllowedEmbedSrc(src) ? match : ""),
+  );
+  let rendered = withResponsiveImages(withoutStrangers);
+  if (preservedStyles.length > 0) {
+    const styleBlock = `<style data-builder-responsive="1">${preservedStyles.join("\n")}</style>`;
+    rendered = rendered.replace(
+      /(<div\b[^>]*class="builder-document[^"]*"[^>]*>)/i,
+      `$1${styleBlock}`
+    );
+  }
+  return rendered;
+}
+
 export default cleanHtml;

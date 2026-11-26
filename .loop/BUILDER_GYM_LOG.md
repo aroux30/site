@@ -17,16 +17,16 @@
 
 ### پوشش ۳۵ ویجت اصلی (وزنه ۲)
 #### ۱۰ ویجت پایه
-- [ ] `container` (Content / Style / Advanced)
-- [ ] `section` (Content / Style / Advanced)
-- [ ] `columns` (Content / Style / Advanced)
-- [ ] `heading` (Content / Style / Advanced)
-- [ ] `paragraph` (Content / Style / Advanced)
-- [ ] `text` / `text_editor` (Content / Style / Advanced)
-- [ ] `image` (Content / Style / Advanced)
-- [ ] `button` (Content / Style / Advanced)
-- [ ] `spacer` (Content / Style / Advanced)
-- [ ] `divider` (Content / Style / Advanced)
+- [x] `container` (Content / Style / Advanced)
+- [x] `section` (Content / Style / Advanced)
+- [x] `columns` (Content / Style / Advanced)
+- [x] `heading` (Content / Style / Advanced)
+- [x] `paragraph` (Content / Style / Advanced)
+- [x] `text` / `text_editor` (Content / Style / Advanced)
+- [x] `image` (Content / Style / Advanced)
+- [x] `button` (Content / Style / Advanced)
+- [x] `spacer` (Content / Style / Advanced)
+- [x] `divider` (Content / Style / Advanced)
 
 #### ۱۳ ویجت تعاملی و فرم
 - [ ] `table` (Content / Style / Advanced)
@@ -96,3 +96,25 @@
   - `npx vitest run`: `67 passed (67)` — `452 passed (452)`
   - `python -m pytest app/tests/unit -q`: پاس (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts --reporter=list`: `7 passed (7)`
+
+### دور ۲ (Round 02 — وزنه ۲ دسته ۱: ۱۰ ویجت پایه + کنترل‌های مشترک Style/Advanced و برابری SSR)
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-02/before/` (۴ تصویر اولیه‌ با باگ Radix portal در `03` + `report.json` و ۶ تصویر کامل در اجرای تمیز: `01..06` + `report.json`) — مشاهده‌شده با Vision و تله‌متری Nudge:
+    - خروجی SSR `/e2e-isolated-scratchpad` تحت `cleanHtml(page.body_html)` تقریباً تمامی استایل‌های رندرشده توسط `ASTCompiler` (`height` برای Spacer، `font-size`/`text-align`/`opacity`/`transform`/`filter`/`border-radius`، `hsl(var(--...))`، ویژگی‌های `data-*`، `button`/`svg`/`form`) را حذف می‌کرد.
+    - `ASTCompiler` فقط `styles.mobile` را کامپایل می‌کرد و تمامی تغییرات `desktop`/`tablet` (از جمله حالت پیش‌فرض دسکتاپ استودیو) و ستون‌های `grid` را نادیده می‌گرفت، یا به دلیل inline `style` روی `mobile` مانع اعمال `@media (min-width: 1024px)` می‌شد.
+    - در `canvas-element.tsx`: گرید دو ستونه (`columns`) درون Iframe باریک استودیو به جای `gridColumns` تکی ۱ ستونه (`622px`) رندر می‌شد؛ رنگ/وزن سرتیتر به دلیل `text-foreground`/`font-bold` به ارث نمی‌رسید؛ استایل سطح دکمه به جای `<a>` روی رپر بیرونی می‌رفت و `target="_blank"` تنظیم نمی‌شد؛ `.prose p` رنگ سفارشی را نادیده می‌گرفت.
+    - `BorderStyleSchema` و `builder_ast.py` فیلد `radiusToken` را در Save Draft حذف می‌کردند؛ `divider` فاقد کنترل‌های ضخامت/عرض/رنگ/تراز در بازرس و فاقد اعمال استایل در SSR بود (`border-top-style` توسط allowlist بک‌اند حذف می‌شد).
+  - `after/`: `.loop/artifacts/builder-gym/round-02/after/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision: بنر قرمز چرخان با شعاع گردی `16px`، `fontSize: 36px`، تراز `left` و `data-gym` در SSR، پاراگراف آبی `rgb(37, 99, 235)`، دکمه با `target="_blank"` و رنگ زرد `rgb(254, 240, 138)`، خط جداکننده نقطه‌چین `dashed` ۳px راست‌چین، فاصله‌ساز `96px` و گرید ۲ ستونه `colGridColsSsr: 2` با `0` خطای کنسول و شبکه.
+- **فایل‌های اصلاح‌شده**:
+  - `frontend/types/builder.ts`, `frontend/lib/builder/schema.ts`, `backend/app/modules/content/domain/builder_ast.py` (افزودن `radiusToken` / `radius_token` و حذف فیلد تکراری `box_shadow`)
+  - `frontend/lib/sanitize-html.ts`, `frontend/app/(store)/[slug]/page.tsx` (افزودن `cleanBuilderHtml` ویژه خروجی `ASTCompiler` با حفظ کامل `cleanHtml` قبلی برای متون وبلاگ/CMS)
+  - `frontend/components/admin/builder/inspector-panel.tsx` (تکمیل کنترل‌های `Divider` شامل سبک/ضخامت/عرض/رنگ/تراز، افزودن `data-testid` و رفع coercion ناخواسته `border.style: "solid"` هنگام تغییر `radiusToken`)
+  - `frontend/components/admin/builder/canvas-element.tsx` (گرید ریسپانسیو درون بوم، وراثت تایپوگرافی `heading`/`text_editor`، تفکیک استایل سطح دکمه روی `<a>` + `target="_blank"`، رندر کامل `divider`)
+  - `backend/app/modules/content/application/ast_compiler.py` (کامپایل `@media` برای `tablet`/`desktop`/`grid`/`hover` و انتقال `mobile` به CSS پایه هنگام وجود override واکنش‌گرا، پشتیبانی `newTab` دکمه، ترکیب سبک‌های `divider`/`spacer` با allowlist بک‌اند و اصلاح `dir_map` گرادیانت)
+  - تست‌های رگرسیون: `backend/app/tests/unit/test_ast_compiler.py` (+۲ تست)، `frontend/tests/builder-gym-r02-unit.test.ts` (+۲ تست)، `frontend/tests/e2e/builder-gym-r02.spec.ts`
+- **نتایج راستی‌آزمایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `68 passed (68)` — `454 passed (454)`
+  - `python -m pytest app/tests/unit`: `661 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts --workers=1 --reporter=list`: `8 passed (8)`

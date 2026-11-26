@@ -1,0 +1,23 @@
+{
+  "canvasGridCols": 2,
+  "ssr": {
+    "colGridColsSsr": 2,
+    "h3Tag": "h3",
+    "h3FontSize": "36px",
+    "h3Color": "rgb(254, 242, 242)",
+    "h3Bg": "rgb(220, 38, 38)",
+    "h3Radius": "16px",
+    "h3Opacity": "0.85",
+    "h3TextAlign": "left",
+    "h3Transform": "matrix(1.03604, 0.090642, -0.090642, 1.03604, 0, 0)",
+    "pColor": "rgb(37, 99, 235)",
+    "btnTarget": "_blank",
+    "btnColor": "rgb(254, 240, 138)",
+    "hrStyle": "dashed",
+    "hrWeight": "3px",
+    "spacerHeight": "96px",
+    "hasGymAttr": true
+  },
+  "consoleErrors": [],
+  "failedRequests": []
+}

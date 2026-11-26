@@ -53,6 +53,7 @@ export const BorderStyleSchema = z.object({
   width: SpacingBoxSchema.nullable().optional(),
   color: z.string().nullable().optional(),
   radius: SpacingBoxSchema.nullable().optional(),
+  radiusToken: z.string().nullable().optional(),
 });
 
 export const BackgroundGradientSchema = z.object({

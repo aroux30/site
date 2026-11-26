@@ -524,13 +524,51 @@ function CanvasElementComponent({
       styleObj.marginRight = "auto";
     }
 
-    // Elementor CSS Grid auto-flow
-    if (element.type === "container" && element.layout?.kind === "grid" && element.layout?.gridAutoFlow) {
-      styleObj.gridAutoFlow = element.layout.gridAutoFlow;
+    // Elementor CSS Grid auto-flow & responsive breakpoint column count
+    if (element.type === "container" && element.layout?.kind === "grid") {
+      if (element.layout?.gridAutoFlow) {
+        styleObj.gridAutoFlow = element.layout.gridAutoFlow;
+      }
+      if (!styleObj.gridTemplateColumns) {
+        const cols = Math.max(1, Math.min(12, element.layout.gridColumns || 1));
+        const effectiveCols =
+          activeBreakpoint === "mobile"
+            ? 1
+            : activeBreakpoint === "tablet"
+            ? Math.min(cols, 2)
+            : cols;
+        styleObj.gridTemplateColumns = `repeat(${effectiveCols}, minmax(0, 1fr))`;
+      }
     }
 
     return styleObj;
   }, [element.styles, element.layout, activeBreakpoint]);
+
+  const { wrapperStyles, buttonSurfaceStyles } = useMemo(() => {
+    if (element.widgetType !== "button") {
+      return { wrapperStyles: elementStyles, buttonSurfaceStyles: undefined };
+    }
+    const surfaceKeys = new Set<keyof React.CSSProperties>([
+      "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundSize",
+      "backgroundRepeat", "color", "padding", "borderStyle", "borderColor",
+      "borderWidth", "borderRadius", "boxShadow", "fontSize", "fontWeight",
+      "fontFamily", "lineHeight", "letterSpacing", "textDecoration",
+      "textTransform", "textShadow", "transition",
+    ]);
+    const wrap: Record<string, any> = {};
+    const surf: Record<string, any> = {};
+    for (const [k, v] of Object.entries(elementStyles)) {
+      if (surfaceKeys.has(k as keyof React.CSSProperties)) {
+        surf[k] = v;
+      } else {
+        wrap[k] = v;
+      }
+    }
+    return {
+      wrapperStyles: wrap as React.CSSProperties,
+      buttonSurfaceStyles: Object.keys(surf).length > 0 ? (surf as React.CSSProperties) : undefined,
+    };
+  }, [element.widgetType, elementStyles]);
 
   // Elementor Background Overlay calculation
   const overlayStyle = useMemo((): React.CSSProperties | null => {
@@ -628,6 +666,8 @@ function CanvasElementComponent({
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const textVal = String(props.text || "عنوان سرتیتر");
+        const hasTypoColor = Boolean(elementStyles.color);
+        const hasTypoWeight = Boolean(elementStyles.fontWeight);
 
         if (isInlineEditing && !previewMode) {
           return (
@@ -636,7 +676,12 @@ function CanvasElementComponent({
               suppressContentEditableWarning
               autoFocus
               data-testid="inline-text-editor"
-              className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] outline-2 outline-primary bg-primary/10 rounded px-1 min-w-[60px]", customClass)}
+              className={cn(
+                "tracking-tight m-0 break-words [overflow-wrap:anywhere] outline-2 outline-primary bg-primary/10 rounded px-1 min-w-[60px]",
+                !hasTypoWeight && "font-bold",
+                !hasTypoColor && "text-foreground",
+                customClass
+              )}
               onBlur={(e) => {
                 const newText = e.currentTarget.textContent?.trim() || "";
                 if (newText && newText !== textVal) {
@@ -670,7 +715,12 @@ function CanvasElementComponent({
               }
             }}
             title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
-            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}
+            className={cn(
+              "tracking-tight m-0 break-words [overflow-wrap:anywhere]",
+              !hasTypoWeight && "font-bold",
+              !hasTypoColor && "text-foreground",
+              customClass
+            )}
           >
             {textVal}
           </Tag>
@@ -682,6 +732,7 @@ function CanvasElementComponent({
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const rawContent = String(props.content || props.text || "<p>متن پاراگراف را بنویسید...</p>");
         const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
+        const hasTypoColor = Boolean(elementStyles.color);
 
         if (isInlineEditing && !previewMode) {
           return (
@@ -721,7 +772,8 @@ function CanvasElementComponent({
             }}
             title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
             className={cn(
-              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-none",
+              "prose dark:prose-invert max-w-none leading-relaxed break-words [overflow-wrap:anywhere] outline-none",
+              hasTypoColor ? "[--tw-prose-body:inherit] [--tw-prose-headings:inherit] [&_p]:text-inherit" : "text-foreground/90",
               customClass
             )}
           >
@@ -777,6 +829,8 @@ function CanvasElementComponent({
           );
         }
 
+        const openNewTab = Boolean(props.newTab || props.new_tab);
+
         return (
           <div
             data-testid="button-widget-wrapper"
@@ -791,6 +845,9 @@ function CanvasElementComponent({
             <a
               href={url}
               data-url={url}
+              target={openNewTab ? "_blank" : undefined}
+              rel={openNewTab ? "noopener noreferrer" : undefined}
+              style={buttonSurfaceStyles}
               onClick={(e) => {
                 if (!previewMode) {
                   e.preventDefault();
@@ -848,12 +905,27 @@ function CanvasElementComponent({
       }
       case "divider": {
         const dStyle = String(props.style || "solid");
+        const weight = Math.max(1, Math.min(20, Number(props.weight) || 1));
+        const widthPct = props.width !== undefined && props.width !== null
+          ? `${Math.max(10, Math.min(100, Number(props.width) || 100))}%`
+          : undefined;
+        const dColor = props.color ? normalizeCssColor(String(props.color)) : undefined;
+        const dAlign = String(props.align || "center");
         return (
           <hr
+            style={{
+              borderStyle: dStyle as any,
+              borderWidth: `${weight}px 0 0 0`,
+              borderColor: dColor,
+              width: widthPct,
+              marginLeft: dAlign === "left" ? "0" : "auto",
+              marginRight: dAlign === "right" ? "0" : "auto",
+            }}
             className={cn(
               "w-full border-border/80 my-4",
               dStyle === "dashed" && "border-dashed",
-              dStyle === "dotted" && "border-dotted"
+              dStyle === "dotted" && "border-dotted",
+              dStyle === "double" && "border-double"
             )}
           />
         );
@@ -2435,7 +2507,7 @@ function CanvasElementComponent({
   return (
     <div
       ref={elementRef}
-      style={elementStyles}
+      style={wrapperStyles}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

@@ -1979,6 +1979,116 @@ def test_ast_compiler_applies_global_styles_to_root_document():
     assert "font-family:system-ui, sans-serif" in result or "font-family: system-ui, sans-serif" in result
 
 
+def test_ast_compiler_desktop_tablet_grid_media_queries():
+    """Verify desktop/tablet styles, radius_token, hover shadows, and grid columns emit media CSS rules."""
+    from app.modules.content.domain.builder_ast import (
+        BackgroundStyle,
+        BorderStyle,
+        DeviceStyle,
+        TypographyStyle,
+    )
+
+    ast = PageAST(
+        schema_version=1,
+        title="تست ریسپانسیو دسکتاپ",
+        slug="test-responsive-r02",
+        root_elements=[
+            BuilderElement(
+                id="el_grid_r02",
+                name="شبکه ریسپانسیو",
+                type="container",
+                layout=ContainerLayout(kind="grid", grid_columns=4, gap=UnitValue(value=24, unit="px")),
+                children=[
+                    BuilderElement(
+                        id="el_head_r02",
+                        name="تیتر دسکتاپ",
+                        type="widget",
+                        widget_type="heading",
+                        widget_props={"text": "سرتیتر دسکتاپ", "tag": "h3"},
+                        styles=ResponsiveStyles(
+                            mobile=DeviceStyle(),
+                            tablet=DeviceStyle(
+                                padding=SpacingBox(
+                                    top=UnitValue(value=12, unit="px"),
+                                    right=UnitValue(value=12, unit="px"),
+                                    bottom=UnitValue(value=12, unit="px"),
+                                    left=UnitValue(value=12, unit="px"),
+                                )
+                            ),
+                            desktop=DeviceStyle(
+                                typography=TypographyStyle(
+                                    color="#fef2f2",
+                                    font_size=UnitValue(value=38, unit="px"),
+                                    text_align="left",
+                                ),
+                                background=BackgroundStyle(type="color", color="#dc2626"),
+                                border=BorderStyle(style="solid", radius_token="9999px"),
+                                opacity=0.85,
+                                hover_box_shadow="0 8px 20px rgba(0,0,0,0.25)",
+                            ),
+                        ),
+                    )
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert '<style data-builder-responsive="1">' in result
+    assert "#el_grid_r02" in result
+    assert "repeat(4, minmax(0, 1fr))" in result
+    assert "@media (min-width: 768px)" in result
+    assert "@media (min-width: 1024px)" in result
+    assert "#el_head_r02" in result
+    assert "font-size: 38px;" in result
+    assert "background-color: #dc2626;" in result
+    assert "border-radius: 9999px;" in result
+    assert "opacity: 0.85;" in result
+    assert "#el_head_r02:hover" in result
+
+
+def test_ast_compiler_button_newtab_divider_styles_and_spacer_merge():
+    """Verify button newTab camelCase/snake_case, divider props, and spacer styles merge cleanly."""
+    from app.modules.content.domain.builder_ast import DeviceStyle
+
+    ast = PageAST(
+        schema_version=1,
+        title="تست دکمه و خط جداکننده",
+        slug="test-widgets-r02",
+        root_elements=[
+            BuilderElement(
+                id="el_btn_r02",
+                name="دکمه جدید",
+                type="widget",
+                widget_type="button",
+                widget_props={"label": "کلیک تست", "url": "https://example.com", "newTab": True},
+            ),
+            BuilderElement(
+                id="el_div_r02",
+                name="جداکننده",
+                type="widget",
+                widget_type="divider",
+                widget_props={"style": "dashed", "weight": 3, "width": 60, "color": "#16a34a", "align": "right"},
+            ),
+            BuilderElement(
+                id="el_spc_r02",
+                name="فاصله‌ساز",
+                type="widget",
+                widget_type="spacer",
+                widget_props={"height": 96},
+                styles=ResponsiveStyles(mobile=DeviceStyle(opacity=0.7)),
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'target="_blank"' in result
+    assert "noopener" in result
+    assert "border-style:dashed" in result or "border-style: dashed" in result
+    assert "border-width:3px 0 0 0" in result or "border-width: 3px 0 0 0" in result
+    assert "width:60%" in result or "width: 60%" in result
+    assert "height:96px" in result or "height: 96px" in result
+    assert "opacity:0.7" in result or "opacity: 0.7" in result
+
+
 
 
 

@@ -1,0 +1,1119 @@
+{
+  "bugs": [],
+  "blocksInserted": [
+    {
+      "key": "container",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "section",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "columns",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "heading",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "text_editor",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "image",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "button",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "spacer",
+      "count": 1,
+      "clicked": true
+    },
+    {
+      "key": "divider",
+      "count": 1,
+      "clicked": true
+    }
+  ],
+  "contentNudges": {
+    "container": {
+      "inputs": [
+        "container-gap-input"
+      ],
+      "beforeGap": "16px",
+      "afterGridDisplay": "grid",
+      "afterGridCols": "295px 295px",
+      "boxedClickOk": true,
+      "afterGap": "32px",
+      "afterMaxWidth": "960px"
+    },
+    "section": {
+      "display": "flex",
+      "maxWidth": "none"
+    },
+    "columns": {
+      "display": "grid",
+      "gridCols": "622px",
+      "flexDir": "row"
+    },
+    "heading": {
+      "buttons": [
+        "H2 (عنوان بخش)"
+      ],
+      "tag": "h2",
+      "text": "سرتیتر تست-۳۶۰ فارسی"
+    },
+    "text_editor": {
+      "text": "پاراگراف تست-۳۶۰ فارسی",
+      "hasUpdated": true
+    },
+    "image": {
+      "buttons": [
+        "انتخاب",
+        "حذف"
+      ],
+      "inputs": [
+        {
+          "ph": "تصویری انتخاب نشده",
+          "val": "/placeholder-hero.svg",
+          "testId": null
+        },
+        {
+          "ph": "https://... یا /placeholder.svg",
+          "val": "/placeholder-hero.svg",
+          "testId": null
+        },
+        {
+          "ph": null,
+          "val": "تصویر شاخص",
+          "testId": null
+        }
+      ],
+      "src": "/placeholder-hero.svg?r02=1",
+      "alt": "توضیح تصویر تست-۳۶۰"
+    },
+    "button": {
+      "inputs": [
+        {
+          "ph": null,
+          "val": "همین حالا اقدام کنید",
+          "testId": "button-label-input"
+        },
+        {
+          "ph": "https://...",
+          "val": "#",
+          "testId": null
+        }
+      ],
+      "newTabClicked": true,
+      "storeProps": {
+        "label": "دکمه تست-۳۶۰",
+        "url": "https://example.com/test-360",
+        "newTab": true
+      },
+      "canvasHref": "https://example.com/test-360",
+      "canvasTarget": null,
+      "canvasText": "دکمه تست-۳۶۰"
+    },
+    "spacer": {
+      "rectH": 96,
+      "csHeight": "96px"
+    },
+    "divider": {
+      "dump": {
+        "buttons": [
+          {
+            "text": "خط پیوسته (Solid)",
+            "title": null,
+            "testId": null
+          }
+        ],
+        "inputs": []
+      },
+      "dividerStylePicked": "dashed",
+      "storeProps": {
+        "style": "dashed"
+      },
+      "hrTag": "hr",
+      "hrBorderTopStyle": "dashed"
+    }
+  },
+  "styleNudges": {
+    "heading": {
+      "inputsCount": 26,
+      "inputsList": [
+        {
+          "testId": "padding-top-input",
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "100% یا 1280px / خودکار",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "color",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "#ffffff یا hsl(var(--primary))",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "color",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "#000000 یا var(--foreground)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": "typography-fontsize-input",
+          "ph": "مثلاً 16",
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": "typography-text-shadow-input",
+          "ph": "مثلاً 0 2px 4px rgba(0,0,0,0.3)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": "css-filter-input",
+          "ph": "مثلاً blur(4px) یا grayscale(100%)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "مثلاً 0 10px 15px -3px rgba(0,0,0,0.1)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": "hover-box-shadow-input",
+          "ph": "مثلاً 0 20px 25px -5px rgba(0,0,0,0.2)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": "transition-duration-input",
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": null,
+          "type": "color",
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "#e4e4e7 یا var(--border)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "مثلاً 12px یا var(--radius)",
+          "type": null,
+          "tag": "input"
+        },
+        {
+          "testId": null,
+          "ph": "خودکار",
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": "opacity-input",
+          "ph": "۱.۰",
+          "type": "number",
+          "tag": "input"
+        },
+        {
+          "testId": "order-input",
+          "ph": "خودکار",
+          "type": "number",
+          "tag": "input"
+        }
+      ],
+      "buttonsText": [
+        {
+          "text": "",
+          "title": "موبایل",
+          "testId": null
+        },
+        {
+          "text": "",
+          "title": "تبلت",
+          "testId": null
+        },
+        {
+          "text": "",
+          "title": "دسکتاپ",
+          "testId": null
+        },
+        {
+          "text": "ریست",
+          "title": "بازنشانی پدینگ به صفر",
+          "testId": "reset-padding-btn"
+        },
+        {
+          "text": "",
+          "title": "قطع پیوند مقادیر",
+          "testId": null
+        },
+        {
+          "text": "۶۴ پیکسل (سکشن)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "۳۲ پیکسل (بزرگ)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "۱۶ پیکسل (پایه)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "۸ پیکسل (کوچک)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "صفر",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "خودکار (Auto)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "۱۰۰٪",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "۱۲۸۰ پیکسل (کانتینر)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "۷۶۸ پیکسل (محتوا)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ریست",
+          "title": "بازنشانی مارجین به صفر",
+          "testId": "reset-margin-btn"
+        },
+        {
+          "text": "",
+          "title": "قطع پیوند مقادیر",
+          "testId": null
+        },
+        {
+          "text": "تک‌رنگ",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "گرادیانت",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "تصویر",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "هیچ",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "رنگ اصلی",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "رنگ ثانویه",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "سطح / کارت",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ملایم (Muted)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "پس‌زمینه",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "هیچ",
+          "title": null,
+          "testId": "overlay-type-none"
+        },
+        {
+          "text": "رنگ",
+          "title": null,
+          "testId": "overlay-type-color"
+        },
+        {
+          "text": "گرادیانت",
+          "title": null,
+          "testId": "overlay-type-gradient"
+        },
+        {
+          "text": "متن اصلی",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "اصلی برند",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ثانویه",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "متن کمرنگ",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "موفقیت",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "هشدار",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "پیش‌فرض",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "راست",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "وسط",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "چپ",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "تراز",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بدون سایه",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ظریف",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "متوسط",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "عمیق",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "درخشان (Glow)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "عادی (None)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "مات (Blur 4px)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "سیاه و سفید",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "پرکنتراست",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "نوستالژی (Sepia)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بدون سایه",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بسیار ظریف (xs)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "نرم (sm)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "متوسط (md)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "عمیق (lg)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "شناور (xl)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بدون تاری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بدون کادر (None)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بدون گردی",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "شعاع تم سازمانی",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "کوچک (6px)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "متوسط (12px)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "بزرگ (16px)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "کپسولی",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری (Inherit)",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "ارث‌بری",
+          "title": null,
+          "testId": null
+        },
+        {
+          "text": "پیش‌فرض والد",
+          "title": null,
+          "testId": null
+        }
+      ],
+      "colorPickCount": 3,
+      "wrapperCs": {
+        "paddingTop": "24px",
+        "opacity": "0.85",
+        "filter": "contrast(1.15)",
+        "backgroundColor": "rgb(220, 38, 38)",
+        "color": "rgb(254, 242, 242)",
+        "fontSize": "38px",
+        "textAlign": "start",
+        "textShadow": "rgba(0, 0, 0, 0.35) 2px 2px 4px"
+      },
+      "innerHeadingCs": {
+        "fontSize": "38px",
+        "color": "rgb(9, 9, 11)",
+        "textAlign": "start"
+      }
+    }
+  },
+  "advancedNudges": {
+    "heading": {
+      "inputs": [
+        {
+          "testId": null,
+          "ph": null,
+          "type": null
+        },
+        {
+          "testId": null,
+          "ph": "my-custom-section",
+          "type": null
+        },
+        {
+          "testId": null,
+          "ph": "shadow-lg border-primary/20",
+          "type": null
+        },
+        {
+          "testId": "custom-attributes-textarea",
+          "ph": "key|value\ndata-tracking|hero-cta\naria-label|test-region",
+          "type": null
+        },
+        {
+          "testId": "transform-rotate-input",
+          "ph": "۰°",
+          "type": "number"
+        },
+        {
+          "testId": "transform-scale-input",
+          "ph": "۱.۰",
+          "type": "number"
+        },
+        {
+          "testId": "transform-skewx-input",
+          "ph": "۰°",
+          "type": "number"
+        },
+        {
+          "testId": "transform-skewy-input",
+          "ph": "۰°",
+          "type": "number"
+        }
+      ],
+      "buttons": [
+        "وارون افقی (Flip X)",
+        "وارون عمودی (Flip Y)",
+        "بدون ماسک (None)",
+        "بدون انیمیشن (None)",
+        "همه کاربران (عمومی)",
+        "تبدیل به کامپوننت همگام سراسری (Make Global)"
+      ],
+      "transform": "matrix(-1.07408, -0.112891, -0.112891, 1.07408, 0, 0)",
+      "dataGymAttr": "r02-nudge"
+    }
+  },
+  "reloadCheck": {
+    "divider": {
+      "found": true,
+      "tag": "hr",
+      "text": "",
+      "html": "",
+      "attrs": {
+        "href": null,
+        "target": null,
+        "src": null,
+        "alt": null,
+        "idAttr": null,
+        "classAttr": "relative group/elem select-none block",
+        "dataGym": null
+      },
+      "rect": {
+        "w": 654,
+        "h": 1,
+        "wWrap": 654,
+        "hWrap": 1
+      },
+      "cs": {
+        "display": "block",
+        "flexDirection": "row",
+        "gridTemplateColumns": "none",
+        "justifyContent": "normal",
+        "alignItems": "normal",
+        "gap": "normal",
+        "maxWidth": "none",
+        "width": "654px",
+        "minHeight": "0px",
+        "height": "1px",
+        "paddingTop": "0px",
+        "paddingRight": "0px",
+        "paddingBottom": "0px",
+        "paddingLeft": "0px",
+        "marginTop": "24px",
+        "marginRight": "0px",
+        "marginBottom": "24px",
+        "marginLeft": "0px",
+        "color": "rgb(9, 9, 11)",
+        "wrapperColor": "rgb(9, 9, 11)",
+        "fontSize": "16px",
+        "wrapperFontSize": "16px",
+        "fontWeight": "400",
+        "fontFamily": "Vazirmatn, system-ui, sans-serif, Vazirmatn, Tahoma, sans-serif",
+        "lineHeight": "24px",
+        "textAlign": "start",
+        "wrapperTextAlign": "start",
+        "textDecorationLine": "none",
+        "textTransform": "none",
+        "textShadow": "none",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "borderTopStyle": "dashed",
+        "wrapperBorderStyle": "solid",
+        "wrapperBorderWidth": "0px",
+        "wrapperBorderColor": "rgb(225, 231, 239)",
+        "wrapperBorderRadius": "0px",
+        "boxShadow": "none",
+        "opacity": "1",
+        "filter": "none",
+        "transform": "none",
+        "position": "relative",
+        "zIndex": "auto",
+        "overflow": "visible",
+        "direction": "rtl"
+      }
+    },
+    "button": {
+      "found": true,
+      "tag": "a",
+      "text": "دکمه تست-۳۶۰",
+      "html": "<span class=\"truncate\">دکمه تست-۳۶۰</span>",
+      "attrs": {
+        "href": "https://example.com/test-360",
+        "target": null,
+        "src": null,
+        "alt": null,
+        "idAttr": null,
+        "classAttr": "relative group/elem select-none block",
+        "dataGym": null
+      },
+      "rect": {
+        "w": 152,
+        "h": 48,
+        "wWrap": 654,
+        "hWrap": 72
+      },
+      "cs": {
+        "display": "block",
+        "flexDirection": "row",
+        "gridTemplateColumns": "none",
+        "justifyContent": "normal",
+        "alignItems": "normal",
+        "gap": "normal",
+        "maxWidth": "none",
+        "width": "654px",
+        "minHeight": "0px",
+        "height": "48px",
+        "paddingTop": "12px",
+        "paddingRight": "24px",
+        "paddingBottom": "12px",
+        "paddingLeft": "24px",
+        "marginTop": "16px",
+        "marginRight": "0px",
+        "marginBottom": "0px",
+        "marginLeft": "0px",
+        "color": "rgb(255, 255, 255)",
+        "wrapperColor": "rgb(9, 9, 11)",
+        "fontSize": "16px",
+        "wrapperFontSize": "16px",
+        "fontWeight": "600",
+        "fontFamily": "Vazirmatn, system-ui, sans-serif, Vazirmatn, Tahoma, sans-serif",
+        "lineHeight": "24px",
+        "textAlign": "start",
+        "wrapperTextAlign": "start",
+        "textDecorationLine": "none",
+        "textTransform": "none",
+        "textShadow": "none",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "borderTopStyle": "solid",
+        "wrapperBorderStyle": "solid",
+        "wrapperBorderWidth": "0px",
+        "wrapperBorderColor": "rgb(225, 231, 239)",
+        "wrapperBorderRadius": "10px",
+        "boxShadow": "none",
+        "opacity": "1",
+        "filter": "none",
+        "transform": "none",
+        "position": "relative",
+        "zIndex": "auto",
+        "overflow": "visible",
+        "direction": "rtl"
+      }
+    },
+    "spacer": {
+      "found": true,
+      "tag": "div",
+      "text": "فاصله‌ساز (96px)",
+      "html": "<div class=\"w-full flex items-center justify-center border border-dashed border-muted-foreground/20 rounded text-xs text-muted-foreground select-none\" style=\"height: 96px;\">فاصله‌ساز (96px)</div>",
+      "attrs": {
+        "href": null,
+        "target": null,
+        "src": null,
+        "alt": null,
+        "idAttr": null,
+        "classAttr": "relative group/elem select-none block",
+        "dataGym": null
+      },
+      "rect": {
+        "w": 654,
+        "h": 96,
+        "wWrap": 654,
+        "hWrap": 96
+      },
+      "cs": {
+        "display": "block",
+        "flexDirection": "row",
+        "gridTemplateColumns": "none",
+        "justifyContent": "normal",
+        "alignItems": "normal",
+        "gap": "normal",
+        "maxWidth": "none",
+        "width": "654px",
+        "minHeight": "0px",
+        "height": "96px",
+        "paddingTop": "0px",
+        "paddingRight": "0px",
+        "paddingBottom": "0px",
+        "paddingLeft": "0px",
+        "marginTop": "16px",
+        "marginRight": "0px",
+        "marginBottom": "0px",
+        "marginLeft": "0px",
+        "color": "rgb(9, 9, 11)",
+        "wrapperColor": "rgb(9, 9, 11)",
+        "fontSize": "16px",
+        "wrapperFontSize": "16px",
+        "fontWeight": "400",
+        "fontFamily": "Vazirmatn, system-ui, sans-serif, Vazirmatn, Tahoma, sans-serif",
+        "lineHeight": "24px",
+        "textAlign": "start",
+        "wrapperTextAlign": "start",
+        "textDecorationLine": "none",
+        "textTransform": "none",
+        "textShadow": "none",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "backgroundImage": "none",
+        "borderTopStyle": "solid",
+        "wrapperBorderStyle": "solid",
+        "wrapperBorderWidth": "0px",
+        "wrapperBorderColor": "rgb(225, 231, 239)",
+        "wrapperBorderRadius": "0px",
+        "boxShadow": "none",
+        "opacity": "1",
+        "filter": "none",
+        "transform": "none",
+        "position": "relative",
+        "zIndex": "auto",
+        "overflow": "visible",
+        "direction": "rtl"
+      }
+    },
+    "heading": {
+      "found": true,
+      "tag": "h2",
+      "text": "سرتیتر تست-۳۶۰ فارسی",
+      "html": "سرتیتر تست-۳۶۰ فارسی",
+      "attrs": {
+        "href": null,
+        "target": null,
+        "src": null,
+        "alt": null,
+        "idAttr": null,
+        "classAttr": "relative group/elem select-none block",
+        "dataGym": "r02-nudge"
+      },
+      "rect": {
+        "w": 657,
+        "h": 130,
+        "wWrap": 714,
+        "hWrap": 187
+      },
+      "cs": {
+        "display": "block",
+        "flexDirection": "row",
+        "gridTemplateColumns": "none",
+        "justifyContent": "normal",
+        "alignItems": "normal",
+        "gap": "normal",
+        "maxWidth": "none",
+        "width": "654px",
+        "minHeight": "0px",
+        "height": "57px",
+        "paddingTop": "24px",
+        "paddingRight": "24px",
+        "paddingBottom": "24px",
+        "paddingLeft": "24px",
+        "marginTop": "16px",
+        "marginRight": "0px",
+        "marginBottom": "0px",
+        "marginLeft": "0px",
+        "color": "rgb(9, 9, 11)",
+        "wrapperColor": "rgb(254, 242, 242)",
+        "fontSize": "38px",
+        "wrapperFontSize": "38px",
+        "fontWeight": "700",
+        "fontFamily": "Vazirmatn, system-ui, sans-serif, Vazirmatn, Tahoma, sans-serif",
+        "lineHeight": "57px",
+        "textAlign": "start",
+        "wrapperTextAlign": "start",
+        "textDecorationLine": "none",
+        "textTransform": "none",
+        "textShadow": "rgba(0, 0, 0, 0.35) 2px 2px 4px",
+        "backgroundColor": "rgb(220, 38, 38)",
+        "backgroundImage": "none",
+        "borderTopStyle": "solid",
+        "wrapperBorderStyle": "solid",
+        "wrapperBorderWidth": "0px",
+        "wrapperBorderColor": "rgb(254, 242, 242)",
+        "wrapperBorderRadius": "0px",
+        "boxShadow": "none",
+        "opacity": "0.85",
+        "filter": "contrast(1.15)",
+        "transform": "matrix(-1.07408, -0.112891, -0.112891, 1.07408, 0, 0)",
+        "position": "relative",
+        "zIndex": "auto",
+        "overflow": "visible",
+        "direction": "rtl"
+      }
+    }
+  },
+  "ssrParity": {
+    "hrInlineStyle": null,
+    "hrBorderTopStyle": "solid",
+    "btnText": "دکمه تست-۳۶۰",
+    "btnHref": "https://example.com/test-360",
+    "btnTarget": null,
+    "spacerHeight": null,
+    "headingTag": "h2",
+    "headingText": "سرتیتر تست-۳۶۰ فارسی",
+    "headingInlineStyle": null,
+    "headingFontSize": "16px",
+    "headingOpacity": "1",
+    "headingTransform": "none",
+    "hasDataGymAttr": false
+  },
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "failedRequests": [],
+  "insertedIds": {
+    "rootsCount": 10,
+    "rootsSummary": [
+      {
+        "id": "el_op2h11w7",
+        "type": "container",
+        "name": "بخش آغازین",
+        "childrenLen": 2
+      },
+      {
+        "id": "el_j2sjupsy",
+        "type": "container",
+        "name": "کانتینر",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_j8fecohn",
+        "type": "container",
+        "name": "سکشن سرتاسری",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_w5vjj244",
+        "type": "container",
+        "name": "ردیف دو ستونه",
+        "childrenLen": 2
+      },
+      {
+        "id": "el_c8ngi5i8",
+        "type": "widget",
+        "widgetType": "heading",
+        "name": "سرتیتر",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_menxyfp3",
+        "type": "widget",
+        "widgetType": "text_editor",
+        "name": "متن پاراگراف",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_bywjzqx4",
+        "type": "widget",
+        "widgetType": "image",
+        "name": "تصویر",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_xfhci3l7",
+        "type": "widget",
+        "widgetType": "button",
+        "name": "دکمه اقدام",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_8hhvivy5",
+        "type": "widget",
+        "widgetType": "spacer",
+        "name": "فاصله‌ساز",
+        "childrenLen": 0
+      },
+      {
+        "id": "el_hjlwcr4n",
+        "type": "widget",
+        "widgetType": "divider",
+        "name": "خط جداکننده",
+        "childrenLen": 0
+      }
+    ],
+    "map": {
+      "section": "el_op2h11w7",
+      "container": "el_j2sjupsy",
+      "columns": "el_w5vjj244",
+      "heading": "el_c8ngi5i8",
+      "text_editor": "el_menxyfp3",
+      "image": "el_bywjzqx4",
+      "button": "el_xfhci3l7",
+      "spacer": "el_8hhvivy5",
+      "divider": "el_hjlwcr4n"
+    }
+  }
+}

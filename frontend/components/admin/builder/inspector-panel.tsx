@@ -394,7 +394,7 @@ export function InspectorPanel() {
                 value={String(props.tag || "h2")}
                 onValueChange={(val) => handlePropChange("tag", val)}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger data-testid="heading-tag-select" className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -446,15 +446,18 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">پیوند مقصد (URL)</Label>
               <Input
+                data-testid="button-url-input"
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
                 className="h-8 text-xs"
                 placeholder="https://..."
+                dir="ltr"
               />
             </div>
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">باز شدن در تب جدید</Label>
               <Switch
+                data-testid="button-newtab-switch"
                 checked={Boolean(props.newTab)}
                 onCheckedChange={(val) => handlePropChange("newTab", val)}
               />
@@ -476,6 +479,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس مستقیم تصویر (URL)</Label>
               <Input
+                data-testid="image-url-input"
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -486,8 +490,10 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن جایگزین (Alt Text برای سئو)</Label>
               <Input
+                data-testid="image-alt-input"
                 value={String(props.alt || "")}
                 onChange={(e) => handlePropChange("alt", e.target.value)}
+                placeholder="توضیح تصویر برای سئو (Alt)"
                 className="h-8 text-xs"
               />
             </div>
@@ -1487,6 +1493,10 @@ export function InspectorPanel() {
 
       case "divider": {
         const style = String(props.style || "solid");
+        const weight = Number(props.weight || 1);
+        const widthPct = props.width !== undefined && props.width !== null ? Number(props.width) : 100;
+        const dColor = String(props.color || "");
+        const dAlign = String(props.align || "center");
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -1495,15 +1505,87 @@ export function InspectorPanel() {
                 value={style}
                 onValueChange={(val) => handlePropChange("style", val)}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger data-testid="divider-style-select" className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="solid">خط پیوسته (Solid)</SelectItem>
                   <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
                   <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
+                  <SelectItem value="double">خط دوتایی (Double)</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">ضخامت خط (px)</Label>
+                <Input
+                  data-testid="divider-weight-input"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={weight}
+                  onChange={(e) => handlePropChange("weight", Math.max(1, Math.min(20, parseInt(e.target.value, 10) || 1)))}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">عرض خط (%)</Label>
+                <Input
+                  data-testid="divider-width-input"
+                  type="number"
+                  min={10}
+                  max={100}
+                  value={widthPct}
+                  onChange={(e) => handlePropChange("width", Math.max(10, Math.min(100, parseInt(e.target.value, 10) || 100)))}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">رنگ خط جداکننده</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toValidHexColor(dColor, "#e4e4e7")}
+                  onChange={(e) => handlePropChange("color", e.target.value)}
+                  className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
+                />
+                <Input
+                  data-testid="divider-color-input"
+                  value={dColor}
+                  placeholder="#e4e4e7 یا var(--border)"
+                  onChange={(e) => handlePropChange("color", normalizeCssColor(e.target.value) || e.target.value)}
+                  className="h-8 text-xs flex-1 font-mono"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تراز خط جداکننده</Label>
+              <div className="grid grid-cols-3 gap-1 p-0.5 rounded-lg bg-muted/60 border border-border/60">
+                {[
+                  { id: "right", label: "راست" },
+                  { id: "center", label: "وسط" },
+                  { id: "left", label: "چپ" },
+                ].map((al) => (
+                  <button
+                    key={al.id}
+                    type="button"
+                    data-testid={`divider-align-${al.id}-btn`}
+                    title={al.label}
+                    onClick={() => handlePropChange("align", al.id)}
+                    className={cn(
+                      "py-1 rounded text-[11px] font-semibold transition",
+                      dAlign === al.id ? "bg-background text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {al.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -2983,15 +3065,18 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">پیوند مقصد (URL)</Label>
               <Input
+                data-testid="button-url-input"
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
                 className="h-8 text-xs"
                 placeholder="https://..."
+                dir="ltr"
               />
             </div>
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">باز شدن در تب جدید</Label>
               <Switch
+                data-testid="button-newtab-switch"
                 checked={Boolean(props.newTab)}
                 onCheckedChange={(val) => handlePropChange("newTab", val)}
               />
@@ -4241,6 +4326,7 @@ export function InspectorPanel() {
                 className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
               />
               <Input
+                data-testid="typography-color-input"
                 value={currentDeviceStyle.typography?.color || ""}
                 placeholder="#000000 یا var(--foreground)"
                 onChange={(e) =>
@@ -4351,6 +4437,8 @@ export function InspectorPanel() {
                   <button
                     key={al.id}
                     type="button"
+                    data-testid={`text-align-${al.id}-btn`}
+                    title={al.label}
                     onClick={() =>
                       handleDeviceStyleChange({
                         typography: {
@@ -4396,7 +4484,7 @@ export function InspectorPanel() {
                 { label: "ظریف", val: "0 1px 2px rgba(0,0,0,0.2)" },
                 { label: "متوسط", val: "0 2px 4px rgba(0,0,0,0.3)" },
                 { label: "عمیق", val: "0 4px 8px rgba(0,0,0,0.4)" },
-                { label: "درخشان (Glow)", val: "0 0 8px var(--primary)" },
+                { label: "درخشان (Glow)", val: "0 0 8px hsl(var(--primary))" },
               ].map((tok) => (
                 <button
                   key={tok.label}
@@ -4658,10 +4746,12 @@ export function InspectorPanel() {
                 value={currentDeviceStyle.border?.width?.top?.value ?? 0}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value) || 0;
+                  const prevStyle = currentDeviceStyle.border?.style;
+                  const nextStyle = prevStyle && prevStyle !== "none" ? prevStyle : (val > 0 ? "solid" : "none");
                   handleDeviceStyleChange({
                     border: {
                       ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "solid",
+                      style: nextStyle,
                       width: {
                         top: { value: val, unit: "px" },
                         right: { value: val, unit: "px" },
@@ -4696,17 +4786,19 @@ export function InspectorPanel() {
                 className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
               />
               <Input
+                data-testid="border-color-input"
                 value={currentDeviceStyle.border?.color || ""}
                 placeholder="#e4e4e7 یا var(--border)"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const prevStyle = currentDeviceStyle.border?.style;
                   handleDeviceStyleChange({
                     border: {
                       ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "solid",
+                      style: prevStyle && prevStyle !== "none" ? prevStyle : "solid",
                       color: normalizeCssColor(e.target.value) || e.target.value,
                     },
-                  })
-                }
+                  });
+                }}
                 className="h-8 text-xs flex-1 font-mono"
                 dir="ltr"
               />
@@ -4717,13 +4809,14 @@ export function InspectorPanel() {
             <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
             <div className="flex items-center gap-2">
               <Input
+                data-testid="border-radius-input"
                 value={(currentDeviceStyle.border as any)?.radiusToken || ""}
                 placeholder="مثلاً 12px یا var(--radius)"
                 onChange={(e) =>
                   handleDeviceStyleChange({
                     border: {
                       ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "solid",
+                      style: currentDeviceStyle.border?.style || "none",
                       radiusToken: e.target.value,
                     } as any,
                   })
@@ -4749,7 +4842,7 @@ export function InspectorPanel() {
                     handleDeviceStyleChange({
                       border: {
                         ...currentDeviceStyle.border,
-                        style: currentDeviceStyle.border?.style || "solid",
+                        style: currentDeviceStyle.border?.style || "none",
                         radiusToken: tok.val,
                       } as any,
                     })

@@ -88,6 +88,7 @@ class BorderStyle(ASTModel):
     width: SpacingBox | None = None
     color: str | None = None
     radius: SpacingBox | None = None
+    radius_token: str | None = None
 
 
 class BackgroundGradient(ASTModel):
@@ -165,7 +166,6 @@ class DeviceStyle(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
-    box_shadow: str | None = None
     backdrop_blur: str | None = None
     filter_blur: float | None = None
     transform: TransformStyle | None = None

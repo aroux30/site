@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { decodeJwt } from "jose";
 import { RemoteImage } from "@/components/shared/remote-image";
 
-import cleanHtml from "@/lib/sanitize-html";
+import { cleanHtml, cleanBuilderHtml } from "@/lib/sanitize-html";
 import { apiInternalUrl } from "@/lib/api/server-base";
 import { oembedDiscoveryUrl, siteOrigin } from "@/lib/site-url";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo-meta";
@@ -272,7 +272,7 @@ export default async function CmsPageRoute({ params, searchParams }: Props) {
       <div className="w-full">
         <div
           className="builder-rendered-content w-full"
-          dangerouslySetInnerHTML={{ __html: cleanHtml(page.body_html) }}
+          dangerouslySetInnerHTML={{ __html: cleanBuilderHtml(page.body_html) }}
         />
       </div>
     );

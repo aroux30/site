@@ -42,6 +42,7 @@ export interface BorderStyle {
   width?: SpacingBox | null;
   color?: string | null;
   radius?: SpacingBox | null;
+  radiusToken?: string | null;
 }
 
 export interface BackgroundGradient {

@@ -46,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
+import { normalizeVideoEmbedUrl } from "@/lib/builder/video-utils";
 import { BuilderIconSvg } from "@/lib/builder/icon-registry";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
@@ -985,16 +986,17 @@ function CanvasElementComponent({
         return <div className="inline-block">{innerIcon}</div>;
       }
       case "video": {
-        const url = String(props.url || "");
+        const rawUrl = String(props.url || "");
         const vType = String(props.video_type || "aparat");
+        const embedUrl = normalizeVideoEmbedUrl(rawUrl, vType);
         const poster = props.poster ? String(props.poster) : undefined;
         return (
-          <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/10 border border-border/80 flex items-center justify-center">
-            {url ? (
+          <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/10 border border-border/80 flex items-center justify-center" data-widget="video">
+            {embedUrl ? (
               vType === "aparat" || vType === "youtube" ? (
-                <iframe src={url} className="w-full h-full border-0 pointer-events-none" allowFullScreen title="ویدیو" />
+                <iframe src={embedUrl} className="w-full h-full border-0 pointer-events-none" allowFullScreen title="ویدیو" />
               ) : (
-                <video src={url} controls poster={poster} className="w-full h-full object-cover" />
+                <video src={embedUrl} controls poster={poster} className="w-full h-full object-cover" />
               )
             ) : (
               <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
@@ -1377,19 +1379,20 @@ function CanvasElementComponent({
         const striped = props.striped !== false;
         const highlightCol = props.highlightCol !== undefined && props.highlightCol !== null ? Number(props.highlightCol) : null;
         return (
-          <div className="builder-table overflow-x-auto w-full select-text">
+          <div className="builder-table overflow-x-auto w-full select-text" data-widget="table" data-bordered={bordered ? "true" : "false"} data-striped={striped ? "true" : "false"}>
             <table className={cn(
               "w-full border-collapse text-right text-sm",
-              bordered && "border border-border/80 rounded-xl overflow-hidden"
+              bordered && "border border-border rounded-xl overflow-hidden"
             )}>
               {headers.length > 0 && (
                 <thead>
-                  <tr className="bg-muted/40 border-b border-border/80">
+                  <tr className={cn("bg-muted/40", bordered && "border-b border-border")}>
                     {headers.map((h, i) => (
                       <th
                         key={i}
                         className={cn(
                           "p-3.5 font-semibold text-muted-foreground",
+                          bordered && "border border-border/80",
                           highlightCol === i && "bg-primary/10 text-primary font-bold border-x border-primary/20"
                         )}
                       >
@@ -1399,14 +1402,15 @@ function CanvasElementComponent({
                   </tr>
                 </thead>
               )}
-              <tbody className="divide-y divide-border/60">
+              <tbody className={cn(bordered && "divide-y divide-border/70")}>
                 {rows.map((row, rIdx) => (
-                  <tr key={rIdx} className={cn("hover:bg-muted/30 transition", striped && rIdx % 2 === 1 && "bg-muted/10")}>
+                  <tr key={rIdx} className={cn("hover:bg-muted/30 transition", striped && rIdx % 2 === 1 && "bg-muted/25")}>
                     {row.map((cell, cIdx) => (
                       <td
                         key={cIdx}
                         className={cn(
-                          "p-3.5 text-foreground border-b border-border/60",
+                          "p-3.5 text-foreground",
+                          bordered && "border border-border/70",
                           highlightCol === cIdx && "bg-primary/5 border-x border-primary/20 font-semibold"
                         )}
                       >
@@ -1492,34 +1496,47 @@ function CanvasElementComponent({
       case "form_checkbox": {
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
+        const isRequired = Boolean(props.required);
         return (
-          <div className="flex items-center gap-2 text-right">
+          <div className="flex items-center gap-2 text-right" data-required={isRequired ? "true" : undefined}>
             <input
               type="checkbox"
               id={`chk_${element.id}`}
               name={name}
+              required={isRequired}
               defaultChecked={Boolean(props.checked)}
               className="rounded border-input text-primary focus:ring-primary h-4 w-4"
             />
             <label htmlFor={`chk_${element.id}`} className="text-xs font-medium text-foreground cursor-pointer select-none">
               {label}
+              {isRequired && <span className="text-destructive ms-1">*</span>}
             </label>
           </div>
         );
       }
       case "form_radio": {
         const label = String(props.label || "انتخاب گزینه");
-        const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        const rawOpts = props.options;
+        const options = Array.isArray(rawOpts)
+          ? rawOpts.map((o) => String(o))
+          : typeof rawOpts === "string"
+            ? rawOpts.split(/[\n،,]/).map((s) => s.trim()).filter(Boolean)
+            : ["گزینه ۱", "گزینه ۲"];
         const name = String(props.name || "radio_group");
+        const isRequired = Boolean(props.required);
         return (
-          <div className="space-y-1.5 text-right w-full">
-            <span className="block text-xs font-bold text-foreground">{label}</span>
+          <div className="space-y-1.5 text-right w-full" data-required={isRequired ? "true" : undefined}>
+            <span className="block text-xs font-bold text-foreground">
+              {label}
+              {isRequired && <span className="text-destructive ms-1">*</span>}
+            </span>
             <div className="flex flex-col gap-1.5">
               {options.map((opt, i) => (
                 <label key={i} className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
                   <input
                     type="radio"
                     name={name}
+                    required={isRequired}
                     defaultChecked={i === 0}
                     className="text-primary focus:ring-primary h-4 w-4"
                   />
@@ -1536,7 +1553,7 @@ function CanvasElementComponent({
           { title: "سؤال متداول ۲", content: "پاسخ مشروح به سؤال دوم کاربر." },
         ];
         return (
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full" data-widget="accordion">
             {items.map((item, idx) => (
               <details
                 key={idx}
@@ -1593,16 +1610,20 @@ function CanvasElementComponent({
       case "countdown": {
         const title = String(props.title || "پیشنهاد شگفت‌انگیز");
         const targetDate = String(props.target_date || "");
+        const expiredText = String(props.expired_text || "این مهلت به پایان رسید!");
 
         let days = "۰۲";
         let hours = "۱۴";
         let minutes = "۳۵";
         let seconds = "۴۸";
+        let isExpired = false;
 
         if (targetDate) {
           const targetTime = new Date(targetDate).getTime();
           if (!isNaN(targetTime)) {
-            const diff = Math.max(0, targetTime - Date.now());
+            const rawDiff = targetTime - Date.now();
+            isExpired = rawDiff <= 0;
+            const diff = Math.max(0, rawDiff);
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / (1000 * 60)) % 60);
@@ -1615,39 +1636,45 @@ function CanvasElementComponent({
         }
 
         return (
-          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full">
+          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full" data-widget="countdown" data-target={targetDate}>
             <h3 className="font-bold text-sm text-foreground">{title}</h3>
             <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">{days}</span>
+                <span className="block text-lg font-black text-primary" data-cd-unit="days">{days}</span>
                 <span className="text-[10px] text-muted-foreground">روز</span>
               </div>
               <span className="font-bold text-primary">:</span>
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">{hours}</span>
+                <span className="block text-lg font-black text-primary" data-cd-unit="hours">{hours}</span>
                 <span className="text-[10px] text-muted-foreground">ساعت</span>
               </div>
               <span className="font-bold text-primary">:</span>
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">{minutes}</span>
+                <span className="block text-lg font-black text-primary" data-cd-unit="minutes">{minutes}</span>
                 <span className="text-[10px] text-muted-foreground">دقیقه</span>
               </div>
               <span className="font-bold text-primary">:</span>
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">{seconds}</span>
+                <span className="block text-lg font-black text-primary" data-cd-unit="seconds">{seconds}</span>
                 <span className="text-[10px] text-muted-foreground">ثانیه</span>
               </div>
             </div>
+            {isExpired && (
+              <p className="text-xs font-bold text-destructive" data-cd-expired="1">
+                {expiredText}
+              </p>
+            )}
           </div>
         );
       }
       case "icon_box": {
+        const iconName = String(props.icon || "shield-check");
         const title = String(props.title || "ارسال سریع و مطمئن");
         const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full" data-widget="icon_box" data-icon={iconName}>
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5" />
+              <BuilderIconSvg name={iconName} size={20} />
             </div>
             <div className="space-y-1 text-right">
               <h4 className="font-bold text-xs text-foreground">{title}</h4>
@@ -2024,7 +2051,7 @@ function CanvasElementComponent({
           { platform: "تلگرام", url: "#" },
         ];
         return (
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap" data-widget="social_links">
             {links.map((l, idx) => (
               <a
                 key={idx}
@@ -2786,14 +2813,27 @@ function CanvasElementComponent({
             ) : null}
           </div>
         ) : element.children && element.children.length > 0 ? (
-          element.children.map((child) => (
-            <CanvasElement
-              key={child.id}
-              element={child}
-              activeBreakpoint={activeBreakpoint}
-              depth={depth + 1}
-            />
-          ))
+          <>
+            {element.children.map((child) => (
+              <CanvasElement
+                key={child.id}
+                element={child}
+                activeBreakpoint={activeBreakpoint}
+                depth={depth + 1}
+              />
+            ))}
+            {element.widgetType === "form_container" && element.widgetProps?.show_submit !== false && (
+              <div className="pt-2 w-full">
+                <button
+                  type="button"
+                  data-form-submit-preview="true"
+                  className="inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-xs"
+                >
+                  {String(element.widgetProps?.submit_label || "ارسال فرم")}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           !previewMode && (
             <div className="space-y-3 w-full">
@@ -2812,6 +2852,17 @@ function CanvasElementComponent({
                   <span>افزودن بلوک به این بخش</span>
                 </div>
               </div>
+              {element.widgetType === "form_container" && element.widgetProps?.show_submit !== false && (
+                <div className="pt-1 w-full">
+                  <button
+                    type="button"
+                    data-form-submit-preview="true"
+                    className="inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-xs"
+                  >
+                    {String(element.widgetProps?.submit_label || "ارسال فرم")}
+                  </button>
+                </div>
+              )}
             </div>
           )
         )

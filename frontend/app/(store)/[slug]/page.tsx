@@ -10,6 +10,7 @@ import { apiInternalUrl } from "@/lib/api/server-base";
 import { oembedDiscoveryUrl, siteOrigin } from "@/lib/site-url";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo-meta";
 import { BuilderStudio } from "@/components/admin/builder/builder-studio";
+import { BuilderInteractiveRuntime } from "@/components/admin/builder/builder-interactive-runtime";
 
 // CMS pages are the editable storefront copy (about, terms, returns, …). The
 // backend is the source of truth; this route renders whatever slug an editor
@@ -274,6 +275,7 @@ export default async function CmsPageRoute({ params, searchParams }: Props) {
           className="builder-rendered-content w-full"
           dangerouslySetInnerHTML={{ __html: cleanBuilderHtml(page.body_html) }}
         />
+        <BuilderInteractiveRuntime pageSlug={slug} />
       </div>
     );
   }

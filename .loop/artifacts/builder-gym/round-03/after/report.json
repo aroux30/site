@@ -1,0 +1,15 @@
+{
+  "idMapCount": 15,
+  "ssrCheck": {
+    "insertedOk": 15,
+    "ssrTab2Switched": true,
+    "videoHasEmbedIframe": true,
+    "iconBoxSvg": true,
+    "socialLinkOk": true,
+    "radioCount": 3,
+    "formHasSubmitBtn": true,
+    "formStatus": "پیام شما در راند۳ ثبت شد!"
+  },
+  "errors": [],
+  "failedRequests": []
+}

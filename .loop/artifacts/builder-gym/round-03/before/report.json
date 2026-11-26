@@ -1,0 +1,704 @@
+{
+  "inserted": [
+    {
+      "key": "table",
+      "exists": true
+    },
+    {
+      "key": "form_container",
+      "exists": true
+    },
+    {
+      "key": "accordion",
+      "exists": true
+    },
+    {
+      "key": "tabs",
+      "exists": true
+    },
+    {
+      "key": "countdown",
+      "exists": true
+    },
+    {
+      "key": "video",
+      "exists": true
+    },
+    {
+      "key": "icon_box",
+      "exists": true
+    },
+    {
+      "key": "social_links",
+      "exists": true
+    },
+    {
+      "key": "form_input",
+      "exists": true
+    },
+    {
+      "key": "form_textarea",
+      "exists": true
+    },
+    {
+      "key": "form_select",
+      "exists": true
+    },
+    {
+      "key": "form_checkbox",
+      "exists": true
+    },
+    {
+      "key": "form_radio",
+      "exists": true
+    }
+  ],
+  "widgetControlsDump": {
+    "table": {
+      "labels": [
+        "عناوین ستون‌ها (با کاما جدا کنید)",
+        "سطرهای داده (هر خط یک سطر، با کاما جدا کنید)",
+        "حاشیه و خطوط کادر (Bordered)",
+        "سطرهای یک‌در‌میان رنگی (Striped)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "مشخصه، مدل الف، مدل ب",
+          "ph": "عنوان ۱، عنوان ۲، عنوان ۳",
+          "testId": "table-headers-input"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "گارانتی، ۱۸ ماه تعویض، ۱۲ ماه تعمیر\nپشتیبانی، ۲۴ ساعته، ۹ الی ۱۷",
+          "ph": "سطر ۱: سلول ۱، سلول ۲ سطر ۲: سلول ۱، سلول ۲",
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "",
+          "role": "switch",
+          "testId": null,
+          "ariaChecked": "true"
+        },
+        {
+          "text": "",
+          "role": "switch",
+          "testId": null,
+          "ariaChecked": "true"
+        }
+      ]
+    },
+    "form_container": {
+      "labels": [
+        "آدرس اندپوینت ثبت فرم (Action URL)",
+        "پیام موفقیت‌آمیز ثبت",
+        "پیام خطا در ارسال"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "/api/v1/content/forms/submit",
+          "ph": null,
+          "testId": "form-container-submit-url"
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "پیام شما با موفقیت ثبت شد.",
+          "ph": null,
+          "testId": "form-container-success-input"
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "خطا در ارسال فرم. لطفاً فیلدها را بررسی نمایید.",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": []
+    },
+    "accordion": {
+      "labels": [
+        "مدیریت آیتم‌های تاشو (Accordion)",
+        "عنوان سؤال 1",
+        "پاسخ / توضیحات",
+        "عنوان سؤال 2",
+        "پاسخ / توضیحات"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "مدت زمان ارسال کالا چقدر است؟",
+          "ph": null,
+          "testId": "accordion-item-title-0"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "سفارش‌ها بین ۱ الی ۳ روز کاری از طریق پست پیشتاز تحویل می‌گردند.",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "شرایط مرجوعی کالا چیست؟",
+          "ph": null,
+          "testId": "accordion-item-title-1"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "تا ۷ روز پس از دریافت، امکان بازگشت کالا در صورت پلمپ بودن بسته وجود دارد.",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "+ افزودن آیتم جدید به آکاردئون",
+          "role": null,
+          "testId": "accordion-add-item-btn",
+          "ariaChecked": null
+        }
+      ]
+    },
+    "tabs": {
+      "labels": [
+        "زبانه‌های محتوایی (Tabs)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "مشخصات کلی",
+          "ph": "عنوان زبانه",
+          "testId": "tab-title-input-0"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "توضیحات و مشخصات فنی کالا و جدول ابعاد و وزن.",
+          "ph": "محتوای متنی زبانه",
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "دیدگاه خریداران",
+          "ph": "عنوان زبانه",
+          "testId": "tab-title-input-1"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "نظرات ثبت‌شده کاربران و تجربیات استفاده.",
+          "ph": "محتوای متنی زبانه",
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "شرایط گارانتی",
+          "ph": "عنوان زبانه",
+          "testId": "tab-title-input-2"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "۱۸ ماه گارانتی معتبر شرکتی با کارت طلایی.",
+          "ph": "محتوای متنی زبانه",
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "+ افزودن زبانه",
+          "role": null,
+          "testId": "tabs-add-tab-btn",
+          "ariaChecked": null
+        },
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        }
+      ]
+    },
+    "countdown": {
+      "labels": [
+        "عنوان شمارنده",
+        "تاریخ و ساعت پایان (ISO 8601)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "مهلت تخفیف ویژه شب عید",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "2026-11-29T18:57:49.933Z",
+          "ph": "2026-12-31T23:59:59",
+          "testId": null
+        }
+      ],
+      "buttons": []
+    },
+    "video": {
+      "labels": [
+        "نوع منبع ویدئو",
+        "آدرس ویدئو (URL)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "https://www.aparat.com/video/video/embed/videohash/dummy",
+          "ph": "https://www.aparat.com/video/video/embed/videohash/...",
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "آپارات (Aparat)",
+          "role": "combobox",
+          "testId": null,
+          "ariaChecked": null
+        }
+      ]
+    },
+    "icon_box": {
+      "labels": [
+        "انتخاب آیکون",
+        "عنوان ویژگی",
+        "توضیحات"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "ضمانت اصالت و سلامت فیزیکی",
+          "ph": null,
+          "testId": "iconbox-title-input"
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "تمامی کالاها با گواهی اصالت ۱۰۰٪ اورجینال عرضه می‌شوند.",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "ضمانت (Shield)",
+          "role": "combobox",
+          "testId": null,
+          "ariaChecked": null
+        }
+      ]
+    },
+    "social_links": {
+      "labels": [
+        "لینک‌های شبکه‌های اجتماعی"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "اینستاگرام",
+          "ph": "نام پلتفرم",
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "https://instagram.com",
+          "ph": "https://...",
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "تلگرام",
+          "ph": "نام پلتفرم",
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "https://t.me",
+          "ph": "https://...",
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "+ افزودن شبکه",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "حذف",
+          "role": null,
+          "testId": null,
+          "ariaChecked": null
+        }
+      ]
+    },
+    "form_input": {
+      "labels": [
+        "عنوان فیلد (Label)",
+        "نام فیلد (Field Name)",
+        "متن راهنما (Placeholder)",
+        "نوع ورودی",
+        "فیلد اجباری (Required)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "نام و نام خانوادگی",
+          "ph": null,
+          "testId": "form-input-label-input"
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "full_name",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "مثلاً علی رضایی",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "متن عادی (Text)",
+          "role": "combobox",
+          "testId": null,
+          "ariaChecked": null
+        },
+        {
+          "text": "",
+          "role": "switch",
+          "testId": null,
+          "ariaChecked": "false"
+        }
+      ]
+    },
+    "form_textarea": {
+      "labels": [
+        "عنوان فیلد (Label)",
+        "نام فیلد (Field Name)",
+        "متن راهنما (Placeholder)",
+        "تعداد سطرها (ارتفاع)",
+        "فیلد اجباری (Required)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "پیام شما",
+          "ph": null,
+          "testId": "form-textarea-label-input"
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "message",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "پیام یا درخواست خود را بنویسید...",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": "number",
+          "val": "4",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "",
+          "role": "switch",
+          "testId": null,
+          "ariaChecked": "false"
+        }
+      ]
+    },
+    "form_select": {
+      "labels": [
+        "عنوان فیلد (Label)",
+        "نام فیلد (Field Name)",
+        "گزینه‌ها (با کاما یا در خطوط جداگانه بنویسید)",
+        "فیلد اجباری (Required)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "انتخاب موضوع",
+          "ph": null,
+          "testId": "form-select-label-input"
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "topic",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "پشتیبانی فنی\nفروش و مشاوره\nسایر موارد",
+          "ph": "گزینه ۱ گزینه ۲ گزینه ۳",
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "",
+          "role": "switch",
+          "testId": null,
+          "ariaChecked": "false"
+        }
+      ]
+    },
+    "form_checkbox": {
+      "labels": [
+        "متن چک‌باکس",
+        "نام فیلد (Field Name)",
+        "فیلد الزامی (Required)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "شرایط و قوانین را مطالعه کرده و می‌پذیرم",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "accept_terms",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "",
+          "role": "switch",
+          "testId": null,
+          "ariaChecked": "true"
+        }
+      ]
+    },
+    "form_radio": {
+      "labels": [
+        "عنوان گروه گزینه‌ها",
+        "نام فیلد (Field Name)",
+        "گزینه‌ها (هر سطر یک گزینه)"
+      ],
+      "inputs": [
+        {
+          "tag": "input",
+          "type": null,
+          "val": "روش ارسال سفارش",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "input",
+          "type": null,
+          "val": "shipping_method",
+          "ph": null,
+          "testId": null
+        },
+        {
+          "tag": "textarea",
+          "type": null,
+          "val": "پست پیشتاز\nتیپاکس سریع\nپیک موتوری",
+          "ph": null,
+          "testId": null
+        }
+      ],
+      "buttons": []
+    }
+  },
+  "nudges": {
+    "table": {
+      "found": true,
+      "text": "ویژگینسخه پایهنسخه ۳۶۰سرعتعالیفوق‌العاده ۳۶۰پشتیبانی۱ سال۳ سال",
+      "html": "<div class=\"builder-table overflow-x-auto w-full select-text\"><table class=\"w-full border-collapse text-right text-sm\"><thead><tr class=\"bg-muted/40 border-b border-border/80\"><th class=\"p-3.5 font-semibold text-muted-foreground\">ویژگی</th><th class=\"p-3.5 font-semibold text-muted-foreground\">نسخه پایه</th><th class=\"p-3.5 font-semibold text-muted-foreground\">نسخه ۳۶۰</th></tr></thead><tbody class=\"divide-y divide-border/60\"><tr class=\"hover:bg-muted/30 transition\"><td class=\"p-3.5 text-foreground border-b border-border/60\">سرعت</td><td class=\"p-3.5 text-foreground border-b border-border/60\">عالی</td><td class=\"p-3.5 text-foreground border-b border-border/60\">فوق‌العاده ۳۶۰</td></tr><tr class=\"hover:bg-muted/30 transition\"><td class=\"p-3.5 text-foreground border-b border-border/60\">پشتیبانی</td><td class=\"p-3.5 text-foreground border-b border-border/60\">۱ سال</td><td class=\"p-3.5 text-foreground border-b border-border/60\">۳ سال</td></tr></tbody></table></div>"
+    },
+    "form_container_inputsCount": 3,
+    "form_container": {
+      "found": true,
+      "text": "فرم سازنده (Form Container)نام و نام خانوادگیپیام شماانتخاب موضوعپشتیبانی فنیفروش و مشاورهسایر مواردشرایط و قوانین را مطالعه کرده و می‌پذیرمروش ارسال سفارشپست پیشتازتیپاکس سریعپیک موتوری",
+      "html": "<div class=\"absolute top-1 start-1 z-20 pointer-events-none\" data-submit-url=\"/api/v1/content/forms/submit\" data-success-message=\"فرم ۳۶۰ ثبت شد!\" data-error-message=\"خطا در ارسال فرم. لطفاً فیلدها را بررسی نمایید.\"><div class=\"inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-300 text-[9px] px-1.5 py-0 h-4\">فرم سازنده (Form Container)</div></div><div class=\"relative group/elem select-none block\" data-element-id=\"el_25dpjztf\" data-element-name=\"فیلد ورودی\" data-widget-type=\"form_input\"><div class=\"space-y-1 w-full text-right pointer-events-none\"><label class=\"block text-xs font-semibold text-foreground\">نام و نام خانوادگی</label><input placeholder=\"مثلاً علی رضایی\" readonly=\"\" class=\"w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm\" type=\"text\" style=\"\"></div></div><div class=\"relative group/elem select-none block\" data-element-id=\"el_riqzmwt9\" data-element-name=\"متن چندخطی\" data-widget-type=\"form_textarea\"><div class=\"space-y-1 w-full text-right pointer-events-none\"><label class=\"block text-xs font"
+    },
+    "form_input": {
+      "found": true,
+      "text": "نام کاربری ۳۶۰*",
+      "html": "<div class=\"space-y-1 w-full text-right pointer-events-none\" data-required=\"true\"><label class=\"block text-xs font-semibold text-foreground\">نام کاربری ۳۶۰<span class=\"text-destructive ms-1\">*</span></label><input placeholder=\"نام کاربری را وارد کنید\" readonly=\"\" class=\"w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm\" type=\"text\" style=\"\" required=\"\"></div>"
+    },
+    "form_textarea": {
+      "found": true,
+      "text": "پیام ۳۶۰",
+      "html": "<div class=\"space-y-1 w-full text-right pointer-events-none\"><label class=\"block text-xs font-semibold text-foreground\">پیام ۳۶۰</label><textarea placeholder=\"پیام یا درخواست خود را بنویسید...\" rows=\"4\" readonly=\"\" class=\"w-full rounded-xl border border-input bg-background p-3 text-sm\" style=\"\"></textarea></div>"
+    },
+    "form_select": {
+      "found": true,
+      "text": "دپارتمان ۳۶۰فروشپشتیبانی ۳۶۰مدیریت",
+      "html": "<div class=\"space-y-1 w-full text-right pointer-events-none\"><label class=\"block text-xs font-semibold text-foreground\">دپارتمان ۳۶۰</label><select class=\"w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm\" disabled=\"\"><option>فروش</option><option>پشتیبانی ۳۶۰</option><option>مدیریت</option></select></div>"
+    },
+    "form_checkbox": {
+      "found": true,
+      "text": "موافق قوانین ۳۶۰",
+      "html": "<div class=\"flex items-center gap-2 text-right\"><input id=\"chk_el_d007i9sp\" class=\"rounded border-input text-primary focus:ring-primary h-4 w-4\" type=\"checkbox\" name=\"accept_terms\" style=\"\"><label for=\"chk_el_d007i9sp\" class=\"text-xs font-medium text-foreground cursor-pointer select-none\">موافق قوانین ۳۶۰</label></div>"
+    },
+    "form_radio": {
+      "found": true,
+      "text": "نوع ارسال ۳۶۰پست پیشتاز,پیک موتوری ۳۶۰",
+      "html": "<div class=\"space-y-1.5 text-right w-full\"><span class=\"block text-xs font-bold text-foreground\">نوع ارسال ۳۶۰</span><div class=\"flex flex-col gap-1.5\"><label class=\"flex items-center gap-2 text-xs text-foreground cursor-pointer select-none\"><input class=\"text-primary focus:ring-primary h-4 w-4\" type=\"radio\" checked=\"\" name=\"shipping_method\" style=\"\"><span>پست پیشتاز,پیک موتوری ۳۶۰</span></label></div></div>"
+    },
+    "accordion": {
+      "found": true,
+      "text": "سوال تست ۳۶۰پاسخ دقیق آکاردئون ۳۶۰شرایط مرجوعی کالا چیست؟تا ۷ روز پس از دریافت، امکان بازگشت کالا در صورت پلمپ بودن بسته وجود دارد.سؤال جدیدپاسخ جدید",
+      "html": "<div class=\"space-y-2 w-full\"><details class=\"group rounded-xl border border-border/80 bg-card overflow-hidden shadow-sm\" open=\"\"><summary class=\"p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none\"><span>سوال تست ۳۶۰</span><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-chevron-down w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180\"><path d=\"m6 9 6 6 6-6\"></path></svg></summary><div class=\"p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed\">پاسخ دقیق آکاردئون ۳۶۰</div></details><details class=\"group rounded-xl border border-border/80 bg-card overflow-hidden shadow-sm\"><summary class=\"p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none\"><span>شرایط مرجوعی کالا چیست؟</span><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
+    },
+    "tabs": {
+      "found": true,
+      "text": "تب اول ۳۶۰تب دوم ۳۶۰شرایط گارانتیتب جدید 4محتوای تب دوم ۳۶۰",
+      "html": "<div class=\"rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm\" data-widget=\"tabs\"><div class=\"flex border-b border-border/60 bg-muted/30\"><button type=\"button\" class=\"px-4 py-2.5 text-xs font-bold border-b-2 transition border-transparent text-muted-foreground hover:text-foreground\">تب اول ۳۶۰</button><button type=\"button\" class=\"px-4 py-2.5 text-xs font-bold border-b-2 transition border-primary text-primary bg-background shadow-xs\">تب دوم ۳۶۰</button><button type=\"button\" class=\"px-4 py-2.5 text-xs font-bold border-b-2 transition border-transparent text-muted-foreground hover:text-foreground\">شرایط گارانتی</button><button type=\"button\" class=\"px-4 py-2.5 text-xs font-bold border-b-2 transition border-transparent text-muted-foreground hover:text-foreground\">تب جدید 4</button></div><div class=\"p-4 text-xs text-muted-foreground leading-relaxed\">محتوای تب دوم ۳۶۰</div></div>",
+      "afterTab2ClickText": "تب اول ۳۶۰تب دوم ۳۶۰شرایط گارانتیتب جدید 4توضیحات و مشخصات فنی کالا و جدول ابعاد و وزن."
+    },
+    "countdown": {
+      "found": true,
+      "text": "شمارشگر تست ۳۶۰۰۲روز:۲۳ساعت:۵۹دقیقه:۴۶ثانیه",
+      "html": "<div class=\"p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full\"><h3 class=\"font-bold text-sm text-foreground\">شمارشگر تست ۳۶۰</h3><div class=\"flex items-center justify-center gap-2 text-center\" dir=\"ltr\"><div class=\"bg-muted/60 p-2 rounded-xl min-w-[50px]\"><span class=\"block text-lg font-black text-primary\">۰۲</span><span class=\"text-[10px] text-muted-foreground\">روز</span></div><span class=\"font-bold text-primary\">:</span><div class=\"bg-muted/60 p-2 rounded-xl min-w-[50px]\"><span class=\"block text-lg font-black text-primary\">۲۳</span><span class=\"text-[10px] text-muted-foreground\">ساعت</span></div><span class=\"font-bold text-primary\">:</span><div class=\"bg-muted/60 p-2 rounded-xl min-w-[50px]\"><span class=\"block text-lg font-black text-primary\">۵۹</span><span class=\"text-[10px] text-muted-foreground\">دقیقه</span></div><span class=\"font-bold text-primary\">:</span><div class=\"bg-muted/60 p-2 rounded-xl min-w-[50px]\"><span class=\"block text-lg font-black text-primary\">۴۶</span><span class=\"text-[10px] text-muted-foreground\">ثانیه</span></div></div></div>"
+    },
+    "video": {
+      "found": true,
+      "text": "",
+      "html": "<div class=\"aspect-video w-full rounded-2xl overflow-hidden bg-black/10 border border-border/80 flex items-center justify-center\"><iframe src=\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\" class=\"w-full h-full border-0 pointer-events-none\" allowfullscreen=\"\" title=\"ویدیو\"></iframe></div>"
+    },
+    "icon_box": {
+      "found": true,
+      "text": "باکس آیکون ۳۶۰توضیحات آیکون باکس ۳۶۰",
+      "html": "<div class=\"p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full\"><div class=\"w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-sparkles w-5 h-5\"><path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\"></path><path d=\"M20 3v4\"></path><path d=\"M22 5h-4\"></path><path d=\"M4 17v2\"></path><path d=\"M5 18H3\"></path></svg></div><div class=\"space-y-1 text-right\"><h4 class=\"font-bold text-xs text-foreground\">باکس آیکون ۳۶۰</h4><p class=\"text-[11px] text-muted-foreground leading-relaxed\">توضیحات آیکون باکس ۳۶۰</p></div></div>"
+    },
+    "social_links": {
+      "found": true,
+      "text": "https://instagram.com/aroux_360تلگرام",
+      "html": "<div class=\"flex items-center gap-2 flex-wrap\"><a href=\"https://instagram.com\" class=\"p-2 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold flex items-center gap-1.5\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-share2 w-3.5 h-3.5\"><circle cx=\"18\" cy=\"5\" r=\"3\"></circle><circle cx=\"6\" cy=\"12\" r=\"3\"></circle><circle cx=\"18\" cy=\"19\" r=\"3\"></circle><line x1=\"8.59\" x2=\"15.42\" y1=\"13.51\" y2=\"17.49\"></line><line x1=\"15.41\" x2=\"8.59\" y1=\"6.51\" y2=\"10.49\"></line></svg><span>https://instagram.com/aroux_360</span></a><a href=\"https://t.me\" class=\"p-2 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold flex items-center gap-1.5\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-share2 w-3.5 h-3.5\"><circle cx=\"18\" cy=\"5\" r=\"3\"></circle><circle cx=\"6\" cy=\"12\" r=\"3\"></circle><circle cx=\"18\" cy=\"19\" r=\"3\"></circle><line x1=\"8"
+    }
+  },
+  "reloadParity": {},
+  "ssrParity": {
+    "tableExists": true,
+    "tableText": "ویژگینسخه پایهنسخه ۳۶۰سرعتعالیفوق‌العاده ۳۶۰پشتیبانی۱ سال۳ سال",
+    "formTag": "form",
+    "formInputsCount": 6,
+    "formHasSubmitBtn": false,
+    "accordionHasText": true,
+    "accordionUsesDetails": true,
+    "tabsHasText": true,
+    "ssrTab2Switched": false,
+    "countdownText": "شمارشگر تست ۳۶۰۰۲روز:۲۳ساعت:۵۹دقیقه:۴۲ثانیه",
+    "videoHtml": "",
+    "iconBoxText": "🛡️باکس آیکون ۳۶۰توضیحات آیکون باکس ۳۶۰",
+    "socialLinksHref": "https://instagram.com",
+    "socialLinksHtml": "<a href=\"https://instagram.com\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"p-2 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold\">https://instagram.com/aroux_360</a><a href=\"https://t.me\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"p-2 rounded-xl bg-mut"
+  },
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Error: Request failed: 404",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.",
+    "Refused to display 'https://www.youtube.com/' in a frame because it set 'X-Frame-Options' to 'sameorigin'.",
+    "SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document.",
+    "Refused to display 'https://www.youtube.com/' in a frame because it set 'X-Frame-Options' to 'sameorigin'."
+  ],
+  "failedRequests": [
+    {
+      "url": "https://www.aparat.com/api/v0/videos/dummy?watchtype=embed&pr=1&mf=1&referer=embed",
+      "status": 404
+    }
+  ],
+  "idMap": {
+    "heading": "el_s0r5m7nv",
+    "text_editor": "el_fqup3mjq",
+    "table": "el_2mfr4tpz",
+    "form_container": "el_5smhfbu8",
+    "form_input": "el_25dpjztf",
+    "form_textarea": "el_riqzmwt9",
+    "form_select": "el_z5cd8nza",
+    "form_checkbox": "el_d007i9sp",
+    "form_radio": "el_mldix40a",
+    "accordion": "el_kdv6hruy",
+    "tabs": "el_se67lzr4",
+    "countdown": "el_996v7jal",
+    "video": "el_53jfgxxo",
+    "icon_box": "el_rcos4fv6",
+    "social_links": "el_o6dv53pc"
+  }
+}

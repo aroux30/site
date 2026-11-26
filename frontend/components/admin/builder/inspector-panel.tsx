@@ -579,6 +579,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">سطرهای داده (هر خط یک سطر، با کاما جدا کنید)</Label>
               <textarea
+                data-testid="table-rows-textarea"
                 rows={5}
                 value={rows.map((r) => r.join("، ")).join("\n")}
                 onChange={(e) => {
@@ -595,6 +596,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">حاشیه و خطوط کادر (Bordered)</Label>
               <Switch
+                data-testid="table-bordered-switch"
                 checked={bordered}
                 onCheckedChange={(val) => handlePropChange("bordered", val)}
               />
@@ -602,6 +604,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">سطرهای یک‌در‌میان رنگی (Striped)</Label>
               <Switch
+                data-testid="table-striped-switch"
                 checked={striped}
                 onCheckedChange={(val) => handlePropChange("striped", val)}
               />
@@ -625,6 +628,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">نام فیلد (Field Name)</Label>
               <Input
+                data-testid="form-input-name-input"
                 value={String(props.name || "")}
                 onChange={(e) => handlePropChange("name", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -634,6 +638,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن راهنما (Placeholder)</Label>
               <Input
+                data-testid="form-input-placeholder-input"
                 value={String(props.placeholder || "")}
                 onChange={(e) => handlePropChange("placeholder", e.target.value)}
                 className="h-8 text-xs"
@@ -645,7 +650,7 @@ export function InspectorPanel() {
                 value={String(props.input_type || "text")}
                 onValueChange={(val) => handlePropChange("input_type", val)}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger data-testid="form-input-type-select" className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -659,6 +664,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">فیلد اجباری (Required)</Label>
               <Switch
+                data-testid="form-input-required-switch"
                 checked={Boolean(props.required)}
                 onCheckedChange={(val) => handlePropChange("required", val)}
               />
@@ -698,6 +704,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">تعداد سطرها (ارتفاع)</Label>
               <Input
+                data-testid="form-textarea-rows-input"
                 type="number"
                 min={2}
                 max={20}
@@ -709,6 +716,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">فیلد اجباری (Required)</Label>
               <Switch
+                data-testid="form-textarea-required-switch"
                 checked={Boolean(props.required)}
                 onCheckedChange={(val) => handlePropChange("required", val)}
               />
@@ -740,6 +748,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">گزینه‌ها (با کاما یا در خطوط جداگانه بنویسید)</Label>
               <textarea
+                data-testid="form-select-options-textarea"
                 rows={4}
                 value={
                   Array.isArray(props.options)
@@ -759,6 +768,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">فیلد اجباری (Required)</Label>
               <Switch
+                data-testid="form-select-required-switch"
                 checked={Boolean(props.required)}
                 onCheckedChange={(val) => handlePropChange("required", val)}
               />
@@ -1194,9 +1204,27 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">پیام خطا در ارسال</Label>
               <Input
+                data-testid="form-container-error-input"
                 value={String(props.error_message || "خطا در ارسال فرم. لطفاً فیلدها را بررسی نمایید.")}
                 onChange={(e) => handlePropChange("error_message", e.target.value)}
                 className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه ارسال فرم</Label>
+              <Input
+                data-testid="form-container-submit-label-input"
+                value={String(props.submit_label || "ارسال فرم")}
+                onChange={(e) => handlePropChange("submit_label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش دکمه ارسال پیش‌فرض</Label>
+              <Switch
+                data-testid="form-container-show-submit-switch"
+                checked={props.show_submit !== false}
+                onCheckedChange={(val) => handlePropChange("show_submit", val)}
               />
             </div>
           </div>
@@ -1208,6 +1236,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن چک‌باکس</Label>
               <Input
+                data-testid="form-checkbox-label-input"
                 value={String(props.label || "شرایط و قوانین را مطالعه کرده و می‌پذیرم")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1216,6 +1245,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">نام فیلد (Field Name)</Label>
               <Input
+                data-testid="form-checkbox-name-input"
                 value={String(props.name || "accept_terms")}
                 onChange={(e) => handlePropChange("name", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -1225,6 +1255,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">فیلد الزامی (Required)</Label>
               <Switch
+                data-testid="form-checkbox-required-switch"
                 checked={Boolean(props.required)}
                 onCheckedChange={(val) => handlePropChange("required", val)}
               />
@@ -1238,6 +1269,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان گروه گزینه‌ها</Label>
               <Input
+                data-testid="form-radio-label-input"
                 value={String(props.label || "روش ارسال")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1246,6 +1278,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">نام فیلد (Field Name)</Label>
               <Input
+                data-testid="form-radio-name-input"
                 value={String(props.name || "shipping_method")}
                 onChange={(e) => handlePropChange("name", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -1253,12 +1286,29 @@ export function InspectorPanel() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">گزینه‌ها (هر سطر یک گزینه)</Label>
+              <Label className="text-xs">گزینه‌ها (هر سطر یا با کاما یک گزینه)</Label>
               <textarea
+                data-testid="form-radio-options-textarea"
                 rows={4}
                 value={Array.isArray(props.options) ? (props.options as string[]).join("\n") : "گزینه یک\nگزینه دو"}
-                onChange={(e) => handlePropChange("options", e.target.value.split("\n").filter((s) => s.trim()))}
+                onChange={(e) =>
+                  handlePropChange(
+                    "options",
+                    e.target.value
+                      .split(/[\n،,]/)
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                  )
+                }
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">فیلد الزامی (Required)</Label>
+              <Switch
+                data-testid="form-radio-required-switch"
+                checked={Boolean(props.required)}
+                onCheckedChange={(val) => handlePropChange("required", val)}
               />
             </div>
           </div>
@@ -1301,6 +1351,7 @@ export function InspectorPanel() {
                 <div className="space-y-1">
                   <Label className="text-[11px]">پاسخ / توضیحات</Label>
                   <textarea
+                    data-testid={`accordion-item-content-${idx}`}
                     rows={2}
                     value={item.content || ""}
                     onChange={(e) => {
@@ -1331,6 +1382,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان شمارنده</Label>
               <Input
+                data-testid="countdown-title-input"
                 value={String(props.title || "مهلت تخفیف ویژه")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -1339,11 +1391,21 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">تاریخ و ساعت پایان (ISO 8601)</Label>
               <Input
+                data-testid="countdown-date-input"
                 value={String(props.target_date || "")}
                 onChange={(e) => handlePropChange("target_date", e.target.value)}
                 className="h-8 text-xs font-mono"
                 dir="ltr"
                 placeholder="2026-12-31T23:59:59"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیام پس از پایان مهلت</Label>
+              <Input
+                data-testid="countdown-expired-input"
+                value={String(props.expired_text || "این مهلت به پایان رسید!")}
+                onChange={(e) => handlePropChange("expired_text", e.target.value)}
+                className="h-8 text-xs"
               />
             </div>
           </div>
@@ -1358,7 +1420,7 @@ export function InspectorPanel() {
                 value={String(props.video_type || "aparat")}
                 onValueChange={(val) => handlePropChange("video_type", val)}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger data-testid="video-type-select" className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1371,11 +1433,12 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس ویدئو (URL)</Label>
               <Input
+                data-testid="video-url-input"
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
                 className="h-8 text-xs font-mono"
                 dir="ltr"
-                placeholder="https://www.aparat.com/video/video/embed/videohash/..."
+                placeholder="https://www.aparat.com/v/... یا YouTube / MP4"
               />
             </div>
           </div>
@@ -1390,7 +1453,7 @@ export function InspectorPanel() {
                 value={String(props.icon || "shield-check")}
                 onValueChange={(val) => handlePropChange("icon", val)}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger data-testid="iconbox-icon-select" className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
@@ -1414,6 +1477,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">توضیحات</Label>
               <textarea
+                data-testid="iconbox-desc-textarea"
                 rows={3}
                 value={String(props.description || "")}
                 onChange={(e) => handlePropChange("description", e.target.value)}
@@ -1474,6 +1538,7 @@ export function InspectorPanel() {
                     className="h-8 text-xs"
                   />
                   <textarea
+                    data-testid={`tab-content-input-${idx}`}
                     rows={3}
                     value={t.content || ""}
                     placeholder="محتوای متنی زبانه"
@@ -2153,6 +2218,7 @@ export function InspectorPanel() {
               <Label className="text-xs font-bold">لینک‌های شبکه‌های اجتماعی</Label>
               <button
                 type="button"
+                data-testid="social-add-btn"
                 onClick={() => {
                   const updated = [...links, { platform: "واتساپ", url: "https://wa.me" }];
                   handlePropChange("links", updated);
@@ -2165,17 +2231,21 @@ export function InspectorPanel() {
             <div className="space-y-2">
               {links.map((link, idx) => (
                 <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Input
-                      value={link.platform || ""}
-                      placeholder="نام پلتفرم"
-                      onChange={(e) => {
-                        const updated = [...links];
-                        updated[idx] = { ...updated[idx], platform: e.target.value };
-                        handlePropChange("links", updated);
-                      }}
-                      className="h-8 text-xs w-28"
-                    />
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="space-y-1 flex-1">
+                      <Label className="text-[11px] text-muted-foreground">عنوان شبکه</Label>
+                      <Input
+                        data-testid={`social-platform-input-${idx}`}
+                        value={link.platform || ""}
+                        placeholder="نام پلتفرم"
+                        onChange={(e) => {
+                          const updated = [...links];
+                          updated[idx] = { ...updated[idx], platform: e.target.value };
+                          handlePropChange("links", updated);
+                        }}
+                        className="h-8 text-xs"
+                      />
+                    </div>
                     {links.length > 1 && (
                       <button
                         type="button"
@@ -2183,23 +2253,27 @@ export function InspectorPanel() {
                           const updated = links.filter((_, i) => i !== idx);
                           handlePropChange("links", updated);
                         }}
-                        className="text-[10px] text-destructive hover:underline"
+                        className="text-[10px] text-destructive hover:underline self-end pb-1"
                       >
                         حذف
                       </button>
                     )}
                   </div>
-                  <Input
-                    value={link.url || ""}
-                    placeholder="https://..."
-                    onChange={(e) => {
-                      const updated = [...links];
-                      updated[idx] = { ...updated[idx], url: e.target.value };
-                      handlePropChange("links", updated);
-                    }}
-                    className="h-8 text-xs font-mono"
-                    dir="ltr"
-                  />
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">آدرس لینک (URL)</Label>
+                    <Input
+                      data-testid={`social-url-input-${idx}`}
+                      value={link.url || ""}
+                      placeholder="https://..."
+                      onChange={(e) => {
+                        const updated = [...links];
+                        updated[idx] = { ...updated[idx], url: e.target.value };
+                        handlePropChange("links", updated);
+                      }}
+                      className="h-8 text-xs font-mono"
+                      dir="ltr"
+                    />
+                  </div>
                 </div>
               ))}
             </div>

@@ -231,6 +231,8 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetType: "form_container",
       widgetProps: {
         submit_url: "/api/v1/content/forms/submit",
+        submit_label: "ارسال فرم",
+        show_submit: true,
         success_message: "پیام شما با موفقیت ثبت شد.",
         error_message: "خطا در ارسال فرم. لطفاً فیلدها را بررسی نمایید.",
       },
@@ -845,7 +847,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetType: "video",
       widgetProps: {
         video_type: "aparat",
-        url: "https://www.aparat.com/video/video/embed/videohash/dummy",
+        url: "",
         poster: "/placeholder-hero.svg",
       },
       isLocked: false,

@@ -100,6 +100,8 @@ class ASTCompiler:
         "map-pin": '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" fill="currentColor"/><path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor"/>',
         "user": '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="currentColor"/><path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="currentColor"/>',
         "lock": '<path d="M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="currentColor"/>',
+        "chevron-down": '<path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
+        "share-2": '<circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2" fill="none"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/>',
     }
 
     @classmethod
@@ -110,6 +112,47 @@ class ASTCompiler:
             inner = cls.ICON_SVG_INNER.get("star", "")
         cls_attr = f' class="lucide lucide-{key}{f" {css_class}" if css_class else ""}"' if (css_class or key) else ""
         return f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" fill="none" aria-hidden="true"{cls_attr}>{inner}</svg>'
+
+    @staticmethod
+    def _normalize_video_embed_url(raw_url: str, video_type: str = "aparat") -> str:
+        """Convert regular YouTube or Aparat watch URLs into embed URLs."""
+        import re as _re
+        from urllib.parse import parse_qs, urlparse
+
+        trimmed = str(raw_url or "").strip()
+        if not trimmed:
+            return ""
+        if not (trimmed.startswith("https://") or trimmed.startswith("http://") or trimmed.startswith("/")):
+            return ""
+
+        lower = trimmed.lower()
+        if video_type == "youtube" or "youtube.com" in lower or "youtu.be" in lower:
+            try:
+                parsed = urlparse(trimmed)
+                host = (parsed.hostname or "").lower()
+                video_id = ""
+                if "youtu.be" in host:
+                    video_id = parsed.path.strip("/").split("/")[0]
+                elif parsed.path.startswith("/embed/") or parsed.path.startswith("/shorts/") or parsed.path.startswith("/live/"):
+                    parts = [p for p in parsed.path.split("/") if p]
+                    video_id = parts[1] if len(parts) > 1 else ""
+                else:
+                    video_id = (parse_qs(parsed.query).get("v") or [""])[0]
+                if video_id and _re.match(r"^[A-Za-z0-9_-]{4,}$", video_id):
+                    return f"https://www.youtube.com/embed/{video_id}"
+            except Exception:
+                pass
+            return trimmed
+
+        if video_type == "aparat" or "aparat.com" in lower:
+            if "/video/video/embed/videohash/" in lower:
+                return trimmed
+            match = _re.search(r"aparat\.com/v/([A-Za-z0-9_-]+)", trimmed, flags=_re.IGNORECASE)
+            if match:
+                return f"https://www.aparat.com/video/video/embed/videohash/{match.group(1)}/vt/frame"
+            return trimmed
+
+        return trimmed
     SHAPE_DIVIDER_PATHS: dict[str, str] = {
         "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
         "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
@@ -437,9 +480,17 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
+            submit_btn_html = ""
+            if props.get("show_submit", True) is not False:
+                submit_label = html.escape(str(props.get("submit_label") or "ارسال فرم"))
+                submit_btn_html = (
+                    '<div class="pt-2 w-full">'
+                    f'<button type="submit" class="inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-xs font-bold shadow-xs hover:bg-primary/90 transition cursor-pointer">{submit_label}</button>'
+                    '</div>'
+                )
             children_html = overlay_html + shape_dividers_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated, css_collector=css_collector) for child in el.children
-            )
+            ) + submit_btn_html
         else:
             children_html = overlay_html + shape_dividers_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated, css_collector=css_collector) for child in el.children
@@ -573,42 +624,51 @@ class ASTCompiler:
         elif widget_type == "table":
             headers = props.get("headers", [])
             rows = props.get("rows", [])
-            bordered = props.get("bordered", True)
-            striped = props.get("striped", True)
+            bordered = props.get("bordered", True) is not False
+            striped = props.get("striped", True) is not False
             table_classes = ["w-full", "border-collapse", "text-right", "text-sm"]
             if bordered:
-                table_classes.append("border border-border/80 rounded-xl overflow-hidden")
+                table_classes.append("border border-border rounded-xl overflow-hidden")
 
             thead_html = ""
             if headers:
+                th_border = " border border-border/80" if bordered else ""
+                tr_head_border = " border-b border-border" if bordered else ""
                 th_cells = "".join(
-                    f'<th class="p-4 font-semibold text-muted-foreground border-b border-border/80">{html.escape(str(h))}</th>'
+                    f'<th class="p-4 font-semibold text-muted-foreground{th_border}">{html.escape(str(h))}</th>'
                     for h in headers
                 )
-                thead_html = f'<thead><tr class="bg-muted/40">{th_cells}</tr></thead>'
+                thead_html = f'<thead><tr class="bg-muted/40{tr_head_border}">{th_cells}</tr></thead>'
 
             tbody_rows = []
+            td_border = " border border-border/70" if bordered else ""
             for idx, row in enumerate(rows):
                 tr_class = "hover:bg-muted/30"
                 if striped and idx % 2 == 1:
-                    tr_class += " bg-muted/10"
+                    tr_class += " bg-muted/25"
                 td_cells = "".join(
-                    f'<td class="p-4 text-foreground border-b border-border/60">{html.escape(str(cell))}</td>'
+                    f'<td class="p-4 text-foreground{td_border}">{html.escape(str(cell))}</td>'
                     for cell in row
                 )
                 tbody_rows.append(f'<tr class="{tr_class}">{td_cells}</tr>')
 
-            tbody_html = f'<tbody class="divide-y divide-border/60">{"".join(tbody_rows)}</tbody>'
-            return f'<div{id_attr} class="builder-table overflow-x-auto {css_class}"{style_attr}><table class="{" ".join(table_classes)}">{thead_html}{tbody_html}</table></div>'
+            tbody_cls = ' class="divide-y divide-border/70"' if bordered else ""
+            tbody_html = f'<tbody{tbody_cls}>{"".join(tbody_rows)}</tbody>'
+            return (
+                f'<div{id_attr} class="builder-table overflow-x-auto {css_class}"'
+                f' data-widget="table"{style_attr}><table class="{" ".join(table_classes)}">{thead_html}{tbody_html}</table></div>'
+            )
 
         elif widget_type == "form_input":
             label = html.escape(str(props.get("label", "")))
             name = html.escape(str(props.get("name", "field")))
             placeholder = html.escape(str(props.get("placeholder", "")))
             input_type = html.escape(str(props.get("input_type", "text")))
-            required = " required" if props.get("required") else ""
+            is_required = bool(props.get("required"))
+            required = " required" if is_required else ""
+            req_star = '<span class="text-destructive ms-1">*</span>' if is_required else ""
             label_html = (
-                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}</label>'
+                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}{req_star}</label>'
                 if label
                 else ""
             )
@@ -623,9 +683,11 @@ class ASTCompiler:
             name = html.escape(str(props.get("name", "message")))
             placeholder = html.escape(str(props.get("placeholder", "")))
             rows_num = int(props.get("rows", 4))
-            required = " required" if props.get("required") else ""
+            is_required = bool(props.get("required"))
+            required = " required" if is_required else ""
+            req_star = '<span class="text-destructive ms-1">*</span>' if is_required else ""
             label_html = (
-                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}</label>'
+                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}{req_star}</label>'
                 if label
                 else ""
             )
@@ -638,10 +700,17 @@ class ASTCompiler:
         elif widget_type == "form_select":
             label = html.escape(str(props.get("label", "")))
             name = html.escape(str(props.get("name", "select_field")))
-            options = props.get("options", [])
-            required = " required" if props.get("required") else ""
+            raw_options = props.get("options", [])
+            if isinstance(raw_options, str):
+                import re as _re
+                options = [o.strip() for o in _re.split(r"[\n،,]", raw_options) if o.strip()]
+            else:
+                options = raw_options if isinstance(raw_options, list) else []
+            is_required = bool(props.get("required"))
+            required = " required" if is_required else ""
+            req_star = '<span class="text-destructive ms-1">*</span>' if is_required else ""
             label_html = (
-                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}</label>'
+                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}{req_star}</label>'
                 if label
                 else ""
             )
@@ -842,40 +911,55 @@ class ASTCompiler:
         elif widget_type == "form_checkbox":
             label = html.escape(str(props.get("label", "شرایط و قوانین را می‌پذیرم")))
             name = html.escape(str(props.get("name", "accept_terms")))
-            required = " required" if props.get("required") else ""
+            is_required = bool(props.get("required"))
+            required = " required" if is_required else ""
+            req_star = '<span class="text-destructive ms-1">*</span>' if is_required else ""
             checked = " checked" if props.get("checked") else ""
             return (
                 f'<div{id_attr} class="builder-form-checkbox flex items-center gap-2 {css_class}"{style_attr}>'
                 f'<input type="checkbox" id="chk_{html.escape(el.id)}" name="{name}"{checked}{required} class="rounded border-input text-primary focus:ring-primary h-4 w-4" />'
-                f'<label for="chk_{html.escape(el.id)}" class="text-xs font-medium text-foreground cursor-pointer">{label}</label>'
+                f'<label for="chk_{html.escape(el.id)}" class="text-xs font-medium text-foreground cursor-pointer">{label}{req_star}</label>'
                 f'</div>'
             )
 
         elif widget_type == "form_radio":
             label = html.escape(str(props.get("label", "گزینش")))
             name = html.escape(str(props.get("name", "radio_group")))
-            options = props.get("options", ["گزینه یک", "گزینه دو"])
+            raw_options = props.get("options", ["گزینه یک", "گزینه دو"])
+            if isinstance(raw_options, str):
+                import re as _re
+                options = [o.strip() for o in _re.split(r"[\n،,]", raw_options) if o.strip()]
+            else:
+                options = raw_options if isinstance(raw_options, list) else ["گزینه یک", "گزینه دو"]
+            is_required = bool(props.get("required"))
+            required = " required" if is_required else ""
+            req_star = '<span class="text-destructive ms-1">*</span>' if is_required else ""
             opts_html = "".join(
                 f'<label class="flex items-center gap-2 text-xs text-foreground cursor-pointer">'
-                f'<input type="radio" name="{name}" value="{html.escape(str(o))}" class="text-primary focus:ring-primary h-4 w-4" />'
+                f'<input type="radio" name="{name}" value="{html.escape(str(o))}"{required} class="text-primary focus:ring-primary h-4 w-4" />'
                 f'<span>{html.escape(str(o))}</span>'
                 f'</label>'
                 for o in options
             )
             return (
                 f'<div{id_attr} class="builder-form-radio space-y-1.5 {css_class}"{style_attr}>'
-                f'<span class="block text-xs font-semibold text-foreground">{label}</span>'
+                f'<span class="block text-xs font-semibold text-foreground">{label}{req_star}</span>'
                 f'<div class="flex flex-col gap-1.5">{opts_html}</div>'
                 f'</div>'
             )
 
         elif widget_type == "accordion":
             items = props.get("items", [{"title": "پرسش متداول ۱", "content": "پاسخ پرسش متداول ۱"}])
+            chevron_svg = cls.render_svg_icon(
+                "chevron-down",
+                size=16,
+                css_class="text-muted-foreground transition-transform group-open:rotate-180",
+            )
             items_html = "".join(
                 f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if (itm.get("default_open") or (itm.get("default_open") is None and idx == 0)) else ""}>'
                 f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
                 f'<span>{html.escape(str(itm.get("title", "پرسش")))}</span>'
-                f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                f'{chevron_svg}'
                 f'</summary>'
                 f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
                 f'{html.escape(str(itm.get("content", "")))}'
@@ -888,13 +972,13 @@ class ASTCompiler:
         elif widget_type == "tabs":
             tabs_list = props.get("tabs", [{"title": "تب ۱", "content": "محتوای تب ۱"}, {"title": "تب ۲", "content": "محتوای تب ۲"}])
             header_html = "".join(
-                f'<button type="button" class="px-4 py-2 text-xs font-bold border-b-2 {"border-primary text-primary" if idx == 0 else "border-transparent text-muted-foreground"} hover:text-foreground transition">'
+                f'<button type="button" data-tab-index="{idx}" aria-selected="{"true" if idx == 0 else "false"}" class="px-4 py-2 text-xs font-bold border-b-2 {"border-primary text-primary bg-background" if idx == 0 else "border-transparent text-muted-foreground"} hover:text-foreground transition">'
                 f'{html.escape(str(t.get("title", f"تب {idx+1}")))}'
                 f'</button>'
                 for idx, t in enumerate(tabs_list)
             )
             content_html = "".join(
-                f'<div class="p-4 text-xs text-muted-foreground leading-relaxed {"" if idx == 0 else "hidden"}">'
+                f'<div data-tab-pane="{idx}" class="p-4 text-xs text-muted-foreground leading-relaxed {"" if idx == 0 else "hidden"}">'
                 f'{html.escape(str(t.get("content", "")))}'
                 f'</div>'
                 for idx, t in enumerate(tabs_list)
@@ -910,12 +994,18 @@ class ASTCompiler:
             title = html.escape(str(props.get("title", "پیشنهاد شگفت‌انگیز")))
             target_str = str(props.get("target_date", "2026-12-31T23:59:59"))
             target = html.escape(target_str)
+            expired_text = html.escape(str(props.get("expired_text", "این مهلت به پایان رسید!")))
             d_fa, h_fa, m_fa, s_fa = "۰۲", "۱۴", "۳۵", "۰۰"
+            is_expired = False
             try:
                 from datetime import datetime, timezone
                 now_utc = datetime.now(timezone.utc)
                 target_dt = datetime.fromisoformat(target_str.replace("Z", "+00:00"))
-                diff_sec = max(0, int((target_dt - now_utc).total_seconds()))
+                if target_dt.tzinfo is None:
+                    target_dt = target_dt.replace(tzinfo=timezone.utc)
+                raw_diff = (target_dt - now_utc).total_seconds()
+                is_expired = raw_diff <= 0
+                diff_sec = max(0, int(raw_diff))
                 d = diff_sec // 86400
                 h = (diff_sec % 86400) // 3600
                 m = (diff_sec % 3600) // 60
@@ -927,29 +1017,42 @@ class ASTCompiler:
                 d_fa, h_fa, m_fa, s_fa = to_fa(d), to_fa(h), to_fa(m), to_fa(s)
             except Exception:
                 pass
+            expired_html = (
+                f'<p class="text-xs font-bold text-destructive pt-1" data-cd-expired="1">{expired_text}</p>'
+                if is_expired
+                else ""
+            )
             return (
-                f'<div{id_attr} class="builder-countdown p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 {css_class}" data-widget="countdown" data-target="{target}"{style_attr}>'
+                f'<div{id_attr} class="builder-countdown p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 {css_class}" data-widget="countdown" data-target="{target}" data-expired-text="{expired_text}"{style_attr}>'
                 f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
                 f'<div class="flex items-center justify-center gap-2 text-center" dir="ltr">'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{d_fa}</span><span class="text-[10px] text-muted-foreground">روز</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary" data-cd-unit="days">{d_fa}</span><span class="text-[10px] text-muted-foreground">روز</span></div>'
                 f'<span class="font-bold text-primary">:</span>'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{h_fa}</span><span class="text-[10px] text-muted-foreground">ساعت</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary" data-cd-unit="hours">{h_fa}</span><span class="text-[10px] text-muted-foreground">ساعت</span></div>'
                 f'<span class="font-bold text-primary">:</span>'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{m_fa}</span><span class="text-[10px] text-muted-foreground">دقیقه</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary" data-cd-unit="minutes">{m_fa}</span><span class="text-[10px] text-muted-foreground">دقیقه</span></div>'
                 f'<span class="font-bold text-primary">:</span>'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{s_fa}</span><span class="text-[10px] text-muted-foreground">ثانیه</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary" data-cd-unit="seconds">{s_fa}</span><span class="text-[10px] text-muted-foreground">ثانیه</span></div>'
                 f'</div>'
+                f'{expired_html}'
                 f'</div>'
             )
 
         elif widget_type in ("video", "aparat"):
-            v_type = props.get("video_type", "direct")
+            v_type = str(props.get("video_type", "direct"))
             if widget_type == "aparat":
                 v_type = "aparat"
-            v_url = html.escape(str(props.get("url", "")))
+            normalized_url = cls._normalize_video_embed_url(str(props.get("url", "")), v_type)
+            v_url = html.escape(normalized_url)
             poster = html.escape(str(props.get("poster", "")))
             loop = bool(props.get("loop", False))
             loop_attr = " loop" if loop else ""
+            if not normalized_url:
+                return (
+                    f'<div{id_attr} class="builder-video aspect-video w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/40 flex items-center justify-center {css_class}" data-widget="video"{style_attr}>'
+                    f'<span class="text-xs text-muted-foreground">پخش‌کننده ویدئو</span>'
+                    f'</div>'
+                )
             if v_type in ("aparat", "youtube"):
                 return (
                     f'<div{id_attr} class="builder-video aspect-video w-full rounded-2xl overflow-hidden border border-border/80 bg-black {css_class}" data-widget="video"{style_attr}>'
@@ -967,29 +1070,12 @@ class ASTCompiler:
         elif widget_type == "icon_box":
             title = html.escape(str(props.get("title", "ارسال سریع و رایگان")))
             desc = html.escape(str(props.get("description", "تحویل سفارش‌ها در سریع‌ترین زمان ممکن به سراسر کشور")))
-            icon_name = str(props.get("icon", "sparkles"))
-            icon_char_map = {
-                "shield-check": "🛡️",
-                "truck": "🚚",
-                "headphones": "🎧",
-                "star": "⭐",
-                "heart": "❤️",
-                "award": "🏆",
-                "check": "✓",
-                "zap": "⚡",
-                "sparkles": "✨",
-                "clock": "⏰",
-                "gift": "🎁",
-                "phone": "📞",
-                "mail": "✉️",
-                "thumbs-up": "👍",
-                "map-pin": "📍",
-            }
-            icon_char = icon_char_map.get(icon_name, "★")
+            icon_name = str(props.get("icon", "shield-check"))
+            svg_icon = cls.render_svg_icon(icon_name, size=20)
             return (
                 f'<div{id_attr} class="builder-icon-box p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 {css_class}" data-widget="icon_box" data-icon="{html.escape(icon_name)}"{style_attr}>'
-                f'<div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold">{icon_char}</div>'
-                f'<div class="space-y-1">'
+                f'<div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">{svg_icon}</div>'
+                f'<div class="space-y-1 text-right">'
                 f'<h4 class="font-bold text-xs text-foreground">{title}</h4>'
                 f'<p class="text-[11px] text-muted-foreground leading-relaxed">{desc}</p>'
                 f'</div>'
@@ -998,14 +1084,16 @@ class ASTCompiler:
 
         elif widget_type == "social_links":
             links = props.get("links", [{"platform": "instagram", "url": "#"}, {"platform": "telegram", "url": "#"}])
+            share_svg = cls.render_svg_icon("share-2", size=14)
             links_html = "".join(
-                f'<a href="{html.escape(str(l.get("url", "#")))}" target="_blank" rel="noopener noreferrer" class="p-2 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold">'
-                f'{html.escape(str(l.get("platform", "لینک")))}'
+                f'<a href="{html.escape(str(l.get("url", "#")))}" target="_blank" rel="noopener noreferrer" class="p-2 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold inline-flex items-center gap-1.5">'
+                f'{share_svg}'
+                f'<span>{html.escape(str(l.get("platform", "لینک")))}</span>'
                 f'</a>'
                 for l in links
             )
             return (
-                f'<div{id_attr} class="builder-social-links flex items-center gap-2 {css_class}" data-widget="social_links"{style_attr}>'
+                f'<div{id_attr} class="builder-social-links flex items-center gap-2 flex-wrap {css_class}" data-widget="social_links"{style_attr}>'
                 f'{links_html}'
                 f'</div>'
             )
@@ -1641,8 +1729,8 @@ class ASTCompiler:
                     t_cnt = html.escape(str(t.get("content", "")))
                     active_cls = "border-primary text-primary font-bold bg-background" if idx == 0 else "border-transparent text-muted-foreground hover:text-foreground"
                     hide_cls = "" if idx == 0 else "hidden"
-                    header_html += f'<button type="button" class="px-4 py-2.5 text-xs border-b-2 transition {active_cls}">{t_title}</button>'
-                    panes_html += f'<div class="p-4 text-xs leading-relaxed text-foreground {hide_cls}">{t_cnt}</div>'
+                    header_html += f'<button type="button" data-tab-index="{idx}" aria-selected="{"true" if idx == 0 else "false"}" class="px-4 py-2.5 text-xs border-b-2 transition {active_cls}">{t_title}</button>'
+                    panes_html += f'<div data-tab-pane="{idx}" class="p-4 text-xs leading-relaxed text-foreground {hide_cls}">{t_cnt}</div>'
             return (
                 f'<div{id_attr} class="builder-nested-tabs rounded-2xl border border-border/80 bg-card overflow-hidden w-full {css_class}" data-widget="nested_tabs"{style_attr}>'
                 f'<div class="flex border-b border-border/60 bg-muted/40">{header_html}</div>'
@@ -1669,7 +1757,7 @@ class ASTCompiler:
                         f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
                         f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
                         f'<span>{a_title}</span>'
-                        f'<span class="transition-transform group-open:rotate-180 text-muted-foreground">▾</span>'
+                        f'{cls.render_svg_icon("chevron-down", size=16, css_class="text-muted-foreground transition-transform group-open:rotate-180")}'
                         f'</summary>'
                         f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
                         f'{a_content}'

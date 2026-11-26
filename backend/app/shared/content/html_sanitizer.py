@@ -65,6 +65,8 @@ ALLOWED_ATTRIBUTES: dict[str, frozenset[str]] = {
         "class", "id", "title", "dir", "lang", "style", "role",
         "data-widget", "data-variant-id", "data-category", "data-filter",
         "data-limit", "data-auth", "data-global-component", "data-target",
+        "data-cd-unit", "data-cd-expired", "data-expired-text",
+        "data-tab-index", "data-tab-pane", "data-icon", "aria-selected",
     }),
     "button": frozenset({"type", "disabled"}),
     "label": frozenset({"for"}),

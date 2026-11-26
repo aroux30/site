@@ -29,19 +29,19 @@
 - [x] `divider` (Content / Style / Advanced)
 
 #### ۱۳ ویجت تعاملی و فرم
-- [ ] `table` (Content / Style / Advanced)
-- [ ] `form_container` (Content / Style / Advanced)
-- [ ] `form_input` (Content / Style / Advanced)
-- [ ] `form_textarea` (Content / Style / Advanced)
-- [ ] `form_select` (Content / Style / Advanced)
-- [ ] `form_checkbox` (Content / Style / Advanced)
-- [ ] `form_radio` (Content / Style / Advanced)
-- [ ] `accordion` (Content / Style / Advanced)
-- [ ] `tabs` (Content / Style / Advanced)
-- [ ] `countdown` (Content / Style / Advanced)
-- [ ] `video` (Content / Style / Advanced)
-- [ ] `icon_box` (Content / Style / Advanced)
-- [ ] `social_links` (Content / Style / Advanced)
+- [x] `table` (Content / Style / Advanced)
+- [x] `form_container` (Content / Style / Advanced)
+- [x] `form_input` (Content / Style / Advanced)
+- [x] `form_textarea` (Content / Style / Advanced)
+- [x] `form_select` (Content / Style / Advanced)
+- [x] `form_checkbox` (Content / Style / Advanced)
+- [x] `form_radio` (Content / Style / Advanced)
+- [x] `accordion` (Content / Style / Advanced)
+- [x] `tabs` (Content / Style / Advanced)
+- [x] `countdown` (Content / Style / Advanced)
+- [x] `video` (Content / Style / Advanced)
+- [x] `icon_box` (Content / Style / Advanced)
+- [x] `social_links` (Content / Style / Advanced)
 
 #### ۱۲ ویجت فروشگاهی
 - [ ] `product_card` (Content / Style / Advanced)
@@ -118,3 +118,26 @@
   - `npx vitest run`: `68 passed (68)` — `454 passed (454)`
   - `python -m pytest app/tests/unit`: `661 passed, 2 skipped` (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts --workers=1 --reporter=list`: `8 passed (8)`
+
+### دور ۳ (Round 03 — وزنه ۲ دسته ۲: ۱۳ ویجت تعاملی و فرم + رانتایم تعاملی SSR)
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-03/before/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision و Nudge:
+    - ویجت `video` هنگام درج پیش‌فرض آدرس `dummy` آپارات را صدا می‌زد و خطای HTTP 404 تولید می‌کرد؛ همچنین لینک‌های عادی YouTube (`watch?v=...` / `youtu.be/`) و Aparat (`/v/...`) به `/embed/` تبدیل نمی‌شدند و در بوم خطای `X-Frame-Options` و در SSR حذف کامل توسط `_EMBED_HOSTS` رخ می‌داد.
+    - ویجت `tabs` و `nested_tabs` در خروجی SSR فاقد هرگونه منطق جاوااسکریپت برای تعویض تب بودند (`ssrTab2Switched: false`).
+    - ویجت `form_container` فاقد دکمه `type="submit"` در SSR و فاقد پیش‌نمایش دکمه ارسال و رانتایم AJAX برای ارسال بدون ریلود صفحه بود؛ `form_checkbox`/`form_radio` در SSR نشانگر الزامی (`*`) نداشتند و `form_radio` گزینه‌های جداشده با کاما (`،` / `,`) را تجزیه نمی‌کرد.
+    - ویجت `icon_box` در بوم آیکون `<Sparkles>` را هاردکد کرده و انتخاب کاربر را نادیده می‌گرفت و در SSR ایموجی ثابت رندر می‌کرد؛ `accordion` در SSR علامت `"▾"` به جای آیکون SVG داشت؛ `social_links` در SSR فاقد آیکون SVG بود و `countdown` به دلیل `datetime` بدون timezone وارد `except` شده و استاتیک می‌ماند و `table` خطوط سلولی را با toggle تغییر نمی‌داد.
+  - `after/`: `.loop/artifacts/builder-gym/round-03/after/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision: صفر خطای کنسول و شبکه، درج `video` بدون درخواست 404 و تبدیل خودکار YouTube `watch?v=...` به `embed/` در بوم و SSR، تغییر واقعی آیکون `icon_box` به آیکون SVG کامیون (`truck`)، رندر آیکون SVG برای `social_links` و `accordion`، شمارنده زنده فارسی `countdown`، تعویض فعال تب ۲ در خروجی SSR (`نقد راند۳`)، جداسازی ۳ گزینه رادیویی با کاما + نمایش ستاره قرمز اجباری `*`، و ارسال واقعی فرم با نمایش بنر سبز تأییدیه («پیام شما در راند۳ ثبت شد!»).
+- **فایل‌های اصلاح‌شده**:
+  - `frontend/lib/builder/video-utils.ts` (تابع `normalizeVideoEmbedUrl` برای تبدیل لینک‌های YouTube و Aparat)
+  - `frontend/lib/builder/block-registry.ts` (حذف URL ساختگی آپارات در `video` و افزودن `submit_label` / `show_submit` به `form_container`)
+  - `frontend/components/admin/builder/inspector-panel.tsx` (کنترل‌های `submit_label`/`show_submit` فرم، `expired_text` شمارنده، تجزیه کاما و سویچ `required` رادیو، برچسب‌های مجزا برای شبکه/آدرس `social_links` و `data-testid`های ممیزی)
+  - `frontend/components/admin/builder/canvas-element.tsx` (استفاده از `BuilderIconSvg` به جای `Sparkles`، نرمال‌سازی ویدئو، دکمه پیش‌نمایش فرم، ستاره `*` برای چک‌باکس/رادیو، خطوط واقعی `bordered`/`striped` جدول و شمارنده زنده)
+  - `frontend/components/admin/builder/builder-interactive-runtime.tsx` و `frontend/app/(store)/[slug]/page.tsx` (رانتایم تعاملی کلاینت روی صفحات بیلدر SSR برای تب‌ها، شمارنده معکوس زنده فارسی و ارسال AJAX فرم به `/api/v1/content/forms/submit`)
+  - `backend/app/modules/content/application/ast_compiler.py` و `backend/app/shared/content/html_sanitizer.py` (دکمه ارسال فرم، نرمال‌سازی YouTube/Aparat، SVG برای `icon_box`/`accordion`/`social_links`، رفع باگ timezone در `countdown`، صفت‌های تب/شمارنده و مجوزدهی امن آن‌ها)
+  - تست‌های رگرسیون: `backend/app/tests/unit/test_ast_compiler.py` (+۱ تست)، `frontend/tests/builder-gym-r03-unit.test.ts` (+۴ تست)، `frontend/tests/e2e/builder-gym-r03.spec.ts`
+- **نتایج راستی‌آزمایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `69 passed (69)` — `458 passed (458)`
+  - `python -m pytest app/tests/unit`: `662 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts --workers=1 --reporter=list`: `9 passed (9)`

@@ -2089,6 +2089,113 @@ def test_ast_compiler_button_newtab_divider_styles_and_spacer_merge():
     assert "opacity:0.7" in result or "opacity: 0.7" in result
 
 
+def test_ast_compiler_round03_interactive_and_form_parity():
+    """Verify Round 03 interactive widgets: form submit button, required stars, video embed normalization, icon_box SVG, tabs data attrs, countdown units, accordion chevron SVG, social_links SVG, table borderless."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های تعاملی راند ۳",
+        slug="test-interactive-r03",
+        root_elements=[
+            BuilderElement(
+                id="el_form_r03",
+                name="فرم تماس",
+                type="container",
+                widget_type="form_container",
+                widget_props={"submit_url": "/api/v1/content/forms/submit", "submit_label": "ثبت نهایی"},
+                children=[
+                    BuilderElement(
+                        id="el_chk_r03",
+                        name="تیک قوانین",
+                        type="widget",
+                        widget_type="form_checkbox",
+                        widget_props={"label": "قبول قوانین", "name": "terms", "required": True},
+                    ),
+                    BuilderElement(
+                        id="el_rad_r03",
+                        name="ارسال",
+                        type="widget",
+                        widget_type="form_radio",
+                        widget_props={"label": "نحوه ارسال", "name": "ship", "options": "پست، تیپاکس", "required": True},
+                    ),
+                ],
+            ),
+            BuilderElement(
+                id="el_yt_r03",
+                name="ویدئو یوتیوب",
+                type="widget",
+                widget_type="video",
+                widget_props={"video_type": "youtube", "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"},
+            ),
+            BuilderElement(
+                id="el_vid_empty_r03",
+                name="ویدئو خالی",
+                type="widget",
+                widget_type="video",
+                widget_props={"video_type": "aparat", "url": ""},
+            ),
+            BuilderElement(
+                id="el_ibox_r03",
+                name="باکس آیکون",
+                type="widget",
+                widget_type="icon_box",
+                widget_props={"icon": "truck", "title": "ارسال فوری", "description": "تحویل سریع"},
+            ),
+            BuilderElement(
+                id="el_tabs_r03",
+                name="زبانه‌ها",
+                type="widget",
+                widget_type="tabs",
+                widget_props={"tabs": [{"title": "اول", "content": "متن اول"}, {"title": "دوم", "content": "متن دوم"}]},
+            ),
+            BuilderElement(
+                id="el_cd_r03",
+                name="شمارنده",
+                type="widget",
+                widget_type="countdown",
+                widget_props={"title": "فروش ویژه", "target_date": "2028-01-01T12:00:00", "expired_text": "پایان یافت"},
+            ),
+            BuilderElement(
+                id="el_tbl_r03",
+                name="جدول بدون خط",
+                type="widget",
+                widget_type="table",
+                widget_props={"headers": ["الف", "ب"], "rows": [["۱", "۲"]], "bordered": False, "striped": True},
+            ),
+            BuilderElement(
+                id="el_soc_r03",
+                name="شبکه اجتماعی",
+                type="widget",
+                widget_type="social_links",
+                widget_props={"links": [{"platform": "گیت‌هاب", "url": "https://github.com/test"}]},
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    # 1. Form submit button & required stars
+    assert 'type="submit"' in result
+    assert "ثبت نهایی" in result
+    assert '<span class="text-destructive ms-1">*</span>' in result
+    assert "تیپاکس" in result
+    # 2. Video embed normalization & empty placeholder
+    assert "https://www.youtube.com/embed/dQw4w9WgXcQ" in result
+    assert '<iframe src=""' not in result
+    # 3. icon_box renders inline SVG instead of emoji
+    assert 'data-icon="truck"' in result
+    assert "lucide-truck" in result
+    assert "🚚" not in result
+    # 4. Tabs attributes
+    assert 'data-tab-index="1"' in result
+    assert 'data-tab-pane="1"' in result
+    # 5. Countdown attributes & naive ISO support
+    assert 'data-cd-unit="days"' in result
+    assert 'data-expired-text="پایان یافت"' in result
+    # 6. Social links inline SVG
+    assert "lucide-share-2" in result
+    # 7. Borderless table removes border classes
+    assert "border-collapse" in result
+    assert "divide-y divide-border/70" not in result
+
+
 
 
 

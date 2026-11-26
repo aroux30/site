@@ -200,6 +200,7 @@ export function BuilderToolbar({
             </span>
           )}
           <Badge
+            data-testid="page-status-badge"
             variant={pageStatus === "published" ? "default" : "secondary"}
             className="text-[10px] px-1.5 py-0 h-4"
           >

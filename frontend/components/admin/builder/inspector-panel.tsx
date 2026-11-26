@@ -287,7 +287,7 @@ export function InspectorPanel() {
 
           <div className="space-y-1.5">
             <Label className="text-xs">فاصله بین آیتم‌ها (Gap)</Label>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center" dir="ltr">
               <Input
                 data-testid="container-gap-input"
                 type="number"
@@ -303,7 +303,7 @@ export function InspectorPanel() {
                 className="h-8 text-xs pe-8 ps-2"
                 dir="ltr"
               />
-              <span className="absolute end-2 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
+              <span className="absolute end-2.5 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
                 px
               </span>
             </div>
@@ -349,7 +349,7 @@ export function InspectorPanel() {
               </button>
             </div>
             {layout.boxedWidth && (
-              <div className="relative flex items-center mt-1">
+              <div className="relative flex items-center mt-1" dir="ltr">
                 <Input
                   data-testid="container-boxed-width-input"
                   type="number"
@@ -365,7 +365,7 @@ export function InspectorPanel() {
                   className="h-8 text-xs pe-8 ps-2"
                   dir="ltr"
                 />
-                <span className="absolute end-2 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
+                <span className="absolute end-2.5 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
                   px
                 </span>
               </div>

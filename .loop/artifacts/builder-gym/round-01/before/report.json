@@ -1,0 +1,539 @@
+{
+  "studio1440": {
+    "viewport": {
+      "w": 1440,
+      "h": 900
+    },
+    "docOverflow": false,
+    "headerOverflow": false,
+    "leftOverflow": false,
+    "inspectorOverflow": false,
+    "leftDims": {
+      "w": 319,
+      "h": 844,
+      "scrollH": 844
+    },
+    "inspectorDims": {
+      "w": 383,
+      "h": 844,
+      "scrollH": 844
+    },
+    "tabs": [
+      {
+        "text": "بلوک‌ها",
+        "w": 95,
+        "h": 29,
+        "spanTruncated": false
+      },
+      {
+        "text": "لایه‌ها",
+        "w": 95,
+        "h": 29,
+        "spanTruncated": false
+      },
+      {
+        "text": "تاریخچه",
+        "w": 95,
+        "h": 29,
+        "spanTruncated": false
+      }
+    ],
+    "n8nDisplay": "none-in-dom",
+    "storeHeaderVisible": false,
+    "toolbarButtons": [
+      {
+        "text": "خروج",
+        "w": 72,
+        "h": 32,
+        "left": 1352,
+        "right": 1424,
+        "clipped": false,
+        "scrollW": 72,
+        "clientW": 72
+      },
+      {
+        "text": "دسکتاپ",
+        "w": 80,
+        "h": 24,
+        "left": 897,
+        "right": 977,
+        "clipped": false,
+        "scrollW": 80,
+        "clientW": 80
+      },
+      {
+        "text": "تبلت (۷۶۸)",
+        "w": 95,
+        "h": 24,
+        "left": 798,
+        "right": 893,
+        "clipped": false,
+        "scrollW": 95,
+        "clientW": 95
+      },
+      {
+        "text": "موبایل (۳۷۵)",
+        "w": 105,
+        "h": 24,
+        "left": 689,
+        "right": 794,
+        "clipped": false,
+        "scrollW": 105,
+        "clientW": 105
+      },
+      {
+        "text": "بازگشت (Ctrl+Z)",
+        "w": 28,
+        "h": 28,
+        "left": 498,
+        "right": 526,
+        "clipped": false,
+        "scrollW": 28,
+        "clientW": 28
+      },
+      {
+        "text": "انجام مجدد (Ctrl+Y)",
+        "w": 28,
+        "h": 28,
+        "left": 468,
+        "right": 496,
+        "clipped": false,
+        "scrollW": 28,
+        "clientW": 28
+      },
+      {
+        "text": "ذخیره کل برگه به عنوان قالب",
+        "w": 32,
+        "h": 32,
+        "left": 427,
+        "right": 459,
+        "clipped": false,
+        "scrollW": 32,
+        "clientW": 32
+      },
+      {
+        "text": "استایل‌های سراسری برگه",
+        "w": 32,
+        "h": 32,
+        "left": 389,
+        "right": 421,
+        "clipped": false,
+        "scrollW": 32,
+        "clientW": 32
+      },
+      {
+        "text": "پیش‌نمایش",
+        "w": 94,
+        "h": 32,
+        "left": 289,
+        "right": 383,
+        "clipped": false,
+        "scrollW": 94,
+        "clientW": 94
+      },
+      {
+        "text": "راهنمای کلیدهای میانبر (Shift+?)",
+        "w": 32,
+        "h": 32,
+        "left": 251,
+        "right": 283,
+        "clipped": false,
+        "scrollW": 32,
+        "clientW": 32
+      },
+      {
+        "text": "ذخیره پیش‌نویس",
+        "w": 126,
+        "h": 32,
+        "left": 119,
+        "right": 245,
+        "clipped": false,
+        "scrollW": 124,
+        "clientW": 124
+      },
+      {
+        "text": "انتشار برگه",
+        "w": 97,
+        "h": 32,
+        "left": 16,
+        "right": 113,
+        "clipped": false,
+        "scrollW": 97,
+        "clientW": 97
+      }
+    ]
+  },
+  "studio1280": {
+    "viewport": {
+      "w": 1280,
+      "h": 720
+    },
+    "headerOverflow": false,
+    "leftOverflow": false,
+    "inspectorOverflow": false,
+    "clippedButtons": [],
+    "buttonsCount": 12
+  },
+  "layersReport": {
+    "asideScrollW": 319,
+    "asideClientW": 319,
+    "rows": [
+      {
+        "id": "cont_e2eroot",
+        "depth": 0,
+        "rowRect": {
+          "left": 1133,
+          "right": 1428,
+          "width": 295
+        },
+        "asideRect": {
+          "left": 1120,
+          "right": 1440
+        },
+        "scrollW": 293,
+        "clientW": 293,
+        "bgColor": "rgba(255, 255, 255, 0.7)",
+        "color": "rgb(9, 9, 11)",
+        "buttons": [
+          {
+            "title": "مخفی‌سازی لایه",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1190,
+              "right": 1212,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "تکثیر (Duplicate)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1166,
+              "right": 1188,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "حذف (Delete)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1142,
+              "right": 1164,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          }
+        ]
+      },
+      {
+        "id": "el_e2ehead1",
+        "depth": 0,
+        "rowRect": {
+          "left": 1133,
+          "right": 1428,
+          "width": 295
+        },
+        "asideRect": {
+          "left": 1120,
+          "right": 1440
+        },
+        "scrollW": 293,
+        "clientW": 293,
+        "bgColor": "rgba(255, 255, 255, 0.7)",
+        "color": "rgb(9, 9, 11)",
+        "buttons": [
+          {
+            "title": "مخفی‌سازی لایه",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1190,
+              "right": 1212,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "تکثیر (Duplicate)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1166,
+              "right": 1188,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "حذف (Delete)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1142,
+              "right": 1164,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          }
+        ]
+      },
+      {
+        "id": "el_nest_0",
+        "depth": 0,
+        "rowRect": {
+          "left": 1133,
+          "right": 1428,
+          "width": 295
+        },
+        "asideRect": {
+          "left": 1120,
+          "right": 1440
+        },
+        "scrollW": 293,
+        "clientW": 293,
+        "bgColor": "rgba(255, 255, 255, 0.7)",
+        "color": "rgb(9, 9, 11)",
+        "buttons": [
+          {
+            "title": "بستن زیرمجموعه‌ها",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1401,
+              "right": 1419,
+              "width": 18
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "مخفی‌سازی لایه",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1190,
+              "right": 1212,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "تکثیر (Duplicate)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1166,
+              "right": 1188,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "حذف (Delete)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1142,
+              "right": 1164,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          }
+        ]
+      },
+      {
+        "id": "el_nest_1",
+        "depth": 1,
+        "rowRect": {
+          "left": 1133,
+          "right": 1359,
+          "width": 226
+        },
+        "asideRect": {
+          "left": 1120,
+          "right": 1440
+        },
+        "scrollW": 224,
+        "clientW": 224,
+        "bgColor": "rgb(16, 183, 127)",
+        "color": "rgb(255, 255, 255)",
+        "buttons": [
+          {
+            "title": "بستن زیرمجموعه‌ها",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1332,
+              "right": 1350,
+              "width": 18
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "مخفی‌سازی لایه",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1190,
+              "right": 1212,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "تکثیر (Duplicate)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1166,
+              "right": 1188,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "حذف (Delete)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1142,
+              "right": 1164,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          }
+        ]
+      },
+      {
+        "id": "el_nest_2",
+        "depth": 2,
+        "rowRect": {
+          "left": 1133,
+          "right": 1266,
+          "width": 133
+        },
+        "asideRect": {
+          "left": 1120,
+          "right": 1440
+        },
+        "scrollW": 131,
+        "clientW": 131,
+        "bgColor": "rgba(255, 255, 255, 0.7)",
+        "color": "rgb(9, 9, 11)",
+        "buttons": [
+          {
+            "title": "نمایش لایه",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1190,
+              "right": 1212,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "تکثیر (Duplicate)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1166,
+              "right": 1188,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          },
+          {
+            "title": "حذف (Delete)",
+            "opacity": "1",
+            "visible": true,
+            "clippedRight": false,
+            "rect": {
+              "left": 1142,
+              "right": 1164,
+              "width": 22
+            },
+            "hasOpacity0Class": false
+          }
+        ]
+      }
+    ]
+  },
+  "collapseTest": {
+    "beforeCollapseCount": 5,
+    "afterCollapseCount": 3
+  },
+  "canvasReport": {
+    "iframeRect": {
+      "top": 81,
+      "left": 401,
+      "width": 702
+    },
+    "toolbarRect": {
+      "top": 271,
+      "left": 24,
+      "right": 384,
+      "width": 360
+    },
+    "toolbarOverflowX": false,
+    "iframeDocWidth": 702,
+    "emptyGuides": [
+      {
+        "height": 80,
+        "width": 654,
+        "borderStyle": "dashed",
+        "text": "افزودن بلوک به این بخش"
+      }
+    ],
+    "vars": {
+      "primary": "160 84% 39%",
+      "themePrimary": "",
+      "primaryHex": "",
+      "secondary": "175 84% 32%",
+      "radius": ""
+    },
+    "bodyBg": "rgb(255, 255, 255)",
+    "toolbarBg": "rgb(16, 183, 127)",
+    "invalidColors": []
+  },
+  "mobileCanvasReport": {
+    "iframeClientW": 373,
+    "iframeScrollW": 373,
+    "toolbarRect": {
+      "left": 16,
+      "right": 376,
+      "width": 360,
+      "top": 44
+    },
+    "toolbarOverflow": true
+  },
+  "saveTemplatePayload": null,
+  "saveResponses": [
+    {
+      "url": "http://127.0.0.1:3000/api/v1/content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7",
+      "status": 200
+    }
+  ],
+  "consoleErrors": [],
+  "failedRequests": []
+}

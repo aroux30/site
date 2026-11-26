@@ -184,30 +184,32 @@ export function CanvasOverlayLayer({
   let toolbarTop = 0;
   let toolbarLeft = 0;
   const TOOLBAR_HEIGHT = 36;
-  const TOOLBAR_WIDTH = 420;
+  const isCompactToolbar = docWidth < 460;
+  const effectiveToolbarWidth = isCompactToolbar ? Math.max(220, docWidth - 16) : Math.min(420, docWidth - 16);
 
   if (selectedRect) {
     const scrollY = win.scrollY || 0;
     const viewportTop = selectedRect.top - scrollY;
     const viewportBottom = viewportTop + selectedRect.height;
 
-    // Sticky / Tall Section Clearance:
-    // If element is tall and its top has scrolled past or is at the very top edge,
-    // position toolbar inside the top of the visible area so it never vanishes below or gets clipped.
-    if (viewportTop < TOOLBAR_HEIGHT + 4) {
-      if (selectedRect.height > 250 && viewportBottom > TOOLBAR_HEIGHT + 40) {
-        toolbarTop = Math.max(selectedRect.top + 8, scrollY + 8);
-      } else if (selectedRect.top < TOOLBAR_HEIGHT + 4) {
-        toolbarTop = selectedRect.top + selectedRect.height + 4;
-      } else {
-        toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
-      }
+    // Place toolbar cleanly above the selected element when there is top clearance (>= 40px).
+    // Only pin inside tall scrolled sections when the section's top has scrolled off-screen.
+    if (selectedRect.top >= TOOLBAR_HEIGHT + 4 && viewportTop >= TOOLBAR_HEIGHT + 4) {
+      toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
+    } else if (scrollY > 0 && viewportTop < TOOLBAR_HEIGHT + 4 && selectedRect.height > 250 && viewportBottom > TOOLBAR_HEIGHT + 40) {
+      toolbarTop = Math.max(selectedRect.top + 8, scrollY + 8);
+    } else if (selectedRect.top < TOOLBAR_HEIGHT + 4) {
+      toolbarTop = selectedRect.top + selectedRect.height + 4;
     } else {
       toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
     }
 
-    // In RTL, align toolbar with the start of the element, strictly clamped within document bounds
-    toolbarLeft = Math.max(16, Math.min(selectedRect.left, docWidth - TOOLBAR_WIDTH - 16));
+    // Clamp horizontally within document bounds so mobile 375px viewports never clip
+    const marginX = 8;
+    toolbarLeft = Math.max(
+      marginX,
+      Math.min(selectedRect.left, Math.max(marginX, docWidth - effectiveToolbarWidth - marginX))
+    );
   }
 
   const isContainer = selectedElement?.type === "container";
@@ -273,10 +275,14 @@ export function CanvasOverlayLayer({
               position: "absolute",
               top: toolbarTop,
               left: toolbarLeft,
+              maxWidth: `${Math.max(220, docWidth - 16)}px`,
               zIndex: 100000,
               pointerEvents: "auto",
             }}
-            className="flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-2xl border border-primary-foreground/20 transition-all select-none animate-in fade-in zoom-in-95 duration-100"
+            className={cn(
+              "flex items-center bg-primary text-primary-foreground text-xs font-bold rounded-lg shadow-2xl border border-primary-foreground/20 transition-all select-none animate-in fade-in zoom-in-95 duration-100",
+              isCompactToolbar ? "gap-0.5 px-1.5 py-1 flex-wrap justify-between" : "gap-1.5 px-2.5 py-1.5"
+            )}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Native HTML5 drag handle */}
@@ -296,7 +302,7 @@ export function CanvasOverlayLayer({
               <GripVertical className="w-3.5 h-3.5" />
             </span>
 
-            <span className="pe-1 max-w-[120px] truncate">{selectedElement.name}</span>
+            <span className={cn("pe-1 truncate", isCompactToolbar ? "max-w-[72px]" : "max-w-[120px]")}>{selectedElement.name}</span>
 
             {selectedElement.isLocked && <Lock className="w-3.5 h-3.5 text-amber-200 shrink-0" />}
             {selectedElement.isHidden && <EyeOff className="w-3.5 h-3.5 text-primary-foreground/70 shrink-0" />}

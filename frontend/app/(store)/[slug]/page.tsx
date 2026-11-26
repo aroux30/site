@@ -48,65 +48,68 @@ interface CmsPage {
  */
 
 
-async function fetchPage(slug: string): Promise<CmsPage | null> {
-  if (slug === "e2e-isolated-scratchpad") {
-    return {
-      id: "aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7",
+function buildFallbackScratchpad(): CmsPage {
+  return {
+    id: "aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7",
+    title: "E2E Builder Scratchpad",
+    slug: "e2e-isolated-scratchpad",
+    body_html: "<h1>E2E Test Scratchpad</h1>",
+    status: "published",
+    excerpt: null,
+    cover_image_url: null,
+    seo_title: null,
+    seo_description: null,
+    updated_at: new Date().toISOString(),
+    builder_data: {
+      schemaVersion: 1,
       title: "E2E Builder Scratchpad",
       slug: "e2e-isolated-scratchpad",
-      body_html: "<h1>E2E Test Scratchpad</h1>",
-      status: "published",
-      excerpt: null,
-      cover_image_url: null,
-      seo_title: null,
-      seo_description: null,
-      updated_at: new Date().toISOString(),
-      builder_data: {
-        schemaVersion: 1,
-        title: "E2E Builder Scratchpad",
-        slug: "e2e-isolated-scratchpad",
-        globalStyles: {},
-        rootElements: [
-          {
-            id: "cont_e2eroot",
-            name: "کانتینر ریشه آزمایشی",
-            type: "container",
-            isLocked: false,
-            isHidden: false,
-            layout: {
-              kind: "flex",
-              direction: "column",
-              justifyContent: "start",
-              alignItems: "stretch",
-              flexWrap: "nowrap",
-              gap: { value: 16, unit: "px" },
-              gridColumns: 3,
-            },
-            styles: { mobile: {} },
-            children: [],
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "cont_e2eroot",
+          name: "کانتینر ریشه آزمایشی",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          layout: {
+            kind: "flex",
+            direction: "column",
+            justifyContent: "start",
+            alignItems: "stretch",
+            flexWrap: "nowrap",
+            gap: { value: 16, unit: "px" },
+            gridColumns: 3,
           },
-          {
-            id: "el_e2ehead1",
-            name: "سرتیتر نمونه برای تست E2E",
-            type: "widget",
-            widgetType: "heading",
-            widgetProps: { text: "سرتیتر نمونه برای تست E2E", tag: "h2" },
-            styles: { mobile: {} },
-            children: [],
-          },
-        ],
-      },
-    };
-  }
+          styles: { mobile: {} },
+          children: [],
+        },
+        {
+          id: "el_e2ehead1",
+          name: "سرتیتر نمونه برای تست E2E",
+          type: "widget",
+          widgetType: "heading",
+          widgetProps: { text: "سرتیتر نمونه برای تست E2E", tag: "h2" },
+          styles: { mobile: {} },
+          children: [],
+        },
+      ],
+    },
+  };
+}
+
+async function fetchPage(slug: string): Promise<CmsPage | null> {
   try {
     const res = await fetch(
       `${API_BASE}/content/pages/${encodeURIComponent(slug)}`,
       { next: { revalidate: 300, tags: [pageTag(slug)] } },
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      return slug === "e2e-isolated-scratchpad" ? buildFallbackScratchpad() : null;
+    }
     return (await res.json()) as CmsPage;
   } catch {
-    return null;
+    return slug === "e2e-isolated-scratchpad" ? buildFallbackScratchpad() : null;
   }
 }
 
@@ -122,19 +125,20 @@ async function fetchPageForEditor(
   slug: string,
   token: string | undefined
 ): Promise<CmsPage | null> {
-  if (slug === "e2e-isolated-scratchpad") {
-    return fetchPage(slug);
+  if (!token) {
+    return slug === "e2e-isolated-scratchpad" ? fetchPage(slug) : null;
   }
-  if (!token) return null;
   try {
     const res = await fetch(
       `${API_BASE}/content/admin/pages/by-slug/${encodeURIComponent(slug)}`,
       { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      return slug === "e2e-isolated-scratchpad" ? fetchPage(slug) : null;
+    }
     return (await res.json()) as CmsPage;
   } catch {
-    return null;
+    return slug === "e2e-isolated-scratchpad" ? fetchPage(slug) : null;
   }
 }
 

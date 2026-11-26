@@ -60,8 +60,13 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [livePageStatus, setLivePageStatus] = useState<string>(page.status || "draft");
   const isAutosavingRef = useRef(false);
   const inFlightMutationVersion = useRef(0);
+
+  useEffect(() => {
+    setLivePageStatus(page.status || "draft");
+  }, [page.id, page.status]);
 
   // Initialize store on mount
   useEffect(() => {
@@ -136,6 +141,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       });
 
       markClean();
+      setLivePageStatus("draft");
       setAutosaveStatus("saved");
       setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
       void revalidatePage();
@@ -167,6 +173,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       });
 
       markClean();
+      setLivePageStatus("published");
       setAutosaveStatus("saved");
       setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
       void revalidatePage();
@@ -226,7 +233,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
         onExit={handleExit}
-        pageStatus={page.status}
+        pageStatus={livePageStatus}
         autosaveStatus={autosaveStatus}
         lastSavedAt={lastSavedAt}
       />
@@ -282,7 +289,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
             </div>
 
             {/* Sidebar Tab Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden">
               {activeLeftTab === "blocks" ? (
                 <BlocksPalette />
               ) : activeLeftTab === "layers" ? (

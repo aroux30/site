@@ -1,0 +1,64 @@
+{
+  "layersReport": {
+    "rows": [
+      {
+        "id": "cont_e2eroot",
+        "depth": 0,
+        "rowWidth": 295,
+        "rowRight": 1428,
+        "labelWidth": 97
+      },
+      {
+        "id": "el_e2ehead1",
+        "depth": 0,
+        "rowWidth": 295,
+        "rowRight": 1428,
+        "labelWidth": 132
+      },
+      {
+        "id": "el_nest_0",
+        "depth": 0,
+        "rowWidth": 295,
+        "rowRight": 1428,
+        "labelWidth": 85
+      },
+      {
+        "id": "el_nest_1",
+        "depth": 1,
+        "rowWidth": 261,
+        "rowRight": 1394,
+        "labelWidth": 101
+      },
+      {
+        "id": "el_nest_2",
+        "depth": 2,
+        "rowWidth": 227,
+        "rowRight": 1360,
+        "labelWidth": 71
+      }
+    ],
+    "gapWrapperDir": "ltr"
+  },
+  "canvasReport": {
+    "toolbarTop": 8,
+    "toolbarBottom": 44,
+    "firstElTop": 48
+  },
+  "mobileCanvasReport": {
+    "iframeClientW": 373,
+    "iframeScrollW": 373,
+    "toolbarRect": {
+      "left": 8,
+      "right": 321,
+      "width": 313,
+      "top": 8,
+      "bottom": 40
+    },
+    "firstElTop": 48,
+    "toolbarOverflow": false
+  },
+  "saveTemplatePayload": null,
+  "badgeHasDraft": true,
+  "consoleErrors": [],
+  "failedRequests": []
+}

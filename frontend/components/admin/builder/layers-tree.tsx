@@ -196,8 +196,8 @@ const TreeItem = React.memo(function TreeItem({
 
   return (
     <div
-      className={cn("flex flex-col select-none relative", depth > 0 && "pr-1.5 border-r border-border/50")}
-      style={{ marginRight: depth > 0 ? `${depth * 24}px` : 0 }}
+      className="flex flex-col select-none relative"
+      style={{ marginRight: depth > 0 ? "24px" : 0 }}
     >
       <div
         onClick={() => selectElement(element.id)}
@@ -240,7 +240,7 @@ const TreeItem = React.memo(function TreeItem({
             : "hover:bg-muted/70 text-foreground bg-card/70 border-border/50"
         )}
       >
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {/* Expand / Collapse Chevron for containers with children */}
           {hasChildren ? (
             <button
@@ -343,7 +343,7 @@ const TreeItem = React.memo(function TreeItem({
               toggleHideElement(element.id);
             }}
             className={cn(
-              "p-1 rounded transition",
+              "p-0.5 rounded transition",
               isSelected
                 ? "text-primary-foreground hover:bg-white/20"
                 : element.isHidden
@@ -362,7 +362,7 @@ const TreeItem = React.memo(function TreeItem({
               duplicateElement(element.id);
             }}
             className={cn(
-              "p-1 rounded transition",
+              "p-0.5 rounded transition",
               isSelected
                 ? "text-primary-foreground hover:bg-white/20"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -379,7 +379,7 @@ const TreeItem = React.memo(function TreeItem({
               deleteElement(element.id);
             }}
             className={cn(
-              "p-1 rounded transition",
+              "p-0.5 rounded transition",
               isSelected
                 ? "text-primary-foreground hover:bg-white/20"
                 : "text-destructive hover:bg-destructive/10"
@@ -515,7 +515,7 @@ const TreeItem = React.memo(function TreeItem({
       )}
 
       {hasChildren && effectiveExpanded && (
-        <div className="flex flex-col border-r-2 border-primary/40 mr-6 pr-3 space-y-1 my-1">
+        <div className="flex flex-col border-r-2 border-primary/35 pr-2 space-y-1 my-1">
           {element.children.map((child) => (
             <TreeItem
               key={child.id}

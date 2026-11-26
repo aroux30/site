@@ -96,7 +96,11 @@ export function SavePageTemplateDialog({
           slug,
           globalStyles: ast.globalStyles || {},
           rootElements: ast.rootElements,
-        },
+          templateMeta: {
+            templateType,
+            displayCondition,
+          },
+        } as any,
       });
 
       toast({

@@ -120,18 +120,19 @@ export function BlocksPalette() {
     return patternGroups.map((g) => g.category);
   }, [patternGroups]);
 
-  // Filter patterns by search & category
+  // Filter patterns by search & category (Multi-token match & safe keywords)
   const filteredPatterns = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const tokens = q.split(/\s+/).filter(Boolean);
     return allPatterns.filter((p) => {
       const matchCat =
         selectedCategory === "all" || p.category === selectedCategory;
       if (!matchCat) return false;
-      if (!q) return true;
-      const haystack = [p.title, p.description, p.category, ...p.keywords]
+      if (tokens.length === 0) return true;
+      const haystack = [p.title, p.description, p.category, ...(p.keywords || [])]
         .join(" ")
         .toLowerCase();
-      return haystack.includes(q);
+      return tokens.every((tok) => haystack.includes(tok));
     });
   }, [allPatterns, search, selectedCategory]);
 

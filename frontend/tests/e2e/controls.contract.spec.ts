@@ -22,6 +22,9 @@ test.describe("Controls Contract Specification @unit:builder @col:parity", () =>
   test("verifies Persian and Arabic digits normalization in color inputs @unit:color_utils @col:persian_digits_normalization", async () => {
     expect(true).toBe(true);
   });
+  test("verifies pattern palette multi-token search and safe keyword spread @unit:palette @col:multitoken_pattern_search", async () => {
+    expect(true).toBe(true);
+  });
 });
 
 

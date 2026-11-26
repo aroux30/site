@@ -121,5 +121,34 @@ describe("Weight 3: Block Patterns, Palette Tabs & Global Styles Dialog", () => 
       expect(ast.children.length).toBeGreaterThan(0);
     }
   });
+
+  it("filters patterns with multi-token queries and safe keyword spreads", () => {
+    const mockPatterns = [
+      { slug: "p1", title: "کالکشن جدید لباس", description: "لباس‌های تابستانی", category: "فروشگاهی", keywords: ["تخفیف", "فروش"] },
+      { slug: "p2", title: "فرم تماس و مشاوره", description: "ارتباط با ما", category: "تعاملی", keywords: undefined as any },
+    ];
+
+    function filterMock(patterns: typeof mockPatterns, query: string, cat: string) {
+      const q = query.trim().toLowerCase();
+      const tokens = q.split(/\s+/).filter(Boolean);
+      return patterns.filter((p) => {
+        const matchCat = cat === "all" || p.category === cat;
+        if (!matchCat) return false;
+        if (tokens.length === 0) return true;
+        const haystack = [p.title, p.description, p.category, ...(p.keywords || [])].join(" ").toLowerCase();
+        return tokens.every((tok) => haystack.includes(tok));
+      });
+    }
+
+    // 1. Multi-token match across title and description
+    const res1 = filterMock(mockPatterns, "کالکشن تابستانی", "all");
+    expect(res1.length).toBe(1);
+    expect(res1[0]?.slug).toBe("p1");
+
+    // 2. Safe with undefined keywords
+    const res2 = filterMock(mockPatterns, "مشاوره ارتباط", "all");
+    expect(res2.length).toBe(1);
+    expect(res2[0]?.slug).toBe("p2");
+  });
 });
 

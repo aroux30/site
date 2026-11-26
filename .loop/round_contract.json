@@ -1,13 +1,13 @@
 {
-  "round": 5,
-  "weight": 4,
-  "target_units": ["builder_store", "copy_paste_styles", "multi_select_delete"],
-  "fip_defects": ["DEFECT-W4-01"],
-  "cluster_defects": ["DEFECT-W4-01"],
-  "census_controls_to_verify": ["copyStyles_strip_customCssId", "deleteSelectedElements"],
+  "round": 6,
+  "weight": 5,
+  "target_units": ["responsive_resolution", "dark_mode", "stress_test_50_elements"],
+  "fip_defects": ["DEFECT-W5-01"],
+  "cluster_defects": ["DEFECT-W5-01"],
+  "census_controls_to_verify": ["resolveResponsiveValue_safety_fallback", "stress_test_50_elements"],
   "hard_pass_criteria": [
-    "copyStyles strips customCssId to prevent DOM id duplication across elements",
-    "deleteSelectedElements cleans all selected IDs in a single atomic history step",
+    "resolveResponsiveValue safely handles null/undefined values and custom fallbacks",
+    "AST handles 50+ nested elements tree building and cloning without memory leaks",
     "zero RL5 cheat tokens"
   ]
 }

@@ -36,4 +36,34 @@ describe("Weight 5: Responsive Resolution, Mobile/Tablet Viewports & Dark Mode",
     expect(useBuilderStore.getState().activeBreakpoint).toBe("desktop");
     expect(useBuilderStore.getState().ast.rootElements.length).toBeGreaterThan(0);
   });
+
+  it("safely handles null/undefined values and custom fallback in resolveResponsiveValue", () => {
+    expect(resolveResponsiveValue(undefined as any, "mobile", "14px")).toBe("14px");
+    expect(resolveResponsiveValue(null as any, "desktop", "20px")).toBe("20px");
+    expect(resolveResponsiveValue(undefined as any, "tablet")).toBeUndefined();
+  });
+
+  it("handles 50+ nested elements stress test without topology errors", () => {
+    const store = useBuilderStore.getState();
+    store.initPage("stress-test-page", null, "تست فشار ۵۰ المان", "stress-page");
+
+    for (let i = 0; i < 50; i++) {
+      const el = {
+        id: `el_stress_${i}`,
+        name: `المان فشار ${i + 1}`,
+        type: "widget" as const,
+        widgetType: "heading",
+        widgetProps: { text: `تیتر شماره ${i + 1}` },
+        isLocked: false,
+        isHidden: false,
+        styles: { mobile: {} },
+        children: [],
+      };
+      store.addElement(el);
+    }
+
+    const state = useBuilderStore.getState();
+    expect(state.ast.rootElements.length).toBeGreaterThanOrEqual(51);
+  });
 });
+

@@ -272,15 +272,17 @@ export function validateTreeTopology(ast: PageAST, maxDepth = 5): void {
 // ── 6. Mobile-First Responsive Resolution ───────────────────────────────────
 
 export function resolveResponsiveValue<T>(
-  values: { mobile?: T; tablet?: T; desktop?: T },
-  activeBreakpoint: "mobile" | "tablet" | "desktop"
+  values: { mobile?: T; tablet?: T; desktop?: T } | null | undefined,
+  activeBreakpoint: "mobile" | "tablet" | "desktop",
+  fallback?: T
 ): T | undefined {
+  if (!values) return fallback;
   if (activeBreakpoint === "mobile") {
-    return values.mobile;
+    return values.mobile ?? fallback;
   }
   if (activeBreakpoint === "tablet") {
-    return values.tablet ?? values.mobile;
+    return values.tablet ?? values.mobile ?? fallback;
   }
   // desktop
-  return values.desktop ?? values.tablet ?? values.mobile;
+  return values.desktop ?? values.tablet ?? values.mobile ?? fallback;
 }

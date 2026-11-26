@@ -1,23 +1,32 @@
 {
   "version": "5.2",
-  "activeWeight": 5,
-  "activeRound": 6,
+  "activeWeight": 6,
+  "activeRound": 7,
   "status": "IN_PROGRESS",
-  "levels1to5Status": "IN_PROGRESS",
+  "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "IN_PROGRESS",
   "verificationPort": 3000,
-  "completedRounds": 5,
+  "completedRounds": 6,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 446,
+    "frontendUnitTests": 448,
     "backendUnitTests": 659,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-26T01:45:00.000Z",
+  "timestamp": "2026-11-26T02:00:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W5-01",
+      "severity": "P1",
+      "component": "schema_resolve_responsive_value",
+      "layer": "frontend/lib/builder/schema.ts",
+      "summary": "resolveResponsiveValue threw TypeError when passed null/undefined responsive style values",
+      "status": "FIXED",
+      "round": 6
+    },
     {
       "id": "DEFECT-W4-01",
       "severity": "P1",

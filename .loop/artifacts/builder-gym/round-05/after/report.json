@@ -1,0 +1,17 @@
+{
+  "totalPatternsAudited": 28,
+  "failedPatterns": [],
+  "ssrAudit": {
+    "docInlineStyle": "",
+    "bgComputed": "rgb(254, 252, 232)",
+    "primaryVar": "0 72% 51%",
+    "primaryHexVar": "#dc2626",
+    "secondaryHexVar": "#0284c7",
+    "hasStyleTag": true,
+    "codeText": "// Sample code snippet\nconst response = await fetch('/api/v1/products');\nconst data = await response.json();\nconsole.log('Loaded:', data);",
+    "doubleEscapedCode": false,
+    "brokenImgs": []
+  },
+  "errors": [],
+  "failedRequests": []
+}

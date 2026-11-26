@@ -2277,11 +2277,32 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       type: "widget",
       widgetType: "nav_menu",
       widgetProps: {
+        layout: "horizontal",
         items: [
           { title: "صفحه اصلی", url: "/" },
           { title: "فروشگاه", url: "/products" },
           { title: "وبلاگ", url: "/blog" },
         ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "product_title",
+    name: "عنوان محصول (Product Title)",
+    category: "basic",
+    icon: Tag,
+    description: "نمایش عنوان داینامیک یا جایگزین محصول در صفحات محصول و فروشگاه",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "عنوان محصول",
+      type: "widget",
+      widgetType: "product_title",
+      widgetProps: {
+        fallback_title: "عنوان محصول",
       },
       isLocked: false,
       isHidden: false,

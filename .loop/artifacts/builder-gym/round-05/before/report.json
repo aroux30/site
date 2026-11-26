@@ -1,0 +1,122 @@
+{
+  "patternCount": 28,
+  "patternSlugs": [
+    "hero-banner",
+    "text-marquee",
+    "feature-grid",
+    "image-text",
+    "stats-counter",
+    "icon-box-grid",
+    "author-bio",
+    "pull-quote",
+    "process-steps",
+    "product-showcase-cta",
+    "star-rating-display",
+    "review-histogram",
+    "product-card-grid",
+    "image-gallery-showcase",
+    "product-highlights",
+    "testimonials",
+    "brand-logo-carousel",
+    "faq-accordion",
+    "countdown-offer",
+    "discount-badge-banner",
+    "alert-banner",
+    "mega-menu-categories",
+    "pricing-table",
+    "price-list",
+    "comparison-table",
+    "support-callout",
+    "lead-capture-form",
+    "floating-contact-bar"
+  ],
+  "canvasGlobalVars": {
+    "primaryHex": "#dc2626",
+    "secondaryHex": "#2563eb",
+    "foregroundHex": "#1e293b",
+    "bgHex": "#fefce8"
+  },
+  "batchResults": [
+    {
+      "file": "03-patterns-batch1-1to10.png",
+      "slugs": [
+        "hero-banner",
+        "text-marquee",
+        "feature-grid",
+        "image-text",
+        "stats-counter",
+        "icon-box-grid",
+        "author-bio",
+        "pull-quote",
+        "process-steps",
+        "product-showcase-cta"
+      ],
+      "metrics": {
+        "insertedCount": 11,
+        "expectedCount": 10,
+        "heroBgColor": "rgb(16, 183, 127)",
+        "heroHeadingColor": "rgb(9, 9, 11)",
+        "iframeOverflow": false,
+        "hasChildrenInAll": true
+      }
+    },
+    {
+      "file": "04-patterns-batch2-11to20.png",
+      "slugs": [
+        "star-rating-display",
+        "review-histogram",
+        "product-card-grid",
+        "image-gallery-showcase",
+        "product-highlights",
+        "testimonials",
+        "brand-logo-carousel",
+        "faq-accordion",
+        "countdown-offer",
+        "discount-badge-banner"
+      ],
+      "metrics": {
+        "insertedCount": 11,
+        "expectedCount": 10,
+        "heroBgColor": null,
+        "heroHeadingColor": null,
+        "iframeOverflow": false,
+        "hasChildrenInAll": true
+      }
+    },
+    {
+      "file": "05-patterns-batch3-21to28.png",
+      "slugs": [
+        "alert-banner",
+        "mega-menu-categories",
+        "pricing-table",
+        "price-list",
+        "comparison-table",
+        "support-callout",
+        "lead-capture-form",
+        "floating-contact-bar"
+      ],
+      "metrics": {
+        "insertedCount": 9,
+        "expectedCount": 8,
+        "heroBgColor": "rgba(16, 183, 127, 0.05)",
+        "heroHeadingColor": null,
+        "iframeOverflow": false,
+        "hasChildrenInAll": true
+      }
+    }
+  ],
+  "ssrAudit": {
+    "docInlineStyle": "",
+    "hasPrimaryVar": false,
+    "hasSecondaryVar": false,
+    "heroBgComputed": null,
+    "heroH1ColorComputed": null,
+    "codeCopyDataAttrSurvived": true
+  },
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "failedRequests": [
+    "404 http://127.0.0.1:3000/placeholder-avatar.svg"
+  ]
+}

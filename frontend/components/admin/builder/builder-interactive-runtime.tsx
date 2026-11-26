@@ -193,6 +193,26 @@ export function BuilderInteractiveRuntime({ pageSlug }: { pageSlug?: string }) {
         return;
       }
 
+      // 5b. Code Highlight copy-to-clipboard button
+      const copyBtn = target.closest<HTMLButtonElement>(".code-copy-btn");
+      if (copyBtn) {
+        const codeHost = copyBtn.closest<HTMLElement>('[data-widget="code_highlight"]');
+        const codeText =
+          copyBtn.getAttribute("data-code") ||
+          codeHost?.querySelector("code")?.textContent ||
+          "";
+        if (codeText && typeof navigator !== "undefined" && navigator.clipboard) {
+          void navigator.clipboard.writeText(codeText).catch(() => undefined);
+        }
+        copyBtn.setAttribute("data-copied", "1");
+        copyBtn.textContent = "کپی شد ✓";
+        window.setTimeout(() => {
+          copyBtn.removeAttribute("data-copied");
+          copyBtn.textContent = "کپی";
+        }, 1500);
+        return;
+      }
+
       // 6. Tabs / Nested Tabs switching
       const tabWidget = target.closest<HTMLElement>(
         '[data-widget="tabs"], [data-widget="nested_tabs"], .builder-tabs, .builder-nested-tabs'

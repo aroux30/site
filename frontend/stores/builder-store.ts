@@ -1011,13 +1011,17 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   updateGlobalStyles: (styles) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const merged: Record<string, unknown> = {
+      ...(ast.globalStyles || {}),
+      ...styles,
+    };
+    const cleaned = Object.fromEntries(
+      Object.entries(merged).filter(([, v]) => v !== undefined && v !== "")
+    );
     set({
       ast: {
         ...ast,
-        globalStyles: {
-          ...(ast.globalStyles || {}),
-          ...styles,
-        },
+        globalStyles: cleaned,
       },
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,

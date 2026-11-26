@@ -348,6 +348,7 @@ export function BlocksPalette() {
       <div className="relative shrink-0">
         <Search className="absolute start-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
         <Input
+          data-testid="palette-search-input"
           placeholder={
             activeTab === "basic"
               ? "جستجوی بلوک پایه..."

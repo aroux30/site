@@ -403,7 +403,7 @@ const PATTERN_DEFAULTS: Record<string, Record<string, string>> = {
     name: "دکتر رضا کاظمی",
     role: "پژوهشگر ارشد و کارشناس تجربه کاربری",
     badge: "نویسنده برگزیده",
-    avatar_url: "/placeholder-avatar.svg",
+    avatar_url: "/placeholder-about.svg",
     bio: "بیش از یک دهه سابقه در تحلیل داده، طراحی تجربه کاربری و تولید محتوای تخصصی در کسب‌وکارهای مدرن فناوری.",
     contact_email: "reza.kazemi@example.com",
     cta_text: "ارسال پیام یا مشاوره",
@@ -558,8 +558,8 @@ export function createPatternAST(
                   gridColumns: 1,
                 },
                 children: [
-                  createHeadingWidget(title, "h1", "text-3xl font-bold md:text-5xl leading-tight"),
-                  createTextWidget(subtitle, "text-base opacity-90 md:text-lg leading-relaxed"),
+                  createHeadingWidget(title, "h1", "text-3xl font-bold md:text-5xl leading-tight text-primary-foreground"),
+                  createTextWidget(subtitle, "text-base text-primary-foreground/90 md:text-lg leading-relaxed"),
                   createButtonWidget(ctaText, ctaUrl, "inline-flex items-center rounded-xl bg-primary-foreground px-6 py-3 font-semibold text-primary transition hover:opacity-90"),
                 ],
               }),
@@ -801,35 +801,35 @@ export function createPatternAST(
     case "review-histogram": {
       const average = vars.average || "۴.۳";
       const total = vars.total || "۱۲۸";
+      const starRows = [
+        { label: "۵ ستاره", count: vars.star5 || "۶۱", pct: 100 },
+        { label: "۴ ستاره", count: vars.star4 || "۴۲", pct: 69 },
+        { label: "۳ ستاره", count: vars.star3 || "۱۵", pct: 25 },
+        { label: "۲ ستاره", count: vars.star2 || "۷", pct: 11 },
+        { label: "۱ ستاره", count: vars.star1 || "۳", pct: 5 },
+      ];
 
       return createContainerNode(`${pattern.category}: ${pattern.title}`, {
-        customCssClass: "rounded-2xl border bg-background p-6 space-y-4",
+        customCssClass: "rounded-2xl border border-border bg-card p-6 space-y-4 w-full",
         children: [
           createHeadingWidget(`میانگین امتیاز: ${average} از ۵ (${total} نظر ثبت شده)`, "h3", "text-lg font-bold text-foreground"),
           createContainerNode("توزیع ستاره‌ها", {
-            customCssClass: "space-y-2 text-sm text-muted-foreground",
-            children: [
-              createContainerNode("سطر ۵ ستاره", {
-                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
-                children: [createTextWidget("۵ ستاره"), createTextWidget(`${vars.star5 || "۶۱"}٪`, "font-bold text-foreground")],
-              }),
-              createContainerNode("سطر ۴ ستاره", {
-                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
-                children: [createTextWidget("۴ ستاره"), createTextWidget(`${vars.star4 || "۴۲"}٪`, "font-bold text-foreground")],
-              }),
-              createContainerNode("سطر ۳ ستاره", {
-                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
-                children: [createTextWidget("۳ ستاره"), createTextWidget(`${vars.star3 || "۱۵"}٪`, "font-bold text-foreground")],
-              }),
-              createContainerNode("سطر ۲ ستاره", {
-                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
-                children: [createTextWidget("۲ ستاره"), createTextWidget(`${vars.star2 || "۷"}٪`, "font-bold text-foreground")],
-              }),
-              createContainerNode("سطر ۱ ستاره", {
-                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
-                children: [createTextWidget("۱ ستاره"), createTextWidget(`${vars.star1 || "۳"}٪`, "font-bold text-foreground")],
-              }),
-            ],
+            customCssClass: "space-y-3 text-sm text-muted-foreground w-full",
+            children: starRows.map((row) => ({
+              id: generateElementId("pbar"),
+              name: row.label,
+              type: "widget" as const,
+              widgetType: "progress_bar",
+              widgetProps: {
+                title: `${row.label} (${row.count} نظر)`,
+                percentage: row.pct,
+                show_percentage: true,
+              },
+              isLocked: false,
+              isHidden: false,
+              styles: { mobile: {} },
+              children: [],
+            })),
           }),
         ],
       });
@@ -971,7 +971,7 @@ export function createPatternAST(
           createContainerNode("شبکه دسته‌بندی‌ها", {
             layout: { kind: "grid", direction: "row", justifyContent: "between", alignItems: "stretch", flexWrap: "wrap", gap: { value: 16, unit: "px" }, gridColumns: 4 },
             children: cats.map((c) =>
-              createButtonWidget(c.name, c.url, "w-full rounded-xl border bg-background p-4 text-center font-bold text-foreground hover:bg-muted/40 transition")
+              createButtonWidget(c.name, c.url, "w-full rounded-xl border border-border bg-card p-4 text-center font-bold text-foreground hover:bg-muted/40 transition whitespace-normal")
             ),
           }),
         ],

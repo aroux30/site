@@ -7,6 +7,7 @@ and sanitized HTML suitable for fallback and SSR display.
 from __future__ import annotations
 
 import html
+import re
 from typing import Any
 
 from app.modules.content.domain.builder_ast import (
@@ -203,23 +204,10 @@ class ASTCompiler:
         buffer: list[str] = []
         # Root document wrapper with RTL direction and global design tokens
         gs = ast.global_styles or {}
-        doc_styles: list[str] = []
-        bg_col = gs.get("backgroundColor") or gs.get("background_color")
-        if bg_col:
-            doc_styles.append(f"background-color: {html.escape(str(bg_col))}")
-        text_col = gs.get("textColor") or gs.get("text_color")
-        if text_col:
-            doc_styles.append(f"color: {html.escape(str(text_col))}")
-        font_fam = gs.get("fontFamily") or gs.get("font_family")
-        if font_fam:
-            f_val = "system-ui, sans-serif" if str(font_fam) == "system-ui" else str(font_fam)
-            doc_styles.append(f"font-family: {html.escape(f_val)}")
-        radius = gs.get("borderRadius") or gs.get("border_radius")
-        if radius:
-            doc_styles.append(f"border-radius: {html.escape(str(radius))}")
+        doc_styles, global_css_rule = cls._compile_global_styles(gs)
 
         style_attr = f' style="{"; ".join(doc_styles)}"' if doc_styles else ""
-        css_collector: list[str] = []
+        css_collector: list[str] = [global_css_rule] if global_css_rule else []
         buffer.append(f'<div class="builder-document" dir="rtl"{style_attr}>')
         for el in ast.root_elements:
             compiled = cls._compile_element(el, is_authenticated=is_authenticated, css_collector=css_collector)
@@ -241,6 +229,92 @@ class ASTCompiler:
                         return sanitized[: gt + 1] + style_tag + sanitized[gt + 1 :]
                 return style_tag + sanitized
         return sanitized
+
+    @staticmethod
+    def _hex_to_hsl_channels(color_str: str) -> str | None:
+        raw = str(color_str or "").strip().lstrip("#")
+        if len(raw) == 3:
+            raw = "".join(ch * 2 for ch in raw)
+        if len(raw) != 6:
+            return None
+        try:
+            r = int(raw[0:2], 16) / 255.0
+            g = int(raw[2:4], 16) / 255.0
+            b = int(raw[4:6], 16) / 255.0
+        except ValueError:
+            return None
+        max_c = max(r, g, b)
+        min_c = min(r, g, b)
+        l = (max_c + min_c) / 2.0
+        if max_c == min_c:
+            h = 0.0
+            s = 0.0
+        else:
+            d = max_c - min_c
+            s = d / (2.0 - max_c - min_c) if l > 0.5 else d / (max_c + min_c)
+            if max_c == r:
+                h = (g - b) / d + (6.0 if g < b else 0.0)
+            elif max_c == g:
+                h = (b - r) / d + 2.0
+            else:
+                h = (r - g) / d + 4.0
+            h /= 6.0
+        return f"{round(h * 360)} {round(s * 100)}% {round(l * 100)}%"
+
+    @classmethod
+    def _compile_global_styles(cls, gs: dict[str, Any]) -> tuple[list[str], str]:
+        if not gs:
+            return [], ""
+        doc_styles: list[str] = []
+        var_decls: list[str] = []
+
+        color_tokens = (
+            (("primaryColor", "primary_color"), "--primary", "--primary-hex", "--theme-primary"),
+            (("secondaryColor", "secondary_color"), "--secondary", "--secondary-hex", "--theme-secondary"),
+            (("backgroundColor", "background_color"), "--background", "--background-hex", "--theme-background"),
+            (("textColor", "text_color"), "--foreground", "--foreground-hex", "--theme-foreground"),
+        )
+        for keys, hsl_var, hex_var, theme_var in color_tokens:
+            val = next((gs.get(k) for k in keys if gs.get(k)), None)
+            if not val:
+                continue
+            s_val = str(val).strip()
+            hsl = cls._hex_to_hsl_channels(s_val) if s_val.startswith("#") else None
+            var_decls.append(f"{hsl_var}: {hsl or s_val}")
+            var_decls.append(f"{hex_var}: {s_val}")
+            var_decls.append(f"{theme_var}: {s_val}")
+            if hsl_var == "--background":
+                doc_styles.append(f"background-color: {html.escape(s_val)}")
+                var_decls.append(f"background-color: {s_val}")
+            elif hsl_var == "--foreground":
+                doc_styles.append(f"color: {html.escape(s_val)}")
+                var_decls.append(f"color: {s_val}")
+
+        font_fam = gs.get("fontFamily") or gs.get("font_family")
+        if font_fam:
+            raw_font = str(font_fam).strip()
+            if raw_font == "system-ui":
+                f_val = "system-ui, sans-serif"
+            elif raw_font.lower() == "vazirmatn":
+                f_val = 'var(--font-vazirmatn), "Vazirmatn", system-ui, sans-serif'
+            else:
+                f_val = raw_font
+            doc_styles.append(f"font-family: {html.escape(f_val)}")
+            var_decls.append(f"--font-vazirmatn: {f_val}")
+            var_decls.append(f"font-family: {f_val}")
+
+        radius = gs.get("borderRadius") or gs.get("border_radius")
+        if radius:
+            r_val = str(radius).strip()
+            doc_styles.append(f"border-radius: {html.escape(r_val)}")
+            var_decls.append(f"--radius: {r_val}")
+
+        max_w = gs.get("contentMaxWidth") or gs.get("content_max_width")
+        if max_w:
+            var_decls.append(f"--content-max-width: {str(max_w).strip()}")
+
+        css_rule = f".builder-document {{ {'; '.join(var_decls)}; }}" if var_decls else ""
+        return doc_styles, css_rule
 
     @classmethod
     def _sanitize_generated_css(cls, css_text: str) -> str:
@@ -584,12 +658,21 @@ class ASTCompiler:
             extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
         css_class = " ".join(classes_list)
 
+        has_custom_text_color = bool(
+            re.search(
+                r"\btext-(?:foreground|primary(?:-foreground)?|secondary(?:-foreground)?|destructive(?:-foreground)?|muted(?:-foreground)?|white|black|inherit|[a-z]+-\d{2,3})\b",
+                css_class,
+            )
+        )
+        has_custom_bg = bool(re.search(r"\bbg-(?!opacity)\S+", css_class))
+
         if widget_type == "heading":
             tag = props.get("tag", "h2")
             if tag not in ("h1", "h2", "h3", "h4", "h5", "h6"):
                 tag = "h2"
             text = html.escape(str(props.get("text", "")))
-            return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}{extra_attrs}>{text}</{tag}>'
+            color_cls = "" if (has_custom_text_color or "text-foreground" in css_class) else " text-foreground"
+            return f'<{tag}{id_attr} class="font-bold{color_cls} break-words {css_class}"{style_attr}{extra_attrs}>{text}</{tag}>'
 
         elif widget_type in ("text_editor", "text", "paragraph"):
             content = str(props.get("content", props.get("text", "")))
@@ -600,7 +683,9 @@ class ASTCompiler:
             url = html.escape(str(props.get("url", "#")))
             open_new_tab = bool(props.get("new_tab") or props.get("newTab"))
             target = ' target="_blank" rel="noopener noreferrer"' if open_new_tab else ""
-            return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 {css_class}"{target}{style_attr}{extra_attrs}>{label}</a>'
+            bg_cls = "" if has_custom_bg else " bg-primary"
+            fg_cls = "" if has_custom_text_color else " text-primary-foreground"
+            return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl{bg_cls} px-6 py-3 font-semibold{fg_cls} transition hover:opacity-90 {css_class}"{target}{style_attr}{extra_attrs}>{label}</a>'
 
         elif widget_type == "image":
             src = html.escape(str(props.get("url", "")))
@@ -652,7 +737,8 @@ class ASTCompiler:
 
         elif widget_type == "product_title":
             title_text = html.escape(str(props.get("fallback_title", "عنوان محصول")))
-            return f'<h1{id_attr} class="text-2xl lg:text-3xl font-bold text-foreground {css_class}"{style_attr}{extra_attrs}>{title_text}</h1>'
+            color_cls = "" if has_custom_text_color else " text-foreground"
+            return f'<h1{id_attr} class="text-2xl lg:text-3xl font-bold{color_cls} {css_class}" data-widget="product_title"{style_attr}{extra_attrs}>{title_text}</h1>'
 
         elif widget_type == "table":
             headers = props.get("headers", [])

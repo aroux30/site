@@ -439,7 +439,11 @@ async def _rendered(db: AsyncSession, page: CmsPageResponse) -> CmsPageResponse:
     """Expand reusable blocks and shortcodes in a page body for display."""
     from app.shared.content.render import render_body
 
-    body = await render_body(db, page.body_html)
+    has_builder_data = bool(
+        page.builder_data
+        and (page.builder_data.get("root_elements") or page.builder_data.get("rootElements"))
+    )
+    body = await render_body(db, page.body_html, demote_h1=not has_builder_data)
 
     if body == page.body_html:
         return page
@@ -462,7 +466,13 @@ async def admin_preview_page(
     # in place, so preview resolves blocks that are not published yet.
     from app.shared.content.render import render_body
 
-    body = await render_body(db, page.body_html, include_unpublished=True)
+    has_builder_data = bool(
+        page.builder_data
+        and (page.builder_data.get("root_elements") or page.builder_data.get("rootElements"))
+    )
+    body = await render_body(
+        db, page.body_html, include_unpublished=True, demote_h1=not has_builder_data
+    )
     return page if body == page.body_html else page.model_copy(update={"body_html": body})
 
 

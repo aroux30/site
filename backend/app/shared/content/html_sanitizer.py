@@ -336,9 +336,30 @@ def sanitize_html(html: str | None) -> str:
     # through window.opener. Editors do not think about this, so add it — and
     # only it: the author's own rel (nofollow on external links, none on the
     # store's own) is kept exactly as written. See ``_link_rel``.
-    return bleach.linkifier.Linker(
+    #
+    # ``bleach.linkifier.Linker(..., skip_tags=["pre", "code"])`` re-escapes
+    # HTML character entities (turning ``&#x27;`` into ``&amp;#x27;``) when
+    # serializing skipped subtrees. Since ``pre``/``code`` were already
+    # sanitized by ``bleach.clean`` above, hold them aside across ``linkify``.
+    preserved_code_blocks: list[str] = []
+
+    def _mask_code(match: re.Match[str]) -> str:
+        idx = len(preserved_code_blocks)
+        preserved_code_blocks.append(match.group(0))
+        return f"__SANITIZER_CODE_BLOCK_{idx}__"
+
+    masked = re.sub(
+        r"<pre\b[^>]*>.*?</pre\s*>|<code\b[^>]*>.*?</code\s*>",
+        _mask_code,
+        cleaned,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    linked = bleach.linkifier.Linker(
         callbacks=[_link_rel],
         skip_tags=["pre", "code"],
         recognized_tags=bleach.html5lib_shim.HTML_TAGS | _EMBED_ALLOWED_TAGS,
         parse_email=False,
-    ).linkify(cleaned)
+    ).linkify(masked)
+    for idx, block in enumerate(preserved_code_blocks):
+        linked = linked.replace(f"__SANITIZER_CODE_BLOCK_{idx}__", block)
+    return linked

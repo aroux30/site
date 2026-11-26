@@ -957,6 +957,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان نمایشی محصول</Label>
               <Input
+                data-testid="product-title-input"
                 value={String(props.fallback_title || "عنوان محصول")}
                 onChange={(e) => handlePropChange("fallback_title", e.target.value)}
                 className="h-8 text-xs"
@@ -3666,10 +3667,26 @@ export function InspectorPanel() {
         ];
         return (
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">جهت چیدمان منو (Layout)</Label>
+              <Select
+                value={String(props.layout || "horizontal")}
+                onValueChange={(val) => handlePropChange("layout", val)}
+              >
+                <SelectTrigger data-testid="nav-menu-layout-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="horizontal">افقی (Horizontal)</SelectItem>
+                  <SelectItem value="vertical">عمودی (Vertical)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold">پیوندهای منو</Label>
               <button
                 type="button"
+                data-testid="nav-menu-add-btn"
                 onClick={() => {
                   const updated = [...items, { title: `پیوند ${items.length + 1}`, url: "/page" }];
                   handlePropChange("items", updated);

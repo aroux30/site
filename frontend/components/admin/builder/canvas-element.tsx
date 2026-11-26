@@ -723,7 +723,9 @@ function CanvasElementComponent({
             className={cn(
               "tracking-tight m-0 break-words [overflow-wrap:anywhere]",
               !hasTypoWeight && "font-bold",
-              !hasTypoColor && "text-foreground",
+              !hasTypoColor &&
+                !/\btext-(?:foreground|primary(?:-foreground)?|secondary(?:-foreground)?|destructive(?:-foreground)?|muted(?:-foreground)?|white|black|inherit|[a-z]+-\d{2,3})\b/.test(customClass) &&
+                "text-foreground",
               customClass
             )}
           >
@@ -793,6 +795,8 @@ function CanvasElementComponent({
       case "button": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const isFull = customClass.includes("w-full");
+        const hasCustomBg = /\bbg-(?!opacity)\S+/.test(customClass);
+        const hasCustomText = /\btext-(?:foreground|primary(?:-foreground)?|secondary(?:-foreground)?|destructive(?:-foreground)?|muted(?:-foreground)?|white|black|inherit|[a-z]+-\d{2,3})\b/.test(customClass);
         const url = String(props.url || "#");
         const labelVal = String(props.label || "دکمه اقدام");
 
@@ -805,7 +809,9 @@ function CanvasElementComponent({
                 autoFocus
                 data-testid="inline-text-editor"
                 className={cn(
-                  "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition outline-2 outline-white",
+                  "inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold shadow-sm transition outline-2 outline-white",
+                  !hasCustomBg && "bg-primary",
+                  !hasCustomText && "text-primary-foreground",
                   isFull && "w-full",
                   customClass
                 )}
@@ -860,13 +866,17 @@ function CanvasElementComponent({
               }}
               title="دابل‌کلیک برای ویرایش مستقیم متن دکمه"
               className={cn(
-                "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
+                "inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold shadow-sm transition",
+                !hasCustomBg && "bg-primary",
+                !hasCustomText && "text-primary-foreground",
                 !previewMode && "pointer-events-none",
                 isFull && "w-full",
                 customClass
               )}
             >
-              <span className="truncate">{labelVal}</span>
+              <span className={customClass.includes("truncate") ? "truncate" : "leading-snug text-center break-words"}>
+                {labelVal}
+              </span>
             </a>
           </div>
         );
@@ -2502,9 +2512,15 @@ function CanvasElementComponent({
               { title: "فروشگاه", url: "/products" },
               { title: "وبلاگ", url: "/blog" },
             ];
+        const navLayout = String(props.layout || "horizontal");
         return (
           <nav aria-label="فهرست ناوبری" className="w-full py-1 select-none pointer-events-none">
-            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
+            <ul
+              className={cn(
+                "flex gap-2 list-none m-0 p-0",
+                navLayout === "vertical" ? "flex-col items-start" : "flex-wrap items-center"
+              )}
+            >
               {items.map((it: any, idx: number) => (
                 <li key={idx} className="inline-block">
                   <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">

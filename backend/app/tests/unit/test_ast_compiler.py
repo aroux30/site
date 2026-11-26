@@ -2333,6 +2333,133 @@ def test_ast_compiler_round04_shop_widgets_ssr_parity():
     assert "مشاهده محصولات بیشتر" not in result
 
 
+def test_builder_gym_round05_global_styles_hero_code_extra5_and_pattern_assets():
+    from app.modules.content.domain.block_patterns import PATTERNS
+    from app.modules.content.domain.builder_validation import validate_page_ast
+
+    ast = validate_page_ast(
+        {
+            "schemaVersion": 1,
+            "title": "Round 05 Regression",
+            "slug": "r05-test",
+            "globalStyles": {
+                "primaryColor": "#dc2626",
+                "secondaryColor": "#0284c7",
+                "backgroundColor": "#fefce8",
+                "textColor": "#1e293b",
+                "borderRadius": "16px",
+                "fontFamily": "system-ui",
+            },
+            "rootElements": [
+                {
+                    "id": "el_r05hero1",
+                    "name": "Hero Box",
+                    "type": "container",
+                    "styles": {"mobile": {}, "customCssClass": "bg-primary text-primary-foreground p-6"},
+                    "layout": {"kind": "flex", "direction": "column"},
+                    "children": [
+                        {
+                            "id": "el_r05head1",
+                            "name": "Hero Heading",
+                            "type": "widget",
+                            "widgetType": "heading",
+                            "widgetProps": {"text": "کالکشن جدید رسید", "tag": "h1"},
+                            "styles": {"mobile": {}, "customCssClass": "text-3xl font-bold text-primary-foreground"},
+                        },
+                        {
+                            "id": "el_r05btn1",
+                            "name": "Hero CTA",
+                            "type": "widget",
+                            "widgetType": "button",
+                            "widgetProps": {"label": "همین حالا بخرید", "url": "/products"},
+                            "styles": {"mobile": {}, "customCssClass": "bg-primary-foreground text-primary font-semibold"},
+                        },
+                    ],
+                },
+                {
+                    "id": "el_r05code1",
+                    "name": "Code",
+                    "type": "widget",
+                    "widgetType": "code_highlight",
+                    "widgetProps": {
+                        "title": "api.ts",
+                        "language": "typescript",
+                        "code": "const res = await fetch('/api/v1/products?x=<tag>');",
+                        "line_numbers": True,
+                        "copy_to_clipboard": True,
+                    },
+                    "styles": {"mobile": {}},
+                },
+                {
+                    "id": "el_r05nav1",
+                    "name": "Nav",
+                    "type": "widget",
+                    "widgetType": "nav_menu",
+                    "widgetProps": {
+                        "layout": "vertical",
+                        "items": [{"title": "فروشگاه", "url": "/products"}, {"title": "درباره ما", "url": "/about"}],
+                    },
+                    "styles": {"mobile": {}},
+                },
+                {
+                    "id": "el_r05pt1",
+                    "name": "ProdTitle",
+                    "type": "widget",
+                    "widgetType": "product_title",
+                    "widgetProps": {"fallback_title": "هدفون بی‌سیم رده‌پرو"},
+                    "styles": {"mobile": {}},
+                },
+            ],
+        }
+    )
+
+    compiled = ASTCompiler.compile(ast)
+    # Global Styles compiled as CSS custom properties + root surface styles
+    assert "--primary-hex: #dc2626" in compiled
+    assert "--secondary-hex: #0284c7" in compiled
+    assert "--background-hex: #fefce8" in compiled
+    assert "--foreground-hex: #1e293b" in compiled
+    assert "--radius: 16px" in compiled
+    assert "system-ui, sans-serif" in compiled
+    assert "background-color: #fefce8" in compiled or "background-color:#fefce8" in compiled
+
+    # Hero heading & CTA button must NOT get overridden by default text-foreground / bg-primary / text-primary-foreground
+    assert 'text-primary-foreground' in compiled
+    assert 'text-foreground  break-words' not in compiled
+    assert 'rounded-xl bg-primary px-6' not in compiled
+
+    # code_highlight must NOT double-escape single quotes or angle brackets inside <pre><code>
+    assert "&amp;#x27;" not in compiled
+    assert "&amp;lt;" not in compiled
+    assert "fetch(" in compiled and "/api/v1/products" in compiled
+    assert 'data-code="' in compiled
+
+    # Extra 5 widgets parity
+    assert "flex-col items-start" in compiled
+    assert "هدفون بی‌سیم رده‌پرو" in compiled
+    assert 'data-widget="product_title"' in compiled
+
+    # All built-in backend block patterns must never reference broken /placeholder-avatar.svg or /placeholder.svg
+    for pat in PATTERNS.values():
+        joined = pat.html + "".join(v.default for v in pat.variables)
+        assert "/placeholder-avatar.svg" not in joined, f"{pat.slug} still uses /placeholder-avatar.svg"
+        assert '"/placeholder.svg"' not in joined, f"{pat.slug} still uses /placeholder.svg"
+
+
+def test_render_body_preserves_builder_h1_when_demote_h1_false():
+    import asyncio
+    from unittest.mock import AsyncMock, MagicMock, patch
+    from app.shared.content.render import render_body
+
+    sample = '<div class="builder-document"><h1>تیتر صفحه ساز</h1></div>'
+    with patch("app.modules.content.application.reusable_block_service.ReusableBlockService.expand", new=AsyncMock(return_value=sample)), \
+         patch("app.shared.content.shortcodes.process_shortcodes_async", new=AsyncMock(return_value=sample)):
+        preserved = asyncio.run(render_body(MagicMock(), sample, demote_h1=False))
+        demoted = asyncio.run(render_body(MagicMock(), sample, demote_h1=True))
+    assert "<h1>تیتر صفحه ساز</h1>" in preserved
+    assert "<h2>تیتر صفحه ساز</h2>" in demoted
+
+
 
 
 

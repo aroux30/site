@@ -144,7 +144,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       setLivePageStatus("draft");
       setAutosaveStatus("saved");
       setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
-      void revalidatePage();
+      await revalidatePage();
       toast({
         title: "پیش‌نویس ذخیره شد",
         description: "تغییرات صفحه با موفقیت در دیتابیس ثبت شد.",
@@ -159,7 +159,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [ast, page.id, markClean, setIsSaving, toast]);
+  }, [ast, page.id, markClean, revalidatePage, setIsSaving, toast]);
 
   // Publish Page Action
   const handlePublish = useCallback(async () => {
@@ -176,7 +176,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       setLivePageStatus("published");
       setAutosaveStatus("saved");
       setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
-      void revalidatePage();
+      await revalidatePage();
       toast({
         title: "صفحه منتشر شد",
         description: "این برگه اکنون با خروجی بهینه‌شده در دسترس کاربران است.",
@@ -191,7 +191,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [ast, page.id, markClean, setIsSaving, toast]);
+  }, [ast, page.id, markClean, revalidatePage, setIsSaving, toast]);
 
   const handleExit = useCallback(() => {
     void release();

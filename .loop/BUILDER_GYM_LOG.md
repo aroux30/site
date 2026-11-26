@@ -7,8 +7,8 @@
 
 ### وزنه‌ها (Progress Ladder)
 - [x] **وزنه ۱ — ۵ کیلو**: اسکلت استودیو، دکمه‌های نوار ابزار، درخت لایه‌ها و بوم Iframe
-- [ ] **وزنه ۲ — ۱۵ کیلو**: ممیزی تکان‌دادنی (Nudge) تک‌تک کنترل‌های ۳ تب (Content / Style / Advanced) برای همه ۳۵+ ویجت
-- [ ] **وزنه ۳ — ۲۵ کیلو**: ممیزی تصویری و ساختاری ۲۸ الگوی آماده + پالت بلوک‌ها + Global Styles
+- [x] **وزنه ۲ — ۱۵ کیلو**: ممیزی تکان‌دادنی (Nudge) تک‌تک کنترل‌های ۳ تب (Content / Style / Advanced) برای همه ۳۵+ ویجت
+- [x] **وزنه ۳ — ۲۵ کیلو**: ممیزی تصویری و ساختاری ۲۸ الگوی آماده + پالت بلوک‌ها + Global Styles
 - [ ] **وزنه ۴ — ۴۰ کیلو**: تجربه واقعی المنتور (Drag & Drop، کپی/پیست، قالب‌ها و برابری کامل با SSR)
 - [ ] **وزنه ۵ — ۵۵ کیلو**: ریسپانسیو موبایل/تبلت، دارک‌مود کامل و تست فشار ۵۰+ المان
 - [ ] **وزنه ۶ — ۷۰ کیلو**: پورت المنتور موج ۱ (گروه‌های کنترل Style، تکمیل Advanced، کانتینر Grid، اشکال جداکننده SVG، Navigator کامل)
@@ -57,13 +57,20 @@
 - [x] `mini_cart` (Content / Style / Advanced)
 - [x] `cart_summary` (Content / Style / Advanced)
 
+#### ۵ ویجت تکمیلی (Extra-5)
+- [x] `product_title` (Content / Style / Advanced)
+- [x] `code_highlight` (Content / Style / Advanced)
+- [x] `breadcrumbs` (Content / Style / Advanced)
+- [x] `search_bar` (Content / Style / Advanced)
+- [x] `nav_menu` (Content / Style / Advanced)
+
 ### پوشش ۲۸ الگوی آماده (وزنه ۳)
-- [ ] دسته ۱ (الگوهای ۱ تا ۵)
-- [ ] دسته ۲ (الگوهای ۶ تا ۱۰)
-- [ ] دسته ۳ (الگوهای ۱۱ تا ۱۵)
-- [ ] دسته ۴ (الگوهای ۱۶ تا ۲۰)
-- [ ] دسته ۵ (الگوهای ۲۱ تا ۲۴)
-- [ ] دسته ۶ (الگوهای ۲۵ تا ۲۸)
+- [x] دسته ۱ (الگوهای ۱ تا ۵)
+- [x] دسته ۲ (الگوهای ۶ تا ۱۰)
+- [x] دسته ۳ (الگوهای ۱۱ تا ۱۵)
+- [x] دسته ۴ (الگوهای ۱۶ تا ۲۰)
+- [x] دسته ۵ (الگوهای ۲۱ تا ۲۴)
+- [x] دسته ۶ (الگوهای ۲۵ تا ۲۸)
 
 ### پوشش موج‌های المنتور (وزنه‌های ۶ تا ۸)
 - [ ] **موج ۱ (وزنه ۶)**: Typography Group, Background Group (Classic/Gradient/Video+Overlay+Blend), Border/BoxShadow Normal+Hover+Transition, Text Shadow/Stroke, CSS Filters, Advanced (Units px/em/rem/%, Transform, Mask, Sticky, Motion, Custom Attributes, Scoped Custom CSS), CSS Grid Container, 30 Shape Dividers SVG, Navigator کامل
@@ -162,3 +169,23 @@
   - `npx vitest run`: `70 passed (70)` — `460 passed (460)`
   - `python -m pytest app/tests/unit`: `663 passed, 2 skipped` (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts --workers=1 --reporter=list`: `10 passed (10)`
+
+### دور ۵ (Round 05 — وزنه ۲ Extra-5 + وزنه ۳: ۲۸ الگو، پالت بلوک‌ها، Global Styles و برابری H1 در SSR)
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-05/before/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision و Nudge:
+    - در `hero-banner` دکمه CTA سفید-روی-سفید (`bg-primary`) و هدینگ `h1` فاقد کنتراست صحیح پس‌زمینه بود؛ در `author-bio` فایل ناموجود `/placeholder-avatar.svg` تصویر آواتار را می‌شکست؛ در `review-histogram` فقط تک‌نوار ثابت تولید می‌شد و `mega-menu-categories` برش متن داشت.
+    - دیالوگ `GlobalStylesDialog` بیرون از محدوده ارتفاع ویوپورت و بدون ذخیره CSS متغیرهای واقعی (`--primary-hex`, `--background-hex`, `--radius`) در خروجی کامپایلر AST بود.
+    - در خروجی SSR، ویجت `code_highlight` کاراکترها را دوبار-escape می‌کرد (`&#x27;`) و دکمه کپی `.code-copy-btn` فاقد رانتایم کلیک بود؛ ویجت `nav_menu` چیدمان عمودی `flex-col` را اعمال نمی‌کرد؛ و `render_body` به‌صورت پیش‌فرض تمام `h1`های بیلدر (`product_title` و `hero-banner`) را به `h2` تنزل می‌داد.
+  - `after/`: `.loop/artifacts/builder-gym/round-05/after/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision: تمام ۲۸ الگوی آماده با کنتراست صحیح (`text-primary-foreground`, `bg-primary-foreground text-primary`)، جایگزینی `/placeholder-about.svg` و ۵ ویجت `progress_bar` رندر شدند؛ `GlobalStylesDialog` در ویوپورت جا گرفت و `--primary-hex`/`--background-hex`/`backgroundColor` در `.builder-document` SSR اعمال شد؛ `code_highlight` بدون double-escape و با دکمه کپی زنده، `nav_menu` با `flex-col` و `<h1>` در `product_title` و `hero-banner` در SSR حفظ شد.
+- **فایل‌های اصلاح‌شده**:
+  - `frontend/components/admin/builder/global-styles-dialog.tsx`, `frontend/components/admin/builder/builder-studio.tsx`, `frontend/stores/builder-store.ts` (رفع ارتفاع و `z-[125]` دیالوگ استایل‌های سراسری، پاکسازی توکن‌های خالی و `revalidatePage` پیش از بستن ذخیره/انتشار)
+  - `frontend/components/admin/builder/blocks-palette.tsx`, `frontend/lib/builder/block-registry.ts`, `frontend/lib/builder/pattern-converter.ts`, `backend/app/modules/content/domain/block_patterns.py` (`data-testid` جستجو، ثبت `product_title`، تصویر `/placeholder-about.svg`، هیستوگرام ۵ ردیفه، بسته‌بندی متنی `mega-menu-categories` و کنتراست `hero-banner`)
+  - `frontend/components/admin/builder/canvas-element.tsx`, `frontend/components/admin/builder/inspector-panel.tsx`, `frontend/components/admin/builder/builder-interactive-runtime.tsx` (چیدمان عمودی `nav_menu`، حفظ رنگ سفارشی روی هدینگ/دکمه، `data-testid`های Extra-5 و `.code-copy-btn`)
+  - `backend/app/modules/content/application/ast_compiler.py`, `backend/app/shared/content/html_sanitizer.py`, `backend/app/shared/content/render.py`, `backend/app/modules/content/api/routes.py` (کامپایل `globalStyles` به متغیرهای CSS، حفظ رنگ سفارشی در کامپایلر، ماسک `<pre>`/`<code>` در `Linker`، افزودن `data-widget="product_title"` و حفظ `<h1>` با `demote_h1=not has_builder_data`)
+  - تست‌های رگرسیون: `backend/app/tests/unit/test_ast_compiler.py`, `frontend/tests/builder-gym-r05-unit.test.ts`, `frontend/tests/e2e/builder-gym-r05.spec.ts`
+- **نتایج راستی‌آزمایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `71 passed (71)` — `463 passed (463)`
+  - `python -m pytest app/tests/unit`: `665 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts tests/e2e/builder-gym-r05.spec.ts --workers=1 --reporter=list`: `11 passed (11)`

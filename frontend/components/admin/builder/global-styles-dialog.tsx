@@ -120,7 +120,11 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" dir="rtl">
+      <DialogContent
+        data-testid="global-styles-dialog"
+        className="z-[125] max-w-lg max-h-[85vh] overflow-y-auto bg-card text-foreground opacity-100 shadow-2xl border border-border"
+        dir="rtl"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-bold">
             <Paintbrush className="w-4 h-4 text-primary" />
@@ -128,7 +132,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2 text-xs">
+        <div className="space-y-2.5 py-1 text-xs">
           {/* Primary Brand Color */}
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">رنگ اصلی برند (Primary Color)</Label>
@@ -140,6 +144,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
                 className="w-8 h-8 rounded-lg cursor-pointer border border-border"
               />
               <Input
+                data-testid="global-primary-input"
                 value={primary}
                 onChange={(e) => setPrimary(toAsciiHex(e.target.value))}
                 className="h-8 font-mono text-xs"
@@ -176,6 +181,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
                 className="w-8 h-8 rounded-lg cursor-pointer border border-border"
               />
               <Input
+                data-testid="global-secondary-input"
                 value={secondary}
                 onChange={(e) => setSecondary(toAsciiHex(e.target.value))}
                 className="h-8 font-mono text-xs"
@@ -205,7 +211,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">شعاع گردی پیش‌فرض (Border Radius)</Label>
             <Select value={radius} onValueChange={setRadius}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger data-testid="global-radius-select" className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -222,7 +228,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">تایپوگرافی سراسری</Label>
             <Select value={fontFamily} onValueChange={setFontFamily}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger data-testid="global-font-select" className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -243,6 +249,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
                 className="w-8 h-8 rounded-lg cursor-pointer border border-border"
               />
               <Input
+                data-testid="global-text-input"
                 value={textColor}
                 onChange={(e) => setTextColor(toAsciiHex(e.target.value))}
                 className="h-8 font-mono text-xs"
@@ -263,6 +270,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
                 className="w-8 h-8 rounded-lg cursor-pointer border border-border"
               />
               <Input
+                data-testid="global-bg-input"
                 value={backgroundColor}
                 onChange={(e) => setBackgroundColor(toAsciiHex(e.target.value))}
                 className="h-8 font-mono text-xs"

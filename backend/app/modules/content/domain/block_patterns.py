@@ -971,7 +971,7 @@ _PATTERNS: tuple[BlockPattern, ...] = (
             PatternVariable("name", "نام و نام خانوادگی", "دکتر رضا کاظمی"),
             PatternVariable("role", "سمت یا تخصص", "پژوهشگر ارشد و کارشناس تجربه کاربری"),
             PatternVariable("badge", "برچسب یا گواهی", "نویسنده برگزیده"),
-            PatternVariable("avatar_url", "آدرس تصویر پروفایل", "/placeholder-avatar.svg"),
+            PatternVariable("avatar_url", "آدرس تصویر پروفایل", "/placeholder-about.svg"),
             PatternVariable(
                 "bio",
                 "متن بیوگرافی",

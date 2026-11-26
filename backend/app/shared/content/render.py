@@ -23,6 +23,7 @@ async def render_body(
     html: str | None,
     *,
     include_unpublished: bool = False,
+    demote_h1: bool = True,
 ) -> str:
     """Expand reusable blocks and run shortcodes over a stored body.
 
@@ -52,7 +53,10 @@ async def render_body(
     # the template already renders the post title as one. Demote the body's
     # H1 to H2 so the page has exactly one page title. Runs before the ToC
     # pass so the demoted heading is still a ToC target.
-    filtered = demote_body_h1(filtered)
+    # Demote body H1 only on article/legacy CMS templates that already render page.title as <h1>.
+    # Visual Page Builder pages render no separate wrapper <h1>, so builder H1 widgets stay H1.
+    if demote_h1:
+        filtered = demote_body_h1(filtered)
     # The ToC pass runs after the text filters: it compares heading text to
     # list items, and the filters (paragraph wrapping, entity decoding) are
     # what make the two comparable. It adds `id`s to headings and wraps

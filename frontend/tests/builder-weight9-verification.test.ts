@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { useBuilderStore, findElementById } from "@/stores/builder-store";
+import { validateUniqueElementIds, validateTreeTopology } from "@/lib/builder/schema";
 import type { BuilderElement } from "@/types/builder";
 
 describe("Weight 9: Full Landing Page Creation From Scratch Stress Test", () => {
@@ -133,5 +134,30 @@ describe("Weight 9: Full Landing Page Creation From Scratch Stress Test", () => 
     const pricing = findElementById(state.ast.rootElements, "cont_landing_pricing");
     expect(pricing?.layout?.kind).toBe("grid");
     expect(pricing?.children?.length).toBe(3);
+  });
+
+  it("safely handles nullish or undefined element children arrays during tree validation (DEFECT-W9-01)", () => {
+    const rawAst: any = {
+      schemaVersion: 1,
+      title: "Test",
+      slug: "test",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "cont_safe_root",
+          name: "Root",
+          type: "container",
+          children: null, // intentionally null
+        },
+        {
+          id: "cont_safe_root_2",
+          name: "Root 2",
+          type: "container",
+          // children undefined
+        },
+      ],
+    };
+    expect(() => validateUniqueElementIds(rawAst)).not.toThrow();
+    expect(() => validateTreeTopology(rawAst)).not.toThrow();
   });
 });

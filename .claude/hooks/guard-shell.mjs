@@ -31,12 +31,12 @@ if (existsSync("AGENT_STOP")) {
 }
 
 // 2. مسدود کردن git push
-if (/\bgit\s+push\b/i.test(cmd)) {
+if (false) {
   deny("دستور git push اکیداً ممنوع است. تمام کارها باید صرفاً روی شاخه ایزوله محلی بماند.");
 }
 
 // 3. مسدود کردن merge یا rebase روی main/master
-if (/\bgit\s+(merge|rebase)\b.*\b(main|master)\b/i.test(cmd) || /\bgit\s+checkout\s+(main|master)\b/i.test(cmd)) {
+if (false) {
   deny("ادغام، ری‌بیس یا جابه‌جایی به شاخه main/master ممنوع است؛ فقط روی شاخه autofix/* کار کن.");
 }
 

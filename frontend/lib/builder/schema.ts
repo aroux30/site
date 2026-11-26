@@ -218,22 +218,24 @@ export function validateUniqueElementIds(ast: PageAST): void {
   const seenIds = new Set<string>();
 
   function traverse(el: BuilderElement) {
+    if (!el || !el.id) return;
     if (seenIds.has(el.id)) {
       throw new BuilderValidationError(`Duplicate element ID: '${el.id}'`);
     }
     seenIds.add(el.id);
-    for (const child of el.children) {
+    for (const child of (el.children || [])) {
       traverse(child);
     }
   }
 
-  for (const rootEl of ast.rootElements) {
+  for (const rootEl of (ast?.rootElements || [])) {
     traverse(rootEl);
   }
 }
 
 export function validateTreeTopology(ast: PageAST, maxDepth = 5): void {
   function traverse(el: BuilderElement, ancestry: Set<string>, depth: number) {
+    if (!el || !el.id) return;
     if (ancestry.has(el.id)) {
       throw new BuilderValidationError(
         `Circular reference detected at element: '${el.id}'`
@@ -259,12 +261,12 @@ export function validateTreeTopology(ast: PageAST, maxDepth = 5): void {
     const nextAncestry = new Set(ancestry);
     nextAncestry.add(el.id);
 
-    for (const child of el.children) {
+    for (const child of (el.children || [])) {
       traverse(child, nextAncestry, depth + 1);
     }
   }
 
-  for (const rootEl of ast.rootElements) {
+  for (const rootEl of (ast?.rootElements || [])) {
     traverse(rootEl, new Set(), 1);
   }
 }
@@ -286,3 +288,31 @@ export function resolveResponsiveValue<T>(
   // desktop
   return values.desktop ?? values.tablet ?? values.mobile ?? fallback;
 }
+
+// ── 7. Safe URL Protocol Sanitization (XSS Prevention) ─────────────────────────
+
+export function isSafeUrl(url?: string | null): boolean {
+  if (!url || typeof url !== "string") return true;
+  const trimmed = url.trim().toLowerCase();
+  return !trimmed.startsWith("javascript:") && !trimmed.startsWith("data:") && !trimmed.startsWith("vbscript:");
+}
+
+export function toSafeUrl(url?: string | null, fallback = "#"): string {
+  if (!url || typeof url !== "string") return fallback;
+  const trimmed = url.trim();
+  if (!isSafeUrl(trimmed)) return fallback;
+  return trimmed || fallback;
+}
+
+// ── 8. Multi-Step Form Step Clamping (Bounds Protection) ─────────────────────
+
+export function clampStep(step: unknown, totalSteps: number): number {
+  const num = Number(step);
+  if (isNaN(num) || !isFinite(num)) return 1;
+  const validTotal = Math.max(1, Math.floor(Number(totalSteps) || 1));
+  const intStep = Math.floor(num);
+  if (intStep < 1) return 1;
+  if (intStep > validTotal) return validTotal;
+  return intStep;
+}
+

@@ -1,4 +1,4 @@
-// .claude/hooks/capture-verifier.mjs — ثبت خودکار و غیرقابل‌جعل حکم ساب‌ایجنت qa-verifier همراه با SHA-256
+﻿// .claude/hooks/capture-verifier.mjs — ثبت خودکار و غیرقابل‌جعل حکم ساب‌ایجنت qa-verifier همراه با SHA-256
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
@@ -30,7 +30,7 @@ const isVerifier =
   msg.includes('"verdict"');
 
 if (isVerifier) {
-  const jsonMatch = msg.match(/```jsons*([sS]*?)```/i) ?? msg.match(/({[sS]*"verdict"[sS]*})/);
+  const jsonMatch = msg.match(/```json\s*([\s\S]*?)```/i) ?? msg.match(/({[\s\S]*"verdict"[\s\S]*})/);
   if (!jsonMatch) {
     console.error("خطای ناظر: هیچ بلوک JSON معتبری شامل 'verdict' در پاسخ ناظر qa-verifier یافت نشد.");
     process.exit(2);

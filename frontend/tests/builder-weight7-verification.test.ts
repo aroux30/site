@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { useBuilderStore, findElementById } from "@/stores/builder-store";
+import { isSafeUrl, toSafeUrl } from "@/lib/builder/schema";
 import type { BuilderElement } from "@/types/builder";
 
 describe("Weight 7: Elementor Parity Wave 2 — Core & Pro Interactive Widgets", () => {
@@ -83,5 +84,18 @@ describe("Weight 7: Elementor Parity Wave 2 — Core & Pro Interactive Widgets",
     const found = findElementById(useBuilderStore.getState().ast.rootElements, "cont_w7_popup");
     expect(found?.widgetType).toBe("popup_builder");
     expect(found?.widgetProps?.trigger).toBe("exit_intent");
+  });
+
+  it("sanitizes widget button URLs rejecting javascript: and data: protocols (XSS prevention)", () => {
+    expect(isSafeUrl("https://example.com")).toBe(true);
+    expect(isSafeUrl("/relative/path")).toBe(true);
+    expect(isSafeUrl("#section")).toBe(true);
+    expect(isSafeUrl("javascript:alert(1)")).toBe(false);
+    expect(isSafeUrl("DATA:text/html,<script>alert(1)</script>")).toBe(false);
+    expect(isSafeUrl("vbscript:msgbox(1)")).toBe(false);
+
+    expect(toSafeUrl("/checkout")).toBe("/checkout");
+    expect(toSafeUrl("javascript:evil()")).toBe("#");
+    expect(toSafeUrl("data:text/html,bad")).toBe("#");
   });
 });

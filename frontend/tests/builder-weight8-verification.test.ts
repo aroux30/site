@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { useBuilderStore, findElementById } from "@/stores/builder-store";
+import { clampStep } from "@/lib/builder/schema";
 import type { BuilderElement } from "@/types/builder";
 
 describe("Weight 8: Elementor Wave 3 — Theme Builder, Loop Builder & Multi-Step Form", () => {
@@ -67,5 +68,25 @@ describe("Weight 8: Elementor Wave 3 — Theme Builder, Loop Builder & Multi-Ste
     store.updateElementProps("el_w8_form", { current_step: 3 });
     const step3 = findElementById(useBuilderStore.getState().ast.rootElements, "el_w8_form");
     expect(step3?.widgetProps?.current_step).toBe(3);
+  });
+
+  it("safely clamps and bounds multi_step_form step values preventing out-of-range states (DEFECT-W8-01)", () => {
+    const totalSteps = 4;
+    expect(clampStep(1, totalSteps)).toBe(1);
+    expect(clampStep(3, totalSteps)).toBe(3);
+    expect(clampStep(4, totalSteps)).toBe(4);
+
+    // Negative and zero clamp to 1
+    expect(clampStep(0, totalSteps)).toBe(1);
+    expect(clampStep(-5, totalSteps)).toBe(1);
+
+    // Exceeding steps clamp to totalSteps
+    expect(clampStep(99, totalSteps)).toBe(4);
+    expect(clampStep(5, totalSteps)).toBe(4);
+
+    // Invalid / NaN types fall back cleanly to step 1
+    expect(clampStep(null, totalSteps)).toBe(1);
+    expect(clampStep(undefined, totalSteps)).toBe(1);
+    expect(clampStep("invalid", totalSteps)).toBe(1);
   });
 });

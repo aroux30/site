@@ -1,23 +1,41 @@
 {
   "version": "4.2",
   "activeWeight": 3,
-  "activeRound": 80,
+  "activeRound": 81,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 3000,
-  "completedRounds": 79,
+  "completedRounds": 80,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 438,
-    "backendUnitTests": 658,
+    "backendUnitTests": 659,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-26T00:00:00.000Z",
+  "timestamp": "2026-11-26T00:15:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W3-02",
+      "severity": "P1",
+      "component": "ast_compiler_global_styles",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "summary": "ast_compiler omitted global_styles from root builder-document tag leading to SSR visual disparity with canvas",
+      "status": "FIXED",
+      "round": 81
+    },
+    {
+      "id": "DEFECT-W3-03",
+      "severity": "P1",
+      "component": "canvas_frame_theme_reset",
+      "layer": "frontend/components/admin/builder/canvas-frame.tsx",
+      "summary": "canvas-frame did not remove theme and hex CSS variables when globalStyles were reset to site theme",
+      "status": "FIXED",
+      "round": 81
+    },
     {
       "id": "DEFECT-W3-01",
       "severity": "P1",

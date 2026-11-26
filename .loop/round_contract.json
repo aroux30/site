@@ -1,13 +1,13 @@
 {
-  "round": 80,
+  "round": 81,
   "weight": 3,
-  "target_units": ["blocks_palette", "pattern_converter", "global_styles"],
-  "fip_defects": ["DEFECT-W3-01", "DEFECT-W3-02"],
-  "cluster_defects": ["DEFECT-W3-01", "DEFECT-W3-02", "DEFECT-W3-03"],
-  "census_controls_to_verify": ["pattern_ast", "global_styles_tokens", "form_container_pattern"],
+  "target_units": ["ast_compiler", "global_styles", "canvas_frame"],
+  "fip_defects": ["DEFECT-W3-02", "DEFECT-W3-03"],
+  "cluster_defects": ["DEFECT-W3-02", "DEFECT-W3-03"],
+  "census_controls_to_verify": ["global_styles_ssr", "canvas_theme_sync"],
   "hard_pass_criteria": [
-    "all 28 block patterns converted without error and pass AST validation",
-    "lead-capture-form correctly produces form_container with submit_url and form tag in SSR",
+    "ast_compiler applies global_styles to root builder-document",
+    "canvas-frame cleans theme variables on site theme reset",
     "zero RL5 cheat tokens",
     "all cluster defects have RED->GREEN regression tests and atomic commits"
   ]

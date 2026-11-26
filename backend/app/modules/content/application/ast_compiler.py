@@ -125,8 +125,25 @@ class ASTCompiler:
         are omitted from the server output entirely to prevent leaking private content.
         """
         buffer: list[str] = []
-        # Root document wrapper with RTL direction
-        buffer.append('<div class="builder-document" dir="rtl">')
+        # Root document wrapper with RTL direction and global design tokens
+        gs = ast.global_styles or {}
+        doc_styles: list[str] = []
+        bg_col = gs.get("backgroundColor") or gs.get("background_color")
+        if bg_col:
+            doc_styles.append(f"background-color: {html.escape(str(bg_col))}")
+        text_col = gs.get("textColor") or gs.get("text_color")
+        if text_col:
+            doc_styles.append(f"color: {html.escape(str(text_col))}")
+        font_fam = gs.get("fontFamily") or gs.get("font_family")
+        if font_fam:
+            f_val = "system-ui, sans-serif" if str(font_fam) == "system-ui" else str(font_fam)
+            doc_styles.append(f"font-family: {html.escape(f_val)}")
+        radius = gs.get("borderRadius") or gs.get("border_radius")
+        if radius:
+            doc_styles.append(f"border-radius: {html.escape(str(radius))}")
+
+        style_attr = f' style="{"; ".join(doc_styles)}"' if doc_styles else ""
+        buffer.append(f'<div class="builder-document" dir="rtl"{style_attr}>')
         for el in ast.root_elements:
             compiled = cls._compile_element(el, is_authenticated=is_authenticated)
             if compiled:

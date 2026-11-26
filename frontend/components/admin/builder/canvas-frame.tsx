@@ -105,32 +105,48 @@ export function CanvasFrame({
       doc.documentElement.style.setProperty("--primary", pVal.startsWith("#") ? hexToHslChannels(pVal) : pVal);
       doc.documentElement.style.setProperty("--theme-primary", pVal);
       doc.documentElement.style.setProperty("--primary-hex", pVal);
+    } else {
+      doc.documentElement.style.removeProperty("--theme-primary");
+      doc.documentElement.style.removeProperty("--primary-hex");
     }
     if (gs?.secondaryColor) {
       const sVal = String(gs.secondaryColor);
       doc.documentElement.style.setProperty("--secondary", sVal.startsWith("#") ? hexToHslChannels(sVal) : sVal);
       doc.documentElement.style.setProperty("--theme-secondary", sVal);
       doc.documentElement.style.setProperty("--secondary-hex", sVal);
+    } else {
+      doc.documentElement.style.removeProperty("--theme-secondary");
+      doc.documentElement.style.removeProperty("--secondary-hex");
     }
     if (gs?.borderRadius) {
       doc.documentElement.style.setProperty("--radius", String(gs.borderRadius));
+    } else {
+      doc.documentElement.style.removeProperty("--radius");
     }
     if (gs?.fontFamily === "system-ui") {
       doc.documentElement.style.setProperty("--font-vazirmatn", "system-ui, sans-serif");
     } else if (gs?.fontFamily) {
       doc.documentElement.style.setProperty("--font-vazirmatn", String(gs.fontFamily));
+    } else {
+      doc.documentElement.style.removeProperty("--font-vazirmatn");
     }
     if (gs?.textColor) {
       const tVal = String(gs.textColor);
       doc.documentElement.style.setProperty("--foreground", tVal.startsWith("#") ? hexToHslChannels(tVal) : tVal);
       doc.documentElement.style.setProperty("--theme-foreground", tVal);
       doc.documentElement.style.setProperty("--foreground-hex", tVal);
+    } else {
+      doc.documentElement.style.removeProperty("--theme-foreground");
+      doc.documentElement.style.removeProperty("--foreground-hex");
     }
     if (gs?.backgroundColor) {
       const bVal = String(gs.backgroundColor);
       doc.documentElement.style.setProperty("--background", bVal.startsWith("#") ? hexToHslChannels(bVal) : bVal);
       doc.documentElement.style.setProperty("--theme-background", bVal);
       doc.documentElement.style.setProperty("--background-hex", bVal);
+    } else {
+      doc.documentElement.style.removeProperty("--theme-background");
+      doc.documentElement.style.removeProperty("--background-hex");
     }
     if (gs?.contentMaxWidth) {
       doc.documentElement.style.setProperty("--content-max-width", String(gs.contentMaxWidth));

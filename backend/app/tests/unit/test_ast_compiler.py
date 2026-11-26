@@ -1950,6 +1950,35 @@ def test_ast_compiler_renders_round56_video_aparat_and_alert_info_aliases():
     assert "این یک پیام اطلاعاتی است." in result
 
 
+def test_ast_compiler_applies_global_styles_to_root_document():
+    """Verify global_styles (background, text color, radius, font) compile to root builder-document."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست استایل سراسری",
+        slug="test-global-styles",
+        global_styles={
+            "backgroundColor": "#f8fafc",
+            "textColor": "#1e293b",
+            "borderRadius": "16px",
+            "fontFamily": "system-ui",
+        },
+        root_elements=[
+            BuilderElement(
+                id="el_sec_gs",
+                name="بخش یک",
+                type="container",
+                children=[],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-document"' in result
+    assert "background-color:#f8fafc" in result or "background-color: #f8fafc" in result
+    assert "color:#1e293b" in result or "color: #1e293b" in result
+    assert "border-radius:16px" in result or "border-radius: 16px" in result
+    assert "font-family:system-ui, sans-serif" in result or "font-family: system-ui, sans-serif" in result
+
+
 
 
 

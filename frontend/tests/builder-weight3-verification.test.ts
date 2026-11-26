@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { useBuilderStore } from "@/stores/builder-store";
 import { DEFAULT_THEME_TOKENS } from "@/lib/builder/theme-schema";
+import { createPatternAST } from "@/lib/builder/pattern-converter";
 
 describe("Weight 3: Block Patterns, Palette Tabs & Global Styles Dialog", () => {
   it("manages global styles design tokens and resets to site theme", () => {
@@ -44,4 +45,81 @@ describe("Weight 3: Block Patterns, Palette Tabs & Global Styles Dialog", () => 
     expect(DEFAULT_THEME_TOKENS.primitive.color?.emerald?.[500]?.$value).toBe("#10b981");
     expect(DEFAULT_THEME_TOKENS.primitive.dimension?.radius?.lg?.$value).toBe("14px");
   });
+
+  it("converts lead-capture-form pattern into a specialized form_container with submit_url", () => {
+    const pattern = {
+      slug: "lead-capture-form",
+      title: "فرم دریافت سرنخ",
+      category: "تعاملی",
+    };
+    const ast = createPatternAST(pattern, "<section></section>");
+
+    expect(ast.type).toBe("container");
+    expect(ast.widgetType).toBe("form_container");
+    expect(ast.widgetProps?.submit_url).toBe("/api/forms/submit");
+    expect(ast.children.length).toBeGreaterThan(0);
+  });
+
+  it("converts comparison-table pattern with valid table widget", () => {
+    const pattern = {
+      slug: "comparison-table",
+      title: "جدول مقایسه",
+      category: "محتوا",
+    };
+    const ast = createPatternAST(pattern, "<section></section>");
+
+    expect(ast.type).toBe("container");
+    const tableEl = ast.children.find((c) => c.widgetType === "table");
+    expect(tableEl).toBeDefined();
+    expect((tableEl?.widgetProps as any)?.headers?.length).toBe(3);
+    expect((tableEl?.widgetProps as any)?.rows?.length).toBe(4);
+  });
+
+  it("converts all 28 block patterns into valid AST without exceptions", () => {
+    const slugs = [
+      "hero-banner",
+      "feature-grid",
+      "product-showcase-cta",
+      "testimonials",
+      "faq-accordion",
+      "image-text",
+      "countdown-offer",
+      "star-rating-display",
+      "review-histogram",
+      "product-card-grid",
+      "text-marquee",
+      "stats-counter",
+      "image-gallery-showcase",
+      "discount-badge-banner",
+      "mega-menu-categories",
+      "pricing-table",
+      "price-list",
+      "icon-box-grid",
+      "author-bio",
+      "pull-quote",
+      "support-callout",
+      "comparison-table",
+      "process-steps",
+      "lead-capture-form",
+      "alert-banner",
+      "floating-contact-bar",
+      "brand-logo-carousel",
+      "product-highlights",
+    ];
+
+    expect(slugs.length).toBe(28);
+
+    for (const slug of slugs) {
+      const pattern = {
+        slug,
+        title: `الگوی تست ${slug}`,
+        category: "عمومی",
+      };
+      const ast = createPatternAST(pattern, "<section></section>");
+      expect(ast.id).toBeDefined();
+      expect(ast.type).toBe("container");
+      expect(ast.children.length).toBeGreaterThan(0);
+    }
+  });
 });
+

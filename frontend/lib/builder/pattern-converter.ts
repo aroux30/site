@@ -16,12 +16,16 @@ function createContainerNode(
     layout?: BuilderElement["layout"];
     customCssClass?: string;
     children?: BuilderElement[];
+    widgetType?: string;
+    widgetProps?: Record<string, any>;
   } = {}
 ): BuilderElement {
   return {
     id: generateElementId("cont"),
     name,
     type: "container",
+    widgetType: options.widgetType as any,
+    widgetProps: options.widgetProps,
     isLocked: false,
     isHidden: false,
     layout: options.layout || {
@@ -1257,6 +1261,12 @@ export function createPatternAST(
       const privacyNote = vars.privacy_note || "اطلاعات تماس شما نزد ما کاملاً محفوظ است.";
 
       return createContainerNode(`${pattern.category}: ${pattern.title}`, {
+        widgetType: "form_container",
+        widgetProps: {
+          submit_url: vars.submit_url || "/api/forms/submit",
+          success_message: vars.success_message || "درخواست مشاوره شما با موفقیت ثبت شد و به زودی تماس خواهیم گرفت.",
+          error_message: vars.error_message || "خطا در ثبت درخواست. لطفاً مجدداً تلاش نمایید.",
+        },
         customCssClass: "rounded-2xl border bg-card p-6 md:p-8 max-w-lg mx-auto text-center space-y-4 my-8",
         children: [
           createHeadingWidget(title, "h3", "text-xl font-bold text-foreground"),

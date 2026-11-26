@@ -1,23 +1,32 @@
 {
   "version": "4.2",
-  "activeWeight": 2,
-  "activeRound": 79,
+  "activeWeight": 3,
+  "activeRound": 80,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 3000,
-  "completedRounds": 78,
+  "completedRounds": 79,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 435,
+    "frontendUnitTests": 438,
     "backendUnitTests": 658,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-25T14:45:00.000Z",
+  "timestamp": "2026-11-26T00:00:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W3-01",
+      "severity": "P1",
+      "component": "pattern_converter_form_container",
+      "layer": "frontend/lib/builder/pattern-converter.ts",
+      "summary": "createContainerNode lacked widgetType and widgetProps, causing lead-capture-form to omit form_container identification and rendering generic layout instead of dedicated form inspector and SSR form tag",
+      "status": "FIXED",
+      "round": 80
+    },
     {
       "id": "DEFECT-W2-03",
       "severity": "P1",

@@ -1,14 +1,13 @@
 {
-  "round": 2,
-  "weight": 1,
-  "target_units": ["layers_tree", "builder_studio", "builder_store"],
-  "fip_defects": ["DEFECT-W1-01"],
-  "cluster_defects": ["DEFECT-W1-01"],
-  "census_controls_to_verify": ["layers_tree_depth", "duplicate_element_clone", "rename_element"],
+  "round": 3,
+  "weight": 2,
+  "target_units": ["color_utils", "interactive_widgets", "inspector_controls"],
+  "fip_defects": ["DEFECT-W2-01"],
+  "cluster_defects": ["DEFECT-W2-01"],
+  "census_controls_to_verify": ["toValidHexColor_persian_digits", "interactive_widgets_audit"],
   "hard_pass_criteria": [
-    "layers tree enforces RTL depth*24px indentation",
-    "duplicateElement clones elements with fresh unique IDs and maintains hierarchy",
-    "renameElement safely updates element label without tree corruption",
+    "toValidHexColor normalizes Persian Unicode digits to valid ASCII hex",
+    "all interactive widget tests pass without regressions",
     "zero RL5 cheat tokens"
   ]
 }

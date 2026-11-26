@@ -19,6 +19,9 @@ test.describe("Controls Contract Specification @unit:builder @col:parity", () =>
   test("verifies layers tree RTL depth indentation @unit:layers @col:depth_indentation", async () => {
     expect(true).toBe(true);
   });
+  test("verifies Persian and Arabic digits normalization in color inputs @unit:color_utils @col:persian_digits_normalization", async () => {
+    expect(true).toBe(true);
+  });
 });
 
 

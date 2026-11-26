@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { useBuilderStore, findElementById } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
+import { toValidHexColor } from "@/lib/builder/color-utils";
 
 describe("Weight 2: Widget Controls Audit Across Content, Style & Advanced Tabs", () => {
   it("updates widget content props reactively across base widgets", () => {
@@ -84,4 +85,10 @@ describe("Weight 2: Widget Controls Audit Across Content, Style & Advanced Tabs"
     expect(updated?.widgetProps?.submit_url).toBe("/api/v1/custom-submit");
     expect(updated?.widgetProps?.success_message).toBe("با تشکر، پیام دریافت شد.");
   });
+
+  it("normalizes Persian digits in hex color codes to valid ASCII hex", () => {
+    expect(toValidHexColor("#۱۲۳۴۵۶")).toBe("#123456");
+    expect(toValidHexColor("#۱0b981")).toBe("#10b981");
+  });
 });
+

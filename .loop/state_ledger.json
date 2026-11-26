@@ -1,23 +1,32 @@
 {
   "version": "5.2",
-  "activeWeight": 2,
-  "activeRound": 3,
+  "activeWeight": 3,
+  "activeRound": 4,
   "status": "IN_PROGRESS",
   "levels1to5Status": "IN_PROGRESS",
   "allLevelsMastered": "IN_PROGRESS",
   "verificationPort": 3000,
-  "completedRounds": 2,
+  "completedRounds": 3,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 442,
+    "frontendUnitTests": 443,
     "backendUnitTests": 659,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-26T01:00:00.000Z",
+  "timestamp": "2026-11-26T01:15:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W2-01",
+      "severity": "P1",
+      "component": "color_utils_persian_digits",
+      "layer": "frontend/lib/builder/color-utils.ts",
+      "summary": "toValidHexColor fell back to default color when hex codes contained Persian or Arabic-Indic digits",
+      "status": "FIXED",
+      "round": 3
+    },
     {
       "id": "DEFECT-W1-01",
       "severity": "P1",

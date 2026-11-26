@@ -32,7 +32,11 @@ export function toValidHexColor(val: unknown, fallback = "#059669"): string {
   if (typeof val !== "string" || !val.trim()) {
     return fallback;
   }
-  const str = val.trim().toLowerCase();
+  const str = val
+    .trim()
+    .toLowerCase()
+    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString())
+    .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d).toString());
 
   // Check known token fallbacks first
   if (KNOWN_TOKEN_FALLBACKS[str]) {

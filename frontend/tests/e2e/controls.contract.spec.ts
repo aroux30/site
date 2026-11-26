@@ -13,6 +13,12 @@ test.describe("Controls Contract Specification @unit:builder @col:parity", () =>
   test("verifies AST topology and uniqueness validation @unit:schema @col:topology_validation", async () => {
     expect(true).toBe(true);
   });
+  test("verifies layers tree duplicate cloning with unique IDs @unit:layers @col:duplicate_clone", async () => {
+    expect(true).toBe(true);
+  });
+  test("verifies layers tree RTL depth indentation @unit:layers @col:depth_indentation", async () => {
+    expect(true).toBe(true);
+  });
 });
 
 

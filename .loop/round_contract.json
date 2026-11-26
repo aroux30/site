@@ -1,14 +1,14 @@
 {
-  "round": 1,
-  "weight": 0,
-  "target_units": ["builder_studio", "inspector_panel", "builder_toolbar"],
-  "fip_defects": [],
-  "cluster_defects": [],
-  "census_controls_to_verify": ["scroll_trap", "clipped_x", "dead_menu", "raw_icon_slug"],
+  "round": 2,
+  "weight": 1,
+  "target_units": ["layers_tree", "builder_studio", "builder_store"],
+  "fip_defects": ["DEFECT-W1-01"],
+  "cluster_defects": ["DEFECT-W1-01"],
+  "census_controls_to_verify": ["layers_tree_depth", "duplicate_element_clone", "rename_element"],
   "hard_pass_criteria": [
-    "zero SCROLL_TRAP at 1280x720 and 1440x900",
-    "zero CLIPPED_X horizontal overflow",
-    "zero dead menus or missing icon svgs",
+    "layers tree enforces RTL depth*24px indentation",
+    "duplicateElement clones elements with fresh unique IDs and maintains hierarchy",
+    "renameElement safely updates element label without tree corruption",
     "zero RL5 cheat tokens"
   ]
 }

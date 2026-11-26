@@ -43,4 +43,33 @@ describe("Weight 1: Studio Chrome, Layers Tree, Toolbar & Canvas Frame", () => {
       expect(useBuilderStore.getState().ast.rootElements[0]?.isLocked).toBe(false);
     }
   });
+
+  it("duplicates elements with unique IDs maintaining child tree structure", () => {
+    useBuilderStore.getState().initPage("dup-test", null, "تست تکثیر", "dup-test");
+    const store = useBuilderStore.getState();
+    const initialCount = store.ast.rootElements.length;
+    const target = store.ast.rootElements[0];
+    expect(target).toBeDefined();
+
+    store.duplicateElement(target!.id);
+    const updatedRoots = useBuilderStore.getState().ast.rootElements;
+    expect(updatedRoots.length).toBe(initialCount + 1);
+
+    const cloned = updatedRoots[1];
+    expect(cloned).toBeDefined();
+    expect(cloned!.id).not.toBe(target!.id);
+    expect(cloned!.name).toBe(`${target!.name} (کپی)`);
+    expect(useBuilderStore.getState().selectedElementId).toBe(cloned!.id);
+  });
+
+  it("renames element safely without tree corruption", () => {
+    useBuilderStore.getState().initPage("rename-test", null, "تست تغییر نام", "rename-test");
+    const store = useBuilderStore.getState();
+    const target = store.ast.rootElements[0];
+    expect(target).toBeDefined();
+
+    store.renameElement(target!.id, "نام جدید بخش هدر");
+    expect(useBuilderStore.getState().ast.rootElements[0]?.name).toBe("نام جدید بخش هدر");
+  });
 });
+

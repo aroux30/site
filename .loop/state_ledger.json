@@ -1,23 +1,32 @@
 {
   "version": "5.2",
-  "activeWeight": 1,
-  "activeRound": 2,
+  "activeWeight": 2,
+  "activeRound": 3,
   "status": "IN_PROGRESS",
   "levels1to5Status": "IN_PROGRESS",
   "allLevelsMastered": "IN_PROGRESS",
   "verificationPort": 3000,
-  "completedRounds": 1,
+  "completedRounds": 2,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 440,
+    "frontendUnitTests": 442,
     "backendUnitTests": 659,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-26T00:45:00.000Z",
+  "timestamp": "2026-11-26T01:00:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W1-01",
+      "severity": "P1",
+      "component": "layers_tree_indentation",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "summary": "layers tree used 20px indentation instead of 24px per depth level causing suboptimal hierarchy distinction in RTL",
+      "status": "FIXED",
+      "round": 2
+    },
     {
       "id": "DEFECT-W0-01",
       "severity": "P1",

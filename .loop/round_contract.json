@@ -1,14 +1,14 @@
 {
-  "round": 81,
-  "weight": 3,
-  "target_units": ["ast_compiler", "global_styles", "canvas_frame"],
-  "fip_defects": ["DEFECT-W3-02", "DEFECT-W3-03"],
-  "cluster_defects": ["DEFECT-W3-02", "DEFECT-W3-03"],
-  "census_controls_to_verify": ["global_styles_ssr", "canvas_theme_sync"],
+  "round": 1,
+  "weight": 0,
+  "target_units": ["builder_studio", "inspector_panel", "builder_toolbar"],
+  "fip_defects": [],
+  "cluster_defects": [],
+  "census_controls_to_verify": ["scroll_trap", "clipped_x", "dead_menu", "raw_icon_slug"],
   "hard_pass_criteria": [
-    "ast_compiler applies global_styles to root builder-document",
-    "canvas-frame cleans theme variables on site theme reset",
-    "zero RL5 cheat tokens",
-    "all cluster defects have RED->GREEN regression tests and atomic commits"
+    "zero SCROLL_TRAP at 1280x720 and 1440x900",
+    "zero CLIPPED_X horizontal overflow",
+    "zero dead menus or missing icon svgs",
+    "zero RL5 cheat tokens"
   ]
 }

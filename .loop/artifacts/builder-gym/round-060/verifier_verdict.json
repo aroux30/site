@@ -1,7 +1,0 @@
-{
-  "round": 60,
-  "verdict": "APPROVE",
-  "score": 10,
-  "summary": "Round 60 Core & Pro widgets semantic data-widget tags verified across all 4 layers with 100% tests green.",
-  "blocking_reasons": []
-}

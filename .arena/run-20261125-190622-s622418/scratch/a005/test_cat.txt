@@ -1,2 +1,0 @@
-This is line 1 with 'single quotes' and "double quotes" and `backticks`
-This is line 2 with symbols: !@#$%^&*()_+{}[]:;"'|<>?,./

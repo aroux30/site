@@ -1,1 +1,0 @@
-Hello World!This is a test of a longer string with no newlines inside the base64. We want to verify that Git Bash accepts a reasonably sized argument perfectly when it is strictly on one line.

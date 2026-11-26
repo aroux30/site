@@ -1,5 +1,0 @@
-Line 1: Normal text
-Line 2: 'Single quoted string'
-Line 3: "Double quoted string"
-Line 4: Persian text: متن تستی به زبان فارسی با علائم نگارشی
-Line 5: Special characters: $VAR `cmd` \n \t

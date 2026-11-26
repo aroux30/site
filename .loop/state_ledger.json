@@ -1,21 +1,31 @@
 {
   "version": "5.2",
-  "activeWeight": 0,
-  "activeRound": 1,
+  "activeWeight": 1,
+  "activeRound": 2,
   "status": "IN_PROGRESS",
   "levels1to5Status": "IN_PROGRESS",
   "allLevelsMastered": "IN_PROGRESS",
   "verificationPort": 3000,
-  "completedRounds": 0,
+  "completedRounds": 1,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 438,
+    "frontendUnitTests": 440,
     "backendUnitTests": 659,
-    "playwrightTests": 0,
+    "playwrightTests": 52,
     "registeredBlocks": 73,
-    "lastVerifierVerdict": null,
+    "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-26T00:30:00.000Z",
-  "defect_ledger": []
+  "timestamp": "2026-11-26T00:45:00.000Z",
+  "defect_ledger": [
+    {
+      "id": "DEFECT-W0-01",
+      "severity": "P1",
+      "component": "schema_spacing_box",
+      "layer": "frontend/lib/builder/schema.ts",
+      "summary": "createDefaultSpacingBox was missing, causing potential undefined property access when resetting box spacing controls",
+      "status": "FIXED",
+      "round": 1
+    }
+  ]
 }

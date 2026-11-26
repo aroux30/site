@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { BuilderElement, PageAST, ResponsiveStyles } from "@/types/builder";
+import type { BuilderElement, PageAST, ResponsiveStyles, SpacingBox, UnitType } from "@/types/builder";
 
 // ── 1. Unit & Spacing Schemas ───────────────────────────────────────────────
 
@@ -19,6 +19,16 @@ export const SpacingBoxSchema = z.object({
   left: UnitValueSchema.default({ value: 0, unit: "px" }),
   isLinked: z.boolean().default(true),
 });
+
+export function createDefaultSpacingBox(value = 0, unit: UnitType = "px", isLinked = true): SpacingBox {
+  return {
+    top: { value, unit },
+    right: { value, unit },
+    bottom: { value, unit },
+    left: { value, unit },
+    isLinked,
+  };
+}
 
 // ── 2. Style Schemas ────────────────────────────────────────────────────────
 

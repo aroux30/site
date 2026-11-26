@@ -1,13 +1,13 @@
 {
-  "round": 4,
-  "weight": 3,
-  "target_units": ["blocks_palette", "pattern_search", "theme_tokens"],
-  "fip_defects": ["DEFECT-W3-04"],
-  "cluster_defects": ["DEFECT-W3-04"],
-  "census_controls_to_verify": ["pattern_multitoken_search", "safe_keywords_spread"],
+  "round": 5,
+  "weight": 4,
+  "target_units": ["builder_store", "copy_paste_styles", "multi_select_delete"],
+  "fip_defects": ["DEFECT-W4-01"],
+  "cluster_defects": ["DEFECT-W4-01"],
+  "census_controls_to_verify": ["copyStyles_strip_customCssId", "deleteSelectedElements"],
   "hard_pass_criteria": [
-    "pattern search supports multi-token query matching and handles undefined keywords safely",
-    "all 28 block patterns converted without error and pass AST validation",
+    "copyStyles strips customCssId to prevent DOM id duplication across elements",
+    "deleteSelectedElements cleans all selected IDs in a single atomic history step",
     "zero RL5 cheat tokens"
   ]
 }

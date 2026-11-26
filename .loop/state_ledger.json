@@ -1,23 +1,32 @@
 {
   "version": "5.2",
-  "activeWeight": 4,
-  "activeRound": 5,
+  "activeWeight": 5,
+  "activeRound": 6,
   "status": "IN_PROGRESS",
   "levels1to5Status": "IN_PROGRESS",
   "allLevelsMastered": "IN_PROGRESS",
   "verificationPort": 3000,
-  "completedRounds": 4,
+  "completedRounds": 5,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 444,
+    "frontendUnitTests": 446,
     "backendUnitTests": 659,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-26T01:30:00.000Z",
+  "timestamp": "2026-11-26T01:45:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W4-01",
+      "severity": "P1",
+      "component": "builder_store_copy_styles",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "copyStyles preserved customCssId causing duplicate DOM element id collisions when pasting styles",
+      "status": "FIXED",
+      "round": 5
+    },
     {
       "id": "DEFECT-W3-04",
       "severity": "P1",

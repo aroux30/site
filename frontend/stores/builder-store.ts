@@ -879,6 +879,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const found = findElementById(ast.rootElements, targetId);
     if (found?.styles) {
       const stylesCopy = JSON.parse(JSON.stringify(found.styles));
+      delete stylesCopy.customCssId;
       set({ clipboard: { ...get().clipboard, styles: stylesCopy } });
       try {
         if (typeof window !== "undefined") {
@@ -900,7 +901,9 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       } catch {}
     }
     if (stylesToPaste) {
-      updateElementStyles(id, JSON.parse(JSON.stringify(stylesToPaste)));
+      const sanitized = JSON.parse(JSON.stringify(stylesToPaste));
+      delete sanitized.customCssId;
+      updateElementStyles(id, sanitized);
     }
   },
 

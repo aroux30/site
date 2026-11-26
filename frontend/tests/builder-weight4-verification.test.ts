@@ -74,4 +74,80 @@ describe("Weight 4: Drag & Drop, Copy/Paste, Templates & Global Components", () 
     elem = findElementById(useBuilderStore.getState().ast.rootElements, "el_w4_dest");
     expect(elem?.globalComponentId).toBeFalsy();
   });
+
+  it("strips customCssId when copying styles to prevent duplicate DOM id collisions", () => {
+    const store = useBuilderStore.getState();
+    const widgetWithId: BuilderElement = {
+      id: "el_w4_with_id",
+      name: "منبع با شناسه",
+      type: "widget",
+      widgetType: "button",
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: { background: { type: "color", color: "#3b82f6" } },
+        customCssClass: "special-card",
+        customCssId: "unique-anchor-id",
+      },
+      children: [],
+    };
+    const targetWidget: BuilderElement = {
+      id: "el_w4_target",
+      name: "مقصد بدون شناسه",
+      type: "widget",
+      widgetType: "button",
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+    store.addElement(widgetWithId);
+    store.addElement(targetWidget);
+
+    store.copyStyles("el_w4_with_id");
+    const clipStyles = useBuilderStore.getState().clipboard.styles;
+    expect(clipStyles?.customCssId).toBeUndefined();
+
+    store.pasteStyles("el_w4_target");
+    const updatedTarget = findElementById(useBuilderStore.getState().ast.rootElements, "el_w4_target");
+    expect(updatedTarget?.styles?.customCssClass).toBe("special-card");
+    expect(updatedTarget?.styles?.customCssId).toBeUndefined();
+  });
+
+  it("deletes multiple selected elements in a single atomic action", () => {
+    const store = useBuilderStore.getState();
+    store.initPage("bulk-del-test", null, "تست حذف گروهی", "bulk-del");
+    const el1: BuilderElement = {
+      id: "el_bulk_1",
+      name: "مورد یک",
+      type: "widget",
+      widgetType: "button",
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+    const el2: BuilderElement = {
+      id: "el_bulk_2",
+      name: "مورد دو",
+      type: "widget",
+      widgetType: "button",
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+    store.addElement(el1);
+    store.addElement(el2);
+
+    store.toggleSelectElement("el_bulk_1", false);
+    store.toggleSelectElement("el_bulk_2", true);
+    expect(useBuilderStore.getState().selectedElementIds).toEqual(["el_bulk_1", "el_bulk_2"]);
+
+    store.deleteSelectedElements();
+    expect(useBuilderStore.getState().selectedElementIds).toEqual([]);
+    expect(findElementById(useBuilderStore.getState().ast.rootElements, "el_bulk_1")).toBeNull();
+    expect(findElementById(useBuilderStore.getState().ast.rootElements, "el_bulk_2")).toBeNull();
+  });
 });
+

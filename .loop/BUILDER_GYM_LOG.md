@@ -44,18 +44,18 @@
 - [x] `social_links` (Content / Style / Advanced)
 
 #### ۱۲ ویجت فروشگاهی
-- [ ] `product_card` (Content / Style / Advanced)
-- [ ] `product_grid` (Content / Style / Advanced)
-- [ ] `image_gallery` (Content / Style / Advanced)
-- [ ] `star_rating` (Content / Style / Advanced)
-- [ ] `review_histogram` (Content / Style / Advanced)
-- [ ] `recently_viewed` (Content / Style / Advanced)
-- [ ] `mega_menu` (Content / Style / Advanced)
-- [ ] `product_price` (Content / Style / Advanced)
-- [ ] `product_variants` (Content / Style / Advanced)
-- [ ] `add_to_cart` (Content / Style / Advanced)
-- [ ] `mini_cart` (Content / Style / Advanced)
-- [ ] `cart_summary` (Content / Style / Advanced)
+- [x] `product_card` (Content / Style / Advanced)
+- [x] `product_grid` (Content / Style / Advanced)
+- [x] `image_gallery` (Content / Style / Advanced)
+- [x] `star_rating` (Content / Style / Advanced)
+- [x] `review_histogram` (Content / Style / Advanced)
+- [x] `recently_viewed` (Content / Style / Advanced)
+- [x] `mega_menu` (Content / Style / Advanced)
+- [x] `product_price` (Content / Style / Advanced)
+- [x] `product_variants` (Content / Style / Advanced)
+- [x] `add_to_cart` (Content / Style / Advanced)
+- [x] `mini_cart` (Content / Style / Advanced)
+- [x] `cart_summary` (Content / Style / Advanced)
 
 ### پوشش ۲۸ الگوی آماده (وزنه ۳)
 - [ ] دسته ۱ (الگوهای ۱ تا ۵)
@@ -141,3 +141,24 @@
   - `npx vitest run`: `69 passed (69)` — `458 passed (458)`
   - `python -m pytest app/tests/unit`: `662 passed, 2 skipped` (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts --workers=1 --reporter=list`: `9 passed (9)`
+
+### دور ۴ (Round 04 — وزنه ۲ دسته ۳: ۱۲ ویجت فروشگاهی + دارایی‌های تصویر و تعامل‌پذیری SSR)
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-04/before/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision و Nudge:
+    - فایل ناموجود `/placeholder.svg` در پیش‌فرض `image_gallery`، `mega_menu` و `image_carousel` منجر به ۴ خطای همزمان HTTP 404 و مربع‌های سفید خراب می‌شد.
+    - در خروجی SSR، ویجت‌های `product_card` و `image_gallery` فاقد محدودیت عرض (`max-w-sm` / `max-w-md`) بودند و در نمای ۱۴۴۰px به شکل مربع عظیم تمام‌عرض کش می‌آمدند؛ همچنین خط فرار نقل‌قول در کانتینر نشانک‌های `product_card` باعث به‌هم‌ریختگی رندر شده بود.
+    - ویجت‌های `mini_cart` (نادیده‌گرفتن `label`، سویچ `show_badge` و نبود آیکون SVG سبد)، `cart_summary` (نادیده‌گرفتن `title`، `button_label`، `checkout_url` و `show_discount` در SSR و نمایش همیشگی ردیف تخفیف در بوم)، `recently_viewed` (نادیده‌گرفتن `title` و رندرنکردن کارت‌ها در SSR)، `star_rating` (نمایش تنها ۱ ستاره به جای ۵ ستاره و بی‌توجهی به `showValue=false` و باگ مقدار `0`)، `product_price` (عدم اثر `show_discount=false` و باگ مقدار `0` در بوم)، `add_to_cart` (نبود انتخابگر تعداد و آیکون در SSR)، `mega_menu` (دکمه مرده بدون منو و آیکون)، `review_histogram` (تک‌نوار ثابت به جای توزیع ۵ ستاره و نبود `verifiedCount`) و `product_grid` (ناهمگامی انتخابگر فیلتر بازرس با بوم) اصلاح ریشه‌ای شدند.
+  - `after/`: `.loop/artifacts/builder-gym/round-04/after/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision: صفر خطای کنسول و ۴۰۴، کارت محصول و گالری تصویر متناسب (`max-w-sm`/`max-w-md`) با پشته نشانک‌ها و تعویض زنده تصویر بندانگشتی گالری در SSR، ۵ ستاره رتبه‌بندی و مخفی‌سازی صحیح امتیاز در حالت `showValue=false`، نمودار توزیع ۵ ردیفی با خریدهای تأییدشده، بازشدن پنل دسته‌های `mega_menu`، همگام‌سازی انتخاب تنوع با دکمه خرید و افزایش زنده بج `mini_cart` در خروجی SSR.
+- **فایل‌های اصلاح‌شده**:
+  - `frontend/lib/builder/block-registry.ts`, `frontend/lib/builder/pattern-converter.ts` (حذف `/placeholder.svg` و تنظیم عنوان پیش‌فرض `recently_viewed`)
+  - `frontend/components/admin/builder/inspector-panel.tsx` (افزودن `data-testid`های ممیزی، ورودی `verifiedCount`، رفع صفرشدن قیمت/امتیاز و اصلاح URL گالری)
+  - `frontend/components/admin/builder/canvas-element.tsx` (همگام‌سازی فیلتر `product_grid` با بازرس، رندر شرطی ردیف تخفیف `cart_summary`، رفع مقدار `0` در `star_rating`/`product_price` و حذف `/placeholder.svg`)
+  - `frontend/components/admin/builder/builder-interactive-runtime.tsx` (تعامل زنده SSR برای `image_gallery`، `mega_menu`، `product_grid`، `product_variants` و `add_to_cart` + `mini_cart`)
+  - `backend/app/modules/content/application/ast_compiler.py` و `backend/app/shared/content/html_sanitizer.py` (بازنویسی رندر ۱۲ ویجت فروشگاهی، فرمت عددی فارسی، رفع خط فرار نشانک‌های `product_card` و مجوزدهی صفت‌های تعاملی)
+  - تست‌های رگرسیون: `backend/app/tests/unit/test_ast_compiler.py` (+۱ تست)، `frontend/tests/builder-gym-r04-unit.test.ts` (+۲ تست)، `frontend/tests/e2e/builder-gym-r03.spec.ts` (تضمین صفر خطای خالص اپلیکیشن)، `frontend/tests/e2e/builder-gym-r04.spec.ts`
+- **نتایج راستی‌آزمایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `70 passed (70)` — `460 passed (460)`
+  - `python -m pytest app/tests/unit`: `663 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts --workers=1 --reporter=list`: `10 passed (10)`

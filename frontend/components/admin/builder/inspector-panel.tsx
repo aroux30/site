@@ -483,7 +483,7 @@ export function InspectorPanel() {
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
                 className="h-8 text-xs font-mono"
-                placeholder="https://... یا /placeholder.svg"
+                placeholder="https://... یا /placeholder-product.svg"
                 dir="ltr"
               />
             </div>
@@ -792,8 +792,9 @@ export function InspectorPanel() {
               <div className="space-y-1">
                 <Label className="text-xs">قیمت فروش (تومان)</Label>
                 <Input
+                  data-testid="product-card-min-price-input"
                   type="number"
-                  value={Number(props.min_price) || 0}
+                  value={props.min_price !== undefined ? Number(props.min_price) : 0}
                   onChange={(e) => handlePropChange("min_price", parseFloat(e.target.value) || 0)}
                   className="h-8 text-xs"
                 />
@@ -801,8 +802,9 @@ export function InspectorPanel() {
               <div className="space-y-1">
                 <Label className="text-xs">قیمت اصلی / خط خورده</Label>
                 <Input
+                  data-testid="product-card-max-price-input"
                   type="number"
-                  value={Number(props.max_price) || 0}
+                  value={props.max_price !== undefined ? Number(props.max_price) : 0}
                   onChange={(e) => handlePropChange("max_price", parseFloat(e.target.value) || 0)}
                   className="h-8 text-xs"
                 />
@@ -819,6 +821,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">موجود در انبار</Label>
               <Switch
+                data-testid="product-card-stock-switch"
                 checked={props.is_in_stock !== false}
                 onCheckedChange={(val) => handlePropChange("is_in_stock", val)}
               />
@@ -832,6 +835,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">تعداد کالاهای نمایشی</Label>
               <Input
+                data-testid="product-grid-limit-input"
                 type="number"
                 min={1}
                 max={12}
@@ -846,7 +850,7 @@ export function InspectorPanel() {
                 value={String(props.filter || "all")}
                 onValueChange={(val) => handlePropChange("filter", val)}
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger data-testid="product-grid-filter-select" className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -860,6 +864,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش دکمه مشاهده بیشتر</Label>
               <Switch
+                data-testid="product-grid-pagination-switch"
                 checked={props.show_pagination !== false}
                 onCheckedChange={(val) => handlePropChange("show_pagination", val)}
               />
@@ -878,16 +883,20 @@ export function InspectorPanel() {
                 step="0.1"
                 min="0"
                 max="5"
-                value={Number(props.value) || 5}
-                onChange={(e) => handlePropChange("value", parseFloat(e.target.value) || 5)}
+                value={props.value !== undefined ? Number(props.value) : 5}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  handlePropChange("value", Number.isNaN(v) ? 0 : Math.min(5, Math.max(0, v)));
+                }}
                 className="h-8 text-xs"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">تعداد نظرات</Label>
               <Input
+                data-testid="star-rating-reviews-input"
                 type="number"
-                value={Number(props.reviewCount) || 0}
+                value={props.reviewCount !== undefined ? Number(props.reviewCount) : 0}
                 onChange={(e) => handlePropChange("reviewCount", parseInt(e.target.value) || 0)}
                 className="h-8 text-xs"
               />
@@ -895,6 +904,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش عدد امتیاز</Label>
               <Switch
+                data-testid="star-rating-show-value-switch"
                 checked={props.showValue !== false}
                 onCheckedChange={(val) => handlePropChange("showValue", val)}
               />
@@ -908,21 +918,33 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">میانگین امتیازات</Label>
               <Input
+                data-testid="review-histogram-avg-input"
                 type="number"
                 step="0.1"
                 min="0"
                 max="5"
-                value={Number(props.averageRating) || 4.5}
-                onChange={(e) => handlePropChange("averageRating", parseFloat(e.target.value) || 4.5)}
+                value={props.averageRating !== undefined ? Number(props.averageRating) : 4.5}
+                onChange={(e) => handlePropChange("averageRating", parseFloat(e.target.value) || 0)}
                 className="h-8 text-xs"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">تعداد کل نظرات</Label>
               <Input
+                data-testid="review-histogram-total-input"
                 type="number"
-                value={Number(props.totalReviews) || 0}
+                value={props.totalReviews !== undefined ? Number(props.totalReviews) : 0}
                 onChange={(e) => handlePropChange("totalReviews", parseInt(e.target.value) || 0)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد خرید تأییدشده</Label>
+              <Input
+                data-testid="review-histogram-verified-input"
+                type="number"
+                value={props.verifiedCount !== undefined ? Number(props.verifiedCount) : 72}
+                onChange={(e) => handlePropChange("verifiedCount", parseInt(e.target.value) || 0)}
                 className="h-8 text-xs"
               />
             </div>
@@ -949,6 +971,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان بخش</Label>
               <Input
+                data-testid="recently-viewed-title-input"
                 value={String(props.title || "بازدیدهای اخیر شما")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -957,6 +980,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">تعداد کالاهای اخیر (Limit)</Label>
               <Input
+                data-testid="recently-viewed-limit-input"
                 type="number"
                 min={1}
                 max={12}
@@ -974,6 +998,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان دکمه ناوبری (Label)</Label>
               <Input
+                data-testid="mega-menu-label-input"
                 value={String(props.label || "دسته‌بندی کالاها")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -990,7 +1015,7 @@ export function InspectorPanel() {
               <Input
                 data-testid="product-price-input"
                 type="number"
-                value={Number(props.price) || 0}
+                value={props.price !== undefined ? Number(props.price) : 0}
                 onChange={(e) => handlePropChange("price", parseFloat(e.target.value) || 0)}
                 className="h-8 text-xs font-mono"
               />
@@ -998,8 +1023,9 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">قیمت قبل تخفیف (تومان)</Label>
               <Input
+                data-testid="product-compare-price-input"
                 type="number"
-                value={Number(props.compare_at_price) || 0}
+                value={props.compare_at_price !== undefined ? Number(props.compare_at_price) : 0}
                 onChange={(e) => handlePropChange("compare_at_price", parseFloat(e.target.value) || 0)}
                 className="h-8 text-xs font-mono"
               />
@@ -1007,6 +1033,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش درصد تخفیف</Label>
               <Switch
+                data-testid="product-price-show-discount-switch"
                 checked={props.show_discount !== false}
                 onCheckedChange={(val) => handlePropChange("show_discount", val)}
               />
@@ -1029,6 +1056,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش انتخابگر تعداد</Label>
               <Switch
+                data-testid="add-to-cart-qty-switch"
                 checked={props.show_quantity !== false}
                 onCheckedChange={(val) => handlePropChange("show_quantity", val)}
               />
@@ -1046,6 +1074,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان انتخابگر</Label>
               <Input
+                data-testid="product-variants-title-input"
                 value={String(props.product_title || "انتخاب تنوع و مشخصات")}
                 onChange={(e) => handlePropChange("product_title", e.target.value)}
                 className="h-8 text-xs"
@@ -1056,6 +1085,7 @@ export function InspectorPanel() {
                 <Label className="text-xs font-bold">تنوع‌های محصول (Variants)</Label>
                 <button
                   type="button"
+                  data-testid="product-variants-add-btn"
                   onClick={() => {
                     const newVar = {
                       id: `var_${Date.now()}`,
@@ -1075,6 +1105,7 @@ export function InspectorPanel() {
                   <div key={v.id || idx} className="p-2 rounded-lg border bg-muted/20 space-y-2">
                     <div className="flex items-center justify-between">
                       <Input
+                        data-testid={`product-variant-title-${idx}`}
                         value={v.title || ""}
                         placeholder="عنوان تنوع"
                         onChange={(e) => {
@@ -1101,6 +1132,7 @@ export function InspectorPanel() {
                       <div className="flex-1 space-y-1">
                         <Label className="text-[10px] text-muted-foreground">قیمت (تومان)</Label>
                         <Input
+                          data-testid={`product-variant-price-${idx}`}
                           type="number"
                           value={v.price || 0}
                           onChange={(e) => {
@@ -1126,6 +1158,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان سبد</Label>
               <Input
+                data-testid="mini-cart-label-input"
                 value={String(props.label || "سبد خرید")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1134,6 +1167,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش نشانگر تعداد (Badge)</Label>
               <Switch
+                data-testid="mini-cart-badge-switch"
                 checked={props.show_badge !== false}
                 onCheckedChange={(val) => handlePropChange("show_badge", val)}
               />
@@ -1147,6 +1181,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان خلاصه سبد</Label>
               <Input
+                data-testid="cart-summary-title-input"
                 value={String(props.title || "خلاصه سبد خرید")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -1155,6 +1190,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن دکمه تسویه</Label>
               <Input
+                data-testid="cart-summary-btn-input"
                 value={String(props.button_label || "ادامه فرآیند خرید")}
                 onChange={(e) => handlePropChange("button_label", e.target.value)}
                 className="h-8 text-xs"
@@ -1163,6 +1199,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس صفحه تسویه حساب</Label>
               <Input
+                data-testid="cart-summary-url-input"
                 value={String(props.checkout_url || "/checkout")}
                 onChange={(e) => handlePropChange("checkout_url", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -1172,6 +1209,7 @@ export function InspectorPanel() {
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش ردیف تخفیف</Label>
               <Switch
+                data-testid="cart-summary-discount-switch"
                 checked={props.show_discount !== false}
                 onCheckedChange={(val) => handlePropChange("show_discount", val)}
               />
@@ -2284,7 +2322,7 @@ export function InspectorPanel() {
       case "image_gallery": {
         const images = (props.images as any[]) || [
           { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
-          { url: "/placeholder.svg", alt: "تصویر ۲" },
+          { url: "/placeholder-product.svg", alt: "تصویر ۲" },
         ];
         return (
           <div className="space-y-4">
@@ -2292,8 +2330,9 @@ export function InspectorPanel() {
               <Label className="text-xs font-bold">تصاویر گالری</Label>
               <button
                 type="button"
+                data-testid="image-gallery-add-btn"
                 onClick={() => {
-                  const updated = [...images, { url: "/placeholder.svg", alt: `تصویر ${images.length + 1}` }];
+                  const updated = [...images, { url: "/placeholder-product.svg", alt: `تصویر ${images.length + 1}` }];
                   handlePropChange("images", updated);
                 }}
                 className="text-[11px] text-primary hover:underline font-semibold"
@@ -2320,8 +2359,9 @@ export function InspectorPanel() {
                     )}
                   </div>
                   <Input
+                    data-testid={`image-gallery-url-${idx}`}
                     value={img.url || ""}
-                    placeholder="/path/to/image.jpg"
+                    placeholder="/placeholder-product.svg"
                     onChange={(e) => {
                       const updated = [...images];
                       updated[idx] = { ...updated[idx], url: e.target.value };
@@ -2331,6 +2371,7 @@ export function InspectorPanel() {
                     dir="ltr"
                   />
                   <Input
+                    data-testid={`image-gallery-alt-${idx}`}
                     value={img.alt || ""}
                     placeholder="متن جایگزین (Alt)"
                     onChange={(e) => {

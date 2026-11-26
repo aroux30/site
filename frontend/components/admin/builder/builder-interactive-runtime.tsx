@@ -83,6 +83,117 @@ export function BuilderInteractiveRuntime({ pageSlug }: { pageSlug?: string }) {
       const root = target.closest(".builder-rendered-content");
       if (!root) return;
 
+      // 1. Mega menu dropdown toggle
+      const megaToggle = target.closest<HTMLElement>('[data-mega-menu-toggle="1"]');
+      if (megaToggle) {
+        const nav = megaToggle.closest('[data-widget="mega_menu"]');
+        const panel = nav?.querySelector<HTMLElement>('[data-mega-menu-panel="1"]');
+        if (panel) {
+          const willOpen = panel.classList.contains("hidden");
+          panel.classList.toggle("hidden", !willOpen);
+          megaToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        }
+        return;
+      }
+
+      // 2. Image gallery thumbnail click
+      const thumbBtn = target.closest<HTMLElement>("[data-gallery-thumb]");
+      if (thumbBtn) {
+        const gallery = thumbBtn.closest<HTMLElement>('[data-widget="image_gallery"]');
+        const mainImg = gallery?.querySelector<HTMLImageElement>("[data-gallery-main]");
+        const thumbImg = thumbBtn.querySelector<HTMLImageElement>("img");
+        if (gallery && mainImg && thumbImg) {
+          const thumbSrc = thumbImg.getAttribute("src") || thumbImg.src;
+          mainImg.setAttribute("src", thumbSrc);
+          mainImg.alt = thumbImg.alt;
+          gallery.querySelectorAll<HTMLElement>("[data-gallery-thumb]").forEach((b) => {
+            const active = b === thumbBtn;
+            b.classList.toggle("border-primary", active);
+            b.classList.toggle("border-border/60", !active);
+          });
+        }
+        return;
+      }
+
+      // 3. Product grid filter pill click
+      const gridFilterBtn = target.closest<HTMLElement>("[data-grid-filter]");
+      if (gridFilterBtn) {
+        const grid = gridFilterBtn.closest<HTMLElement>('[data-widget="product_grid"]');
+        if (grid) {
+          const nextFilter = gridFilterBtn.getAttribute("data-grid-filter") || "all";
+          grid.setAttribute("data-filter", nextFilter);
+          grid.querySelectorAll<HTMLElement>("[data-grid-filter]").forEach((b) => {
+            const active = b === gridFilterBtn;
+            b.classList.toggle("bg-primary", active);
+            b.classList.toggle("text-primary-foreground", active);
+            b.classList.toggle("bg-muted/60", !active);
+            b.classList.toggle("text-muted-foreground", !active);
+          });
+        }
+        return;
+      }
+
+      // 4. Product variants selection + sync to add_to_cart button
+      const variantBtn = target.closest<HTMLElement>('.builder-product-variants button[data-variant-id]');
+      if (variantBtn) {
+        const container = variantBtn.closest<HTMLElement>('[data-widget="product_variants"]');
+        const selectedId = variantBtn.getAttribute("data-variant-id") || "";
+        if (container) {
+          container.querySelectorAll<HTMLElement>('button[data-variant-id]').forEach((b) => {
+            const active = b === variantBtn;
+            b.classList.toggle("border-primary", active);
+            b.classList.toggle("bg-primary/10", active);
+            b.classList.toggle("text-primary", active);
+            b.classList.toggle("font-bold", active);
+            b.classList.toggle("border-border", !active);
+          });
+        }
+        if (selectedId) {
+          root.querySelectorAll<HTMLElement>(".builder-add-to-cart").forEach((atc) => {
+            atc.setAttribute("data-variant-id", selectedId);
+          });
+        }
+        return;
+      }
+
+      // 5. Add-to-cart quantity stepper & cart badge update
+      const qtyBtn = target.closest<HTMLElement>("[data-qty-dec], [data-qty-inc]");
+      if (qtyBtn) {
+        const atcWrap = qtyBtn.closest<HTMLElement>('[data-widget="add_to_cart"]');
+        const qtySpan = atcWrap?.querySelector<HTMLElement>('[data-qty-val="1"]');
+        if (qtySpan) {
+          const cur = Math.max(1, Number.parseInt(qtySpan.textContent || "1", 10) || 1);
+          const next = qtyBtn.hasAttribute("data-qty-inc") ? cur + 1 : Math.max(1, cur - 1);
+          qtySpan.textContent = String(next);
+        }
+        return;
+      }
+
+      const atcBtn = target.closest<HTMLButtonElement>(".builder-add-to-cart");
+      if (atcBtn) {
+        const atcWrap = atcBtn.closest<HTMLElement>('[data-widget="add_to_cart"]');
+        const qtySpan = atcWrap?.querySelector<HTMLElement>('[data-qty-val="1"]');
+        const qty = Math.max(1, Number.parseInt(qtySpan?.textContent || "1", 10) || 1);
+        root.querySelectorAll<HTMLElement>('[data-widget="mini_cart"] [data-mc-badge="1"]').forEach((badge) => {
+          const cur = Number.parseInt((badge.textContent || "0").replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))), 10) || 0;
+          badge.textContent = String(cur + qty);
+        });
+        const labelSpan = atcBtn.querySelector<HTMLElement>("span");
+        if (labelSpan && !atcBtn.dataset.origLabel) {
+          atcBtn.dataset.origLabel = labelSpan.textContent || "";
+        }
+        if (labelSpan) {
+          labelSpan.textContent = `افزودن به سبد (${qty}) ✓`;
+          window.setTimeout(() => {
+            if (atcBtn.dataset.origLabel) {
+              labelSpan.textContent = atcBtn.dataset.origLabel;
+            }
+          }, 1500);
+        }
+        return;
+      }
+
+      // 6. Tabs / Nested Tabs switching
       const tabWidget = target.closest<HTMLElement>(
         '[data-widget="tabs"], [data-widget="nested_tabs"], .builder-tabs, .builder-nested-tabs'
       );

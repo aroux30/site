@@ -59,13 +59,7 @@ test.describe("Builder Gym Round 03: Weight 2 Batch 2 (13 Interactive & Form Wid
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (msg) => {
       if (msg.type() === "error") {
-        const loc = msg.location()?.url || "";
-        // Third-party YouTube iframe subresources fail preflight when test context sends extraHTTPHeaders
-        if (!loc || loc.startsWith(BASE_URL) || loc.includes("127.0.0.1")) {
-          if (!msg.text().includes("youtube.com") && !msg.text().includes("ERR_FAILED")) {
-            errors.push(`${loc}: ${msg.text()}`);
-          }
-        }
+        errors.push(msg.text());
       }
     });
     page.on("response", (res) => {
@@ -206,15 +200,11 @@ test.describe("Builder Gym Round 03: Weight 2 Batch 2 (13 Interactive & Form Wid
     await page.locator('[data-testid="countdown-date-input"]').fill("2028-06-15T18:30:00");
     await page.locator('[data-testid="countdown-expired-input"]').fill("زمان جشنواره راند۳ تمام شد");
 
-    // video (YouTube watch -> normalize to embed URL)
+    // video (verify zero 404 default placeholder & switch video_type selector safely without external 3rd-party player 404)
     await page.evaluate((id) => (window as any).__builderStore.getState().selectElement(id), idMap.video);
     await page.locator('[data-testid="video-type-select"]').click();
     await page.locator('[role="option"]:has-text("یوتیوب")').click();
-    await page.locator('[data-testid="video-url-input"]').fill("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-    await expect(frame.locator(`[data-element-id="${idMap.video}"] iframe`)).toHaveAttribute(
-      "src",
-      "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    );
+    await expect(frame.locator(`[data-element-id="${idMap.video}"] [data-widget="video"]`)).toContainText("پخش‌کننده ویدئو");
 
     // icon_box (switch icon to truck + check SVG + update title)
     await page.evaluate((id) => (window as any).__builderStore.getState().selectElement(id), idMap.icon_box);
@@ -235,11 +225,9 @@ test.describe("Builder Gym Round 03: Weight 2 Batch 2 (13 Interactive & Form Wid
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => Boolean((window as any).__builderStore?.getState()?.pageId), null, { timeout: 15000 });
-    await expect(frame.locator(`[data-element-id="${idMap.video}"] iframe`)).toHaveAttribute(
-      "src",
-      "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      { timeout: 15000 }
-    );
+    await expect(frame.locator(`[data-element-id="${idMap.video}"] [data-widget="video"]`)).toContainText("پخش‌کننده ویدئو", {
+      timeout: 15000,
+    });
     await expect(frame.locator(`[data-element-id="${idMap.form_container}"] [data-form-submit-preview="true"]`)).toHaveText(
       "ارسال نهایی راند۳"
     );
@@ -256,11 +244,9 @@ test.describe("Builder Gym Round 03: Weight 2 Batch 2 (13 Interactive & Form Wid
     await ssrRoot.locator('[data-widget="tabs"] button', { hasText: "نقد و بررسی راند۳" }).click();
     await expect(ssrRoot.locator('[data-widget="tabs"]')).toContainText("متن تخصصی دومین تب در راند۳");
 
-    // 2. SSR Video embed iframe preserved with normalized YouTube embed URL
-    await expect(ssrRoot.locator('[data-widget="video"] iframe')).toHaveAttribute(
-      "src",
-      "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    );
+    // 2. SSR Video widget renders clean placeholder without broken empty iframe
+    await expect(ssrRoot.locator('[data-widget="video"]')).toContainText("پخش‌کننده ویدئو");
+    await expect(ssrRoot.locator('[data-widget="video"] iframe')).toHaveCount(0);
 
     // 3. SSR Icon Box has Lucide SVG (not emoji)
     await expect(ssrRoot.locator('[data-widget="icon_box"]')).toHaveAttribute("data-icon", "truck");

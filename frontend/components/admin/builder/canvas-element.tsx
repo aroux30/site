@@ -67,8 +67,12 @@ function CanvasElementComponent({
   const [activeTabIdx, setActiveTabIdx] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
   const [cartQuantity, setCartQuantity] = useState(1);
-  const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
+  const [activeGridFilter, setActiveGridFilter] = useState<string>(String(element.widgetProps?.filter || "all"));
   const [isInlineEditing, setIsInlineEditing] = useState(false);
+
+  useEffect(() => {
+    setActiveGridFilter(String(element.widgetProps?.filter || "all"));
+  }, [element.widgetProps?.filter]);
   const elementRef = useRef<HTMLDivElement>(null);
   const [isNearTop, setIsNearTop] = useState(false);
 
@@ -1033,12 +1037,21 @@ function CanvasElementComponent({
       case "loop_grid":
       case "loop_carousel": {
         const limit = Number(props.limit) || (element.widgetType === "loop_carousel" ? 6 : 4);
-        const filter = String(props.filter || "all");
+        const filter = activeGridFilter || String(props.filter || "all");
         const showPagination = props.show_pagination !== false && element.widgetType !== "loop_carousel";
 
+        const filterPrefix =
+          filter === "featured"
+            ? "ویژه"
+            : filter === "best_sellers"
+              ? "پرفروش"
+              : filter === "new_arrivals"
+                ? "جدید"
+                : "نمونه";
+
         const sampleProducts = Array.from({ length: limit }, (_, i) => ({
-          id: `grid_prod_${i + 1}`,
-          name: `کالای نمونه شماره ${i + 1}`,
+          id: `grid_prod_${filter}_${i + 1}`,
+          name: `کالای ${filterPrefix} شماره ${i + 1}`,
           slug: `product-${i + 1}`,
           category_id: "",
           is_active: true,
@@ -1048,11 +1061,11 @@ function CanvasElementComponent({
           max_price: (i + 1) * 420000,
           variant_count: 1,
           primary_image_url: "/placeholder-hero.svg",
-          rating_average: 4.5,
-          review_count: 15 + i * 4,
+          rating_average: filter === "best_sellers" ? 4.9 : 4.5,
+          review_count: (filter === "best_sellers" ? 80 : 15) + i * 4,
         }));
         return (
-          <div className="space-y-4 w-full">
+          <div className="space-y-4 w-full" data-widget={element.widgetType}>
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 pb-1">
               {[
@@ -1070,7 +1083,7 @@ function CanvasElementComponent({
                   }}
                   className={cn(
                     "px-3 py-1 rounded-lg text-xs font-semibold transition",
-                    activeGridFilter === f.key
+                    filter === f.key
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-muted/60 text-muted-foreground hover:text-foreground"
                   )}
@@ -1104,19 +1117,20 @@ function CanvasElementComponent({
           ? (props.images as any[])
           : [
               { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
-              { url: "/placeholder.svg", alt: "تصویر ۲" },
+              { url: "/placeholder-hero.svg", alt: "تصویر ۲" },
             ];
         return (
-          <div className="w-full max-w-md mx-auto">
+          <div className="w-full max-w-md mx-auto" data-widget="image_gallery">
             <ImageGallery images={images} productName={String(props.productName || "محصول نمونه")} />
           </div>
         );
       }
       case "star_rating": {
+        const ratingVal = props.value !== undefined ? Number(props.value) : 4.8;
         return (
-          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border">
+          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border" data-widget="star_rating">
             <StarRating
-              value={Number(props.value) || 4.8}
+              value={ratingVal}
               reviewCount={props.reviewCount !== undefined ? Number(props.reviewCount) : 124}
               size={(props.size as any) || "md"}
               showValue={props.showValue !== false}
@@ -1133,12 +1147,12 @@ function CanvasElementComponent({
           star_1: 1,
         };
         return (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md" data-widget="review_histogram">
             <ReviewHistogram
               distribution={dist}
-              averageRating={Number(props.averageRating) || 4.5}
-              totalReviews={Number(props.totalReviews) || 86}
-              verifiedCount={Number(props.verifiedCount) || 72}
+              averageRating={props.averageRating !== undefined ? Number(props.averageRating) : 4.5}
+              totalReviews={props.totalReviews !== undefined ? Number(props.totalReviews) : 86}
+              verifiedCount={props.verifiedCount !== undefined ? Number(props.verifiedCount) : 72}
             />
           </div>
         );
@@ -1161,7 +1175,7 @@ function CanvasElementComponent({
           review_count: 22,
         }));
         return (
-          <div className="w-full space-y-3">
+          <div className="w-full space-y-3" data-widget="recently_viewed">
             <h4 className="text-sm font-bold text-foreground">{title}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {dummyRecentProducts.map((p) => (
@@ -1173,15 +1187,15 @@ function CanvasElementComponent({
       }
       case "mega_menu": {
         const sampleCats = [
-          { id: "c1", name: "کالای دیجیتال", slug: "digital", parent_id: null, is_active: true, display_order: 1, image_url: "/placeholder.svg" },
-          { id: "c2", name: "موبایل و تبلت", slug: "mobile", parent_id: "c1", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
-          { id: "c3", name: "لپ‌تاپ", slug: "laptop", parent_id: "c1", is_active: true, display_order: 2, image_url: "/placeholder.svg" },
-          { id: "c4", name: "لوازم جانبی", slug: "accessories", parent_id: "c1", is_active: true, display_order: 3, image_url: "/placeholder.svg" },
-          { id: "c5", name: "خانه و آشپزخانه", slug: "home", parent_id: null, is_active: true, display_order: 2, image_url: "/placeholder.svg" },
-          { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
+          { id: "c1", name: "کالای دیجیتال", slug: "digital", parent_id: null, is_active: true, display_order: 1, image_url: "/placeholder-hero.svg" },
+          { id: "c2", name: "موبایل و تبلت", slug: "mobile", parent_id: "c1", is_active: true, display_order: 1, image_url: "/placeholder-hero.svg" },
+          { id: "c3", name: "لپ‌تاپ", slug: "laptop", parent_id: "c1", is_active: true, display_order: 2, image_url: "/placeholder-hero.svg" },
+          { id: "c4", name: "لوازم جانبی", slug: "accessories", parent_id: "c1", is_active: true, display_order: 3, image_url: "/placeholder-hero.svg" },
+          { id: "c5", name: "خانه و آشپزخانه", slug: "home", parent_id: null, is_active: true, display_order: 2, image_url: "/placeholder-hero.svg" },
+          { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder-hero.svg" },
         ];
         return (
-          <div className="inline-block p-1">
+          <div className="inline-block p-1" data-widget="mega_menu">
             <MegaMenu categories={sampleCats as any} label={String(props.label || "دسته‌بندی کالاها")} />
           </div>
         );
@@ -1194,14 +1208,15 @@ function CanvasElementComponent({
         );
       }
       case "product_price": {
-        const price = Number(props.price || props.fallback_price) || 1850000;
+        const rawPrice = props.price ?? props.fallback_price;
+        const price = rawPrice !== undefined ? Number(rawPrice) : 1850000;
         const compareAt = props.compare_at_price ? Number(props.compare_at_price) : null;
         const currency = String(props.currency || "تومان");
         const showDiscount = props.show_discount !== false;
         const discountPercent = compareAt && compareAt > price ? Math.round(((compareAt - price) / compareAt) * 100) : null;
 
         return (
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap" data-widget="product_price">
             <span className="text-2xl font-black text-primary tracking-tight">
               {price.toLocaleString("fa-IR")} {currency}
             </span>
@@ -1238,7 +1253,7 @@ function CanvasElementComponent({
         };
 
         return (
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-2 w-full" data-widget="add_to_cart">
             {showQty && (
               <div className="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">
                 <button
@@ -1283,7 +1298,7 @@ function CanvasElementComponent({
         ];
 
         return (
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full" data-widget="product_variants">
             <span className="block text-xs font-bold text-foreground">{pTitle}</span>
             <div className="flex flex-wrap gap-2">
               {variants.map((v) => {
@@ -1321,7 +1336,7 @@ function CanvasElementComponent({
         const showBadge = props.show_badge !== false;
         const label = String(props.label || "سبد خرید");
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm" data-widget="mini_cart">
             <ShoppingCart className="w-4 h-4 text-primary" />
             <span className="text-xs font-bold text-foreground">{label}</span>
             {showBadge && (
@@ -1338,8 +1353,10 @@ function CanvasElementComponent({
       case "cart_summary": {
         const title = String(props.title || "خلاصه سبد خرید");
         const btnLabel = String(props.button_label || "ادامه فرآیند خرید");
+        const showDiscount = props.show_discount !== false;
+        const payable = showDiscount ? "۴,۰۳۳,۰۰۰ تومان" : "۴,۱۳۳,۰۰۰ تومان";
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm" data-widget="cart_summary">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-bold text-foreground">{title}</span>
               <Receipt className="w-4 h-4 text-primary" />
@@ -1349,10 +1366,12 @@ function CanvasElementComponent({
                 <span>جمع اقلام:</span>
                 <span className="font-semibold text-foreground">۳,۸۰۰,۰۰۰ تومان</span>
               </div>
-              <div className="flex justify-between text-emerald-600">
-                <span>تخفیف:</span>
-                <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
-              </div>
+              {showDiscount && (
+                <div className="flex justify-between text-emerald-600" data-cs-discount="1">
+                  <span>تخفیف:</span>
+                  <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>مالیات بر ارزش افزوده (۹٪):</span>
                 <span>۳۳۳,۰۰۰ تومان</span>
@@ -1360,10 +1379,11 @@ function CanvasElementComponent({
             </div>
             <div className="flex justify-between items-center pt-2 border-t font-bold text-sm text-foreground">
               <span>مبلغ قابل پرداخت:</span>
-              <span className="text-primary text-base font-black">۴,۰۳۳,۰۰۰ تومان</span>
+              <span className="text-primary text-base font-black">{payable}</span>
             </div>
             <a
               href={String(props.checkout_url || "/checkout")}
+              onClick={(e) => e.preventDefault()}
               data-checkout-url={props.checkout_url ? String(props.checkout_url) : undefined}
               className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow block text-center"
             >
@@ -2155,14 +2175,14 @@ function CanvasElementComponent({
       case "image_carousel": {
         const images = (props.images as any[]) || [
           { url: "/placeholder-hero.svg", alt: "اسلاید ۱" },
-          { url: "/placeholder.svg", alt: "اسلاید ۲" },
+          { url: "/placeholder-hero.svg", alt: "اسلاید ۲" },
         ];
         return (
           <div className="w-full space-y-2 select-none">
             <div className="flex items-center gap-3 overflow-x-auto p-2 no-scrollbar">
               {images.map((img, idx) => (
                 <div key={idx} className="w-48 aspect-video rounded-xl overflow-hidden shrink-0 bg-muted/30 border border-border/60">
-                  <img src={img.url || "/placeholder.svg"} alt={img.alt || ""} className="w-full h-full object-cover" />
+                  <img src={img.url || "/placeholder-hero.svg"} alt={img.alt || ""} className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

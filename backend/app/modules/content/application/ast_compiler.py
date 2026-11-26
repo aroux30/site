@@ -102,7 +102,40 @@ class ASTCompiler:
         "lock": '<path d="M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="currentColor"/>',
         "chevron-down": '<path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
         "share-2": '<circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2" fill="none"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke="currentColor" stroke-width="2"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke="currentColor" stroke-width="2"/>',
+        "layout-grid": '<rect width="7" height="7" x="3" y="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/><rect width="7" height="7" x="14" y="3" rx="1" stroke="currentColor" stroke-width="2" fill="none"/><rect width="7" height="7" x="14" y="14" rx="1" stroke="currentColor" stroke-width="2" fill="none"/><rect width="7" height="7" x="3" y="14" rx="1" stroke="currentColor" stroke-width="2" fill="none"/>',
+        "receipt": '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M12 17.5v-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>',
     }
+
+    @staticmethod
+    def _parse_numeric_price(val: Any) -> float | None:
+        if val is None or isinstance(val, bool):
+            return None
+        s = str(val).strip()
+        if not s:
+            return None
+        for pd, ed in [("۰", "0"), ("۱", "1"), ("۲", "2"), ("۳", "3"), ("۴", "4"), ("۵", "5"), ("۶", "6"), ("۷", "7"), ("۸", "8"), ("۹", "9")]:
+            s = s.replace(pd, ed)
+        s = s.replace(",", "").replace("،", "").replace(" ", "")
+        try:
+            return float(s)
+        except (ValueError, TypeError):
+            return None
+
+    @staticmethod
+    def _format_fa_price(val: Any) -> str:
+        """Format raw numeric prices cleanly with commas while keeping pre-formatted Persian text."""
+        if val is None:
+            return "۰"
+        if isinstance(val, (int, float)) and not isinstance(val, bool):
+            n = int(round(val))
+            persian_digits = "۰۱۲۳۴۵۶۷۸۹"
+            return "".join(persian_digits[int(ch)] if ch.isdigit() else ch for ch in f"{n:,}")
+        raw = str(val).strip()
+        if raw.isdigit():
+            n = int(raw)
+            persian_digits = "۰۱۲۳۴۵۶۷۸۹"
+            return "".join(persian_digits[int(ch)] if ch.isdigit() else ch for ch in f"{n:,}")
+        return raw or "۰"
 
     @classmethod
     def render_svg_icon(cls, icon_key: str, size: int = 24, css_class: str = "") -> str:
@@ -726,106 +759,209 @@ class ASTCompiler:
 
         elif widget_type == "product_card":
             p_name = html.escape(str(props.get("name", "محصول فروشگاه")))
-            p_price = html.escape(str(props.get("min_price", "")))
-            p_img = html.escape(str(props.get("primary_image_url", "/placeholder-hero.svg")))
-            p_instock = props.get("is_in_stock", True)
-            stock_badge = "" if p_instock else '<span class="text-xs text-destructive font-bold">ناموجود</span>'
+            raw_min = props.get("min_price", 1850000)
+            raw_max = props.get("max_price")
+            p_price = html.escape(cls._format_fa_price(raw_min))
+            min_num = cls._parse_numeric_price(raw_min) or 0.0
+            max_num = cls._parse_numeric_price(raw_max)
+            p_img_raw = str(props.get("primary_image_url", "/placeholder-hero.svg"))
+            if p_img_raw == "/placeholder.svg":
+                p_img_raw = "/placeholder-product.svg"
+            p_img = html.escape(p_img_raw)
+            p_instock = props.get("is_in_stock", True) is not False
+            is_featured = bool(props.get("is_featured"))
+            rating_val = props.get("rating_average", 4.6)
+            rev_cnt = int(props.get("review_count", 38))
+            star_path = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            svg_star = f'<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="none" aria-hidden="true" class="text-amber-400 shrink-0"><path d="{star_path}"></path></svg>'
+
+            badges_html = ""
+            if is_featured:
+                badges_html += '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-primary-foreground">پیشنهاد ویژه</span>'
+            if max_num is not None and max_num > min_num > 0:
+                pct = int(((max_num - min_num) / max_num) * 100)
+                if pct > 0:
+                    badges_html += f'<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive text-destructive-foreground">{pct}٪ تخفیف</span>'
+            if not p_instock:
+                badges_html += '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">ناموجود</span>'
+
+            del_price_html = ""
+            if max_num is not None and max_num > min_num:
+                del_price_html = f'<del class="block text-[11px] text-muted-foreground">{html.escape(cls._format_fa_price(raw_max))} تومان</del>'
+
+            btn_html = (
+                '<button type="button" class="rounded-xl bg-primary px-3 py-1.5 text-xs text-primary-foreground font-bold inline-flex items-center gap-1 hover:bg-primary/90 transition">خرید</button>'
+                if p_instock
+                else '<button type="button" disabled class="rounded-xl bg-muted px-3 py-1.5 text-xs text-muted-foreground font-bold cursor-not-allowed">ناموجود</button>'
+            )
+            badges_wrap = (
+                f'<div class="absolute top-2 right-2 flex flex-col gap-1 z-10">{badges_html}</div>'
+                if badges_html
+                else ""
+            )
             return (
-                f'<div{id_attr} class="builder-product-card rounded-2xl border border-border/60 bg-card p-4 flex flex-col space-y-3 {css_class}" data-widget="product_card"{style_attr}>'
-                f'<div class="aspect-square rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center">'
+                f'<div{id_attr} class="builder-product-card w-full max-w-sm rounded-2xl border border-border/60 bg-card p-4 flex flex-col space-y-3 {css_class}" data-widget="product_card"{style_attr}>'
+                f'<div class="relative aspect-square rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center">'
+                f'{badges_wrap}'
                 f'<img src="{p_img}" alt="{p_name}" class="object-contain p-2 max-h-full" loading="lazy" />'
                 f'</div>'
-                f'<div class="flex-1">'
+                f'<div class="flex-1 space-y-1">'
                 f'<h3 class="font-bold text-foreground text-sm line-clamp-2">{p_name}</h3>'
-                f'{stock_badge}'
+                f'<div class="flex items-center gap-1 text-xs text-muted-foreground">{svg_star}<span>{rating_val}</span><span>({rev_cnt} نظر)</span></div>'
                 f'</div>'
                 f'<div class="flex items-center justify-between pt-2 border-t border-border/60">'
-                f'<span class="font-bold text-primary">{p_price} تومان</span>'
-                f'<button type="button" class="rounded-xl bg-primary px-3 py-1.5 text-xs text-primary-foreground font-bold">خرید</button>'
+                f'<div>{del_price_html}<span class="font-bold text-primary text-sm">{p_price} تومان</span></div>'
+                f'{btn_html}'
                 f'</div>'
                 f'</div>'
             )
 
         elif widget_type == "image_gallery":
-            images = props.get("images", [])
-            imgs_html = "".join(
-                f'<div class="aspect-square rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center">'
-                f'<img src="{html.escape(str(img.get("url", img) if isinstance(img, dict) else img))}" alt="{html.escape(str(img.get("alt", "تصویر") if isinstance(img, dict) else "تصویر"))}" class="object-contain p-2 max-h-full" loading="lazy" />'
-                f'</div>'
-                for img in images
+            raw_images = props.get("images") or [
+                {"url": "/placeholder-hero.svg", "alt": "تصویر ۱"},
+                {"url": "/placeholder-product.svg", "alt": "تصویر ۲"},
+            ]
+            norm_imgs = []
+            for img in raw_images:
+                raw_u = str(img.get("url", img) if isinstance(img, dict) else img)
+                if raw_u == "/placeholder.svg":
+                    raw_u = "/placeholder-product.svg"
+                alt_t = str(img.get("alt", "تصویر") if isinstance(img, dict) else "تصویر")
+                norm_imgs.append((html.escape(raw_u), html.escape(alt_t)))
+            if not norm_imgs:
+                return f'<div{id_attr} class="builder-image-gallery w-full max-w-md mx-auto p-4 text-center text-xs text-muted-foreground {css_class}" data-widget="image_gallery"{style_attr}>گالری تصاویر</div>'
+            first_url, first_alt = norm_imgs[0]
+            thumbs_html = "".join(
+                f'<button type="button" data-gallery-thumb="{idx}" class="w-16 h-16 rounded-lg border-2 {"border-primary" if idx == 0 else "border-border/60"} overflow-hidden bg-muted/20 shrink-0">'
+                f'<img src="{u}" alt="{a}" class="w-full h-full object-contain p-1" loading="lazy" />'
+                f'</button>'
+                for idx, (u, a) in enumerate(norm_imgs)
             )
             return (
-                f'<div{id_attr} class="builder-image-gallery grid grid-cols-2 gap-2 {css_class}" data-widget="image_gallery"{style_attr}>'
-                f'{imgs_html or "<div class=\"p-4 text-center text-xs text-muted-foreground\">گالری تصاویر</div>"}'
+                f'<div{id_attr} class="builder-image-gallery w-full max-w-md mx-auto space-y-2 {css_class}" data-widget="image_gallery"{style_attr}>'
+                f'<div class="aspect-[4/3] rounded-2xl border border-border/80 bg-muted/20 overflow-hidden flex items-center justify-center">'
+                f'<img data-gallery-main="1" src="{first_url}" alt="{first_alt}" class="object-contain max-h-full p-2" />'
+                f'</div>'
+                f'<div class="flex items-center gap-2 overflow-x-auto pb-1">{thumbs_html}</div>'
                 f'</div>'
             )
 
         elif widget_type == "star_rating":
-            val = props.get("value", 5)
-            rev_cnt = props.get("reviewCount", 0)
+            raw_val = props.get("value", 5)
+            val = float(raw_val) if raw_val is not None else 5.0
+            rev_cnt = int(props.get("reviewCount", 0))
+            show_val = props.get("showValue", True) is not False
             star_path = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-            svg_star = f'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" aria-hidden="true" class="text-amber-400 shrink-0"><path d="{star_path}"></path></svg>'
+            filled_count = int(round(max(0.0, min(5.0, val))))
+            stars_html = "".join(
+                f'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" aria-hidden="true" class="{"text-amber-400" if i < filled_count else "text-muted-foreground/30"} shrink-0"><path d="{star_path}"></path></svg>'
+                for i in range(5)
+            )
+            val_span = f'<span class="font-bold text-amber-500 text-xs">{val:g}</span>' if show_val else ""
             return (
                 f'<div{id_attr} class="builder-star-rating inline-flex items-center gap-1.5 p-2 rounded-lg bg-card border {css_class}" data-widget="star_rating"{style_attr}>'
-                f'<div class="flex items-center gap-1 font-bold text-amber-500">{svg_star}<span>{val}</span></div>'
+                f'<div class="flex items-center gap-0.5">{stars_html}</div>'
+                f'{val_span}'
                 f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>'
                 f'</div>'
             )
 
         elif widget_type == "review_histogram":
             avg = props.get("averageRating", 5)
-            total = props.get("totalReviews", 0)
+            total = int(props.get("totalReviews", 0))
+            verified = int(props.get("verifiedCount", 72))
+            dist = props.get("distribution") or {"star_5": 58, "star_4": 18, "star_3": 6, "star_2": 3, "star_1": 1}
+            if not isinstance(dist, dict):
+                dist = {"star_5": 58, "star_4": 18, "star_3": 6, "star_2": 3, "star_1": 1}
+            dist_sum = sum(int(dist.get(f"star_{k}", 0)) for k in range(1, 6)) or 1
+            rows_html = ""
+            for star_n in (5, 4, 3, 2, 1):
+                cnt = int(dist.get(f"star_{star_n}", 0))
+                pct = int(round((cnt / dist_sum) * 100))
+                rows_html += (
+                    f'<div class="flex items-center gap-2 text-xs">'
+                    f'<span class="w-4 font-semibold text-muted-foreground">{star_n}</span>'
+                    f'<div class="flex-1 h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-amber-400" style="width: {pct}%;"></div></div>'
+                    f'<span class="w-8 text-left text-muted-foreground">{cnt}</span>'
+                    f'</div>'
+                )
             return (
-                f'<div{id_attr} class="builder-review-histogram rounded-2xl border border-border/60 bg-card p-4 space-y-2 {css_class}" data-widget="review_histogram"{style_attr}>'
+                f'<div{id_attr} class="builder-review-histogram w-full max-w-md rounded-2xl border border-border/60 bg-card p-4 space-y-2.5 {css_class}" data-widget="review_histogram"{style_attr}>'
                 f'<div class="flex items-center justify-between">'
                 f'<span class="text-lg font-bold text-foreground">{avg} از ۵</span>'
-                f'<span class="text-xs text-muted-foreground">بر اساس {total} نظر</span>'
+                f'<span class="text-xs text-muted-foreground">بر اساس {total} نظر · {verified} خرید تأییدشده</span>'
                 f'</div>'
-                f'<div class="h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-emerald-500" style="width: 80%;"></div></div>'
+                f'<div class="space-y-1.5">{rows_html}</div>'
                 f'</div>'
             )
 
         elif widget_type == "recently_viewed":
-            limit = props.get("limit", 4)
+            title = html.escape(str(props.get("title") or "بازدیدهای اخیر شما"))
+            limit = int(props.get("limit", 4))
+            cards_html = "".join(
+                f'<div class="rounded-xl border border-border/60 p-3 bg-card space-y-2">'
+                f'<div class="aspect-square bg-muted/20 rounded-lg flex items-center justify-center">'
+                f'<img src="/placeholder-hero.svg" alt="کالای مشاهده‌شده {i+1}" class="p-2 max-h-full" loading="lazy" />'
+                f'</div>'
+                f'<h5 class="font-bold text-xs text-foreground">کالای مشاهده‌شده {i+1}</h5>'
+                f'<span class="text-xs text-primary font-bold">{cls._format_fa_price((i + 1) * 290000)} تومان</span>'
+                f'</div>'
+                for i in range(min(max(1, limit), 8))
+            )
             return (
-                f'<div{id_attr} class="builder-recently-viewed space-y-2 {css_class}" data-widget="recently_viewed" data-limit="{limit}"{style_attr}>'
-                f'<h4 class="font-bold text-sm text-foreground">بازدیدهای اخیر شما</h4>'
-                f'<div class="text-xs text-muted-foreground">نمایش آخرین محصولات بازدید شده</div>'
+                f'<div{id_attr} class="builder-recently-viewed w-full space-y-3 {css_class}" data-widget="recently_viewed" data-limit="{limit}"{style_attr}>'
+                f'<h4 class="font-bold text-sm text-foreground">{title}</h4>'
+                f'<div class="grid grid-cols-2 md:grid-cols-4 gap-3">{cards_html}</div>'
                 f'</div>'
             )
 
         elif widget_type == "mega_menu":
             label = html.escape(str(props.get("label", "دسته‌بندی کالاها")))
+            grid_svg = cls.render_svg_icon("layout-grid", size=16)
+            chev_svg = cls.render_svg_icon("chevron-down", size=14)
+            cat_links = [
+                ("کالای دیجیتال", "/products?category=digital", ["موبایل و تبلت", "لپ‌تاپ", "لوازم جانبی"]),
+                ("خانه و آشپزخانه", "/products?category=home", ["لوازم برقی", "دکوراسیون", "ابزار"]),
+            ]
+            cols_html = "".join(
+                f'<div class="space-y-2">'
+                f'<a href="{url}" class="block font-bold text-xs text-foreground hover:text-primary">{cat_name}</a>'
+                f'<div class="space-y-1">' + "".join(
+                    f'<a href="{url}" class="block text-[11px] text-muted-foreground hover:text-primary">{sub}</a>'
+                    for sub in subs
+                ) + f'</div></div>'
+                for cat_name, url, subs in cat_links
+            )
             return (
-                f'<nav{id_attr} class="builder-mega-menu inline-block {css_class}" data-widget="mega_menu"{style_attr}>'
-                f'<button type="button" class="rounded-xl px-4 py-2 bg-muted/60 font-bold text-sm text-foreground flex items-center gap-2">{label}</button>'
+                f'<nav{id_attr} class="builder-mega-menu relative inline-block {css_class}" data-widget="mega_menu"{style_attr}>'
+                f'<button type="button" data-mega-menu-toggle="1" aria-expanded="false" class="rounded-xl px-4 py-2 bg-muted/60 font-bold text-sm text-foreground inline-flex items-center gap-2 hover:bg-muted transition">'
+                f'{grid_svg}<span>{label}</span>{chev_svg}</button>'
+                f'<div data-mega-menu-panel="1" class="hidden mt-2 p-4 rounded-2xl border border-border bg-card shadow-lg grid grid-cols-2 gap-6 min-w-[280px] z-20">'
+                f'{cols_html}'
+                f'</div>'
                 f'</nav>'
             )
 
         elif widget_type == "product_price":
-            price_val = props.get("price", props.get("min_price", "۰"))
+            price_val = props.get("price", props.get("fallback_price", "۰"))
             compare_price = props.get("compare_at_price")
             curr = html.escape(str(props.get("currency", "تومان")))
+            show_discount = props.get("show_discount", True) is not False
+            p_float = cls._parse_numeric_price(price_val)
+            c_float = cls._parse_numeric_price(compare_price)
+            formatted_price = html.escape(cls._format_fa_price(price_val))
             badge_html = ""
             del_html = ""
-            if compare_price:
-                del_html = f'<del class="text-xs text-muted-foreground">{html.escape(str(compare_price))} {curr}</del>'
-                try:
-                    p_norm = str(price_val).replace(",", "").replace("،", "")
-                    c_norm = str(compare_price).replace(",", "").replace("،", "")
-                    for pd, ed in [("۰","0"),("۱","1"),("۲","2"),("۳","3"),("۴","4"),("۵","5"),("۶","6"),("۷","7"),("۸","8"),("۹","9")]:
-                        p_norm = p_norm.replace(pd, ed)
-                        c_norm = c_norm.replace(pd, ed)
-                    c_float = float(c_norm)
-                    p_float = float(p_norm)
-                    if c_float > p_float and c_float > 0:
-                        diff = int(((c_float - p_float) / c_float) * 100)
-                        badge_html = f'<span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{diff}% تخفیف</span>'
-                except (ValueError, TypeError, ZeroDivisionError):
-                    pass
+            if compare_price and c_float is not None and p_float is not None and c_float > p_float:
+                formatted_compare = html.escape(cls._format_fa_price(compare_price))
+                del_html = f'<del class="text-sm text-muted-foreground">{formatted_compare} {curr}</del>'
+                if show_discount and c_float > 0:
+                    diff = int(round(((c_float - p_float) / c_float) * 100))
+                    if diff > 0:
+                        badge_html = f'<span class="bg-destructive text-destructive-foreground text-[11px] px-2 py-0.5 rounded-full font-bold">{diff}٪ تخفیف</span>'
             return (
-                f'<div{id_attr} class="builder-product-price flex items-center gap-2 {css_class}" data-widget="product_price"{style_attr}>'
-                f'<span class="text-xl font-black text-primary">{html.escape(str(price_val))} {curr}</span>'
+                f'<div{id_attr} class="builder-product-price flex items-center gap-2.5 flex-wrap {css_class}" data-widget="product_price"{style_attr}>'
+                f'<span class="text-2xl font-black text-primary tracking-tight">{formatted_price} {curr}</span>'
                 f'{del_html}'
                 f'{badge_html}'
                 f'</div>'
@@ -833,65 +969,113 @@ class ASTCompiler:
 
         elif widget_type == "add_to_cart":
             label = html.escape(str(props.get("label", "افزودن به سبد خرید")))
-            variant_id = html.escape(str(props.get("variant_id", "")))
+            variant_id = html.escape(str(props.get("variant_id", "var_1")))
+            show_qty = props.get("show_quantity", True) is not False
+            cart_svg = cls.render_svg_icon("shopping-cart", size=16)
+            qty_html = (
+                '<div class="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">'
+                '<button type="button" data-qty-dec="1" class="px-2.5 py-2 hover:bg-muted text-xs text-muted-foreground">-</button>'
+                '<span data-qty-val="1" class="px-3 text-xs font-bold">1</span>'
+                '<button type="button" data-qty-inc="1" class="px-2.5 py-2 hover:bg-muted text-xs text-muted-foreground">+</button>'
+                '</div>'
+                if show_qty
+                else ""
+            )
             return (
-                f'<button type="button"{id_attr} class="builder-add-to-cart w-full rounded-xl bg-primary py-3 px-6 font-bold text-primary-foreground shadow hover:bg-primary/90 transition {css_class}" '
-                f'data-widget="add_to_cart" data-variant-id="{variant_id}"{style_attr}>'
-                f'{label}'
+                f'<div{id_attr} class="flex items-center gap-2 w-full {css_class}" data-widget="add_to_cart"{style_attr}>'
+                f'{qty_html}'
+                f'<button type="button" class="builder-add-to-cart flex-1 rounded-xl bg-primary py-3 px-6 font-bold text-primary-foreground shadow hover:bg-primary/90 transition inline-flex items-center justify-center gap-2 text-sm" data-variant-id="{variant_id}">'
+                f'{cart_svg}<span>{label}</span>'
                 f'</button>'
+                f'</div>'
             )
 
         elif widget_type == "product_variants":
             p_title = html.escape(str(props.get("product_title", "انتخاب تنوع محصول")))
             variants = props.get("variants", [])
             opts_html = "".join(
-                f'<button type="button" class="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold hover:border-primary transition" data-variant-id="{html.escape(str(v.get("id", "")))}">'
-                f'{html.escape(str(v.get("title", v.get("name", "تنوع"))))} - {html.escape(str(v.get("price", "")))} تومان'
+                f'<button type="button" class="px-3 py-1.5 rounded-xl border text-xs font-semibold transition inline-flex items-center gap-1.5 {"border-primary bg-primary/10 text-primary font-bold" if idx == 0 else "border-border bg-card hover:border-primary text-foreground"}" data-variant-id="{html.escape(str(v.get("id", f"var_{idx+1}")))}">'
+                f'{html.escape(str(v.get("title", v.get("name", "تنوع"))))} ({html.escape(cls._format_fa_price(v.get("price", "")))} تومان)'
                 f'</button>'
-                for v in variants
+                for idx, v in enumerate(variants)
             )
             empty_opts_span = '<span class="text-xs text-muted-foreground">بدون تنوع</span>'
             opts_content = opts_html if opts_html else empty_opts_span
             return (
-                f'<div{id_attr} class="builder-product-variants space-y-2 {css_class}" data-widget="product_variants"{style_attr}>'
+                f'<div{id_attr} class="builder-product-variants space-y-2 w-full {css_class}" data-widget="product_variants"{style_attr}>'
                 f'<label class="block text-xs font-bold text-foreground">{p_title}</label>'
                 f'<div class="flex flex-wrap gap-2">{opts_content}</div>'
                 f'</div>'
             )
 
         elif widget_type == "mini_cart":
+            label = html.escape(str(props.get("label") or "سبد خرید"))
+            show_badge = props.get("show_badge", True) is not False
             count = int(props.get("item_count", 0))
+            cart_svg = cls.render_svg_icon("shopping-cart", size=16, css_class="text-primary")
+            badge_html = (
+                f'<span data-mc-badge="1" class="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>'
+                if show_badge
+                else ""
+            )
             return (
-                f'<div{id_attr} class="builder-mini-cart inline-flex items-center gap-2 p-2 rounded-xl bg-card border border-border/80 {css_class}" data-widget="mini_cart"{style_attr}>'
-                f'<span class="text-xs font-bold">سبد خرید</span>'
-                f'<span class="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>'
+                f'<div{id_attr} class="builder-mini-cart inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 {css_class}" data-widget="mini_cart"{style_attr}>'
+                f'{cart_svg}<span class="text-xs font-bold text-foreground">{label}</span>{badge_html}'
                 f'</div>'
             )
 
         elif widget_type == "cart_summary":
-            subtotal = html.escape(str(props.get("subtotal", "۰")))
+            title = html.escape(str(props.get("title") or "خلاصه سبد خرید"))
+            btn_label = html.escape(str(props.get("button_label") or "ادامه فرآیند خرید"))
+            raw_url = str(props.get("checkout_url") or "/checkout").strip()
+            safe_url = raw_url if (raw_url.startswith("/") or raw_url.startswith("https://")) else "/checkout"
+            checkout_url = html.escape(safe_url)
+            show_discount = props.get("show_discount", True) is not False
+            subtotal_raw = props.get("subtotal", "۳,۸۰۰,۰۰۰")
+            subtotal = html.escape(str(subtotal_raw))
+            receipt_svg = cls.render_svg_icon("receipt", size=16, css_class="text-primary")
+            discount_row = (
+                '<div class="flex justify-between text-xs text-emerald-600"><span>تخفیف:</span><span class="font-semibold">- ۱۰۰,۰۰۰ تومان</span></div>'
+                if show_discount
+                else ""
+            )
             return (
-                f'<div{id_attr} class="builder-cart-summary p-4 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="cart_summary"{style_attr}>'
-                f'<h3 class="font-bold text-sm text-foreground">خلاصه سبد خرید</h3>'
-                f'<div class="flex justify-between text-xs text-muted-foreground"><span>مجموع اقلام:</span><span class="font-bold text-foreground">{subtotal} تومان</span></div>'
-                f'<a href="/checkout" class="block w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition">ادامه فرآیند خرید</a>'
+                f'<div{id_attr} class="builder-cart-summary w-full max-w-sm p-4 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="cart_summary"{style_attr}>'
+                f'<div class="flex items-center justify-between border-b pb-2"><h3 class="font-bold text-xs text-foreground">{title}</h3>{receipt_svg}</div>'
+                f'<div class="space-y-1.5 text-xs text-muted-foreground">'
+                f'<div class="flex justify-between"><span>مجموع اقلام:</span><span class="font-bold text-foreground">{subtotal} تومان</span></div>'
+                f'{discount_row}'
+                f'</div>'
+                f'<a href="{checkout_url}" class="block w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition">{btn_label}</a>'
                 f'</div>'
             )
 
         elif widget_type == "product_grid":
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
-            flt = html.escape(str(props.get("filter", "all")))
-            show_pag = props.get("show_pagination", False)
+            flt = str(props.get("filter", "all"))
+            flt_escaped = html.escape(flt)
+            show_pag = props.get("show_pagination", True) is not False
+            pills_data = [
+                ("all", "همه محصولات"),
+                ("featured", "ویژه"),
+                ("best_sellers", "پرفروش‌ترین‌ها"),
+                ("new_arrivals", "جدیدترین‌ها"),
+            ]
+            pills_html = "".join(
+                f'<button type="button" data-grid-filter="{pk}" class="px-3 py-1 rounded-lg text-xs font-semibold transition {"bg-primary text-primary-foreground shadow-sm" if pk == flt else "bg-muted/60 text-muted-foreground hover:text-foreground"}">{pl}</button>'
+                for pk, pl in pills_data
+            )
             cards = []
             for i in range(min(limit, 8)):
+                card_price = cls._format_fa_price((i + 1) * 350000)
                 card = (
                     f'<div class="rounded-xl border border-border/60 p-3 bg-card space-y-2">'
                     f'<div class="aspect-square bg-muted/20 rounded-lg flex items-center justify-center">'
                     f'<img src="/placeholder-hero.svg" alt="محصول" class="p-2 max-h-full" loading="lazy" />'
                     f'</div>'
                     f'<h4 class="font-bold text-xs">کالای فروشگاه {i+1}</h4>'
-                    f'<span class="text-xs text-primary font-bold">۳۵۰,۰۰۰ تومان</span>'
+                    f'<span class="text-xs text-primary font-bold">{card_price} تومان</span>'
                     f'</div>'
                 )
                 cards.append(card)
@@ -902,7 +1086,8 @@ class ASTCompiler:
                 else ""
             )
             return (
-                f'<div{id_attr} class="builder-product-grid space-y-4 {css_class}" data-widget="{html.escape(widget_type)}" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
+                f'<div{id_attr} class="builder-product-grid space-y-4 w-full {css_class}" data-widget="{html.escape(widget_type)}" data-category="{cat}" data-filter="{flt_escaped}" data-limit="{limit}"{style_attr}>'
+                f'<div class="flex items-center gap-1.5 pb-1">{pills_html}</div>'
                 f'<div class="grid grid-cols-2 md:grid-cols-4 gap-4">{grid_cards_html}</div>'
                 f'{pagination_btn}'
                 f'</div>'

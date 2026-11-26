@@ -1,0 +1,61 @@
+{
+  "idMap": {
+    "product_card": "el_l7vl9pm0",
+    "product_grid": "el_gm2arkmp",
+    "image_gallery": "el_bacpu7in",
+    "star_rating": "el_oezga8bx",
+    "review_histogram": "el_y67pzhtq",
+    "recently_viewed": "el_04wehtgh",
+    "mega_menu": "el_bb2p57v6",
+    "product_price": "el_194r5s2i",
+    "product_variants": "el_5hlqxq5y",
+    "add_to_cart": "el_5rd8uby4",
+    "mini_cart": "el_jh2a4wp1",
+    "cart_summary": "el_tj8r2cdq"
+  },
+  "probes": {
+    "product_card_canvas": "ناموجود\nگوشی پرچمدار راند۴\n(۳۸ نظر)\n۵٬۲۰۰٬۰۰۰ تومان\n۴٬۵۰۰٬۰۰۰ تومان\nناموجود",
+    "product_grid_canvas_cards": 8,
+    "star_rating_canvas": "(۹۹ نظر)",
+    "review_histogram_canvas": "4.2\nاز ۵\nبر اساس ۳۱۰ نظر · ۷۲ خرید تأییدشده\n۵\n۵۸\n۴\n۱۸\n۳\n۶\n۲\n۳\n۱\n۱",
+    "recently_viewed_canvas": "تازه‌های دیده شده راند۴\n۱۷٪ تخفیف\nکالای مشاهده‌شده 1\n(۲۲ نظر)\n۳۵۰٬۰۰۰ تومان\n۲۹۰٬۰۰۰ تومان\nخرید\n۱۷٪ تخفیف\nکالای مشاهده‌شده 2\n(۲۲ نظر)\n۷۰۰٬۰۰۰ تومان\n۵۸۰٬۰۰۰ تومان\nخرید",
+    "mega_menu_canvas": "منوی راند۴",
+    "product_price_canvas": "۹۸۰٬۰۰۰ تومان\n۱٬۴۰۰٬۰۰۰ تومان"
+  },
+  "ssrAudit": {
+    "productCardHasMaxPriceDel": false,
+    "productCardText": "گوشی پرچمدار راند۴ناموجود4500000 تومانخرید",
+    "productGridText": "کالای فروشگاه 1۳۵۰,۰۰۰ تومانکالای فروشگاه 2۳۵۰,۰۰۰ تومان",
+    "galleryImgCount": 3,
+    "starCountSvg": 1,
+    "starShows37EvenWhenOff": true,
+    "recentHasEditedTitle": false,
+    "recentText": "بازدیدهای اخیر شمانمایش آخرین محصولات بازدید شده",
+    "megaHasMenuItems": false,
+    "megaText": "منوی راند۴",
+    "priceHidesDiscountWhenOff": false,
+    "priceText": "980000 تومان1400000 تومان30% تخفیف",
+    "variantsCount": 3,
+    "miniCartHasEditedLabel": false,
+    "miniCartHasSvgIcon": false,
+    "miniCartHidesBadgeWhenOff": false,
+    "miniCartText": "سبد خرید0",
+    "cartSummaryHasEditedTitle": false,
+    "cartSummaryHasEditedBtn": false,
+    "cartSummaryText": "خلاصه سبد خریدمجموع اقلام:۰ تومانادامه فرآیند خرید",
+    "addCartHasSvg": false,
+    "histBarsCount": 1
+  },
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "failedRequests": [
+    "404 http://127.0.0.1:3000/placeholder.svg",
+    "404 http://127.0.0.1:3000/placeholder.svg",
+    "404 http://127.0.0.1:3000/placeholder.svg",
+    "404 http://127.0.0.1:3000/placeholder.svg"
+  ]
+}

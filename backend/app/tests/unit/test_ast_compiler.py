@@ -2196,6 +2196,143 @@ def test_ast_compiler_round03_interactive_and_form_parity():
     assert "divide-y divide-border/70" not in result
 
 
+def test_ast_compiler_round04_shop_widgets_ssr_parity():
+    """Verify Round 04 shop widgets honor all Inspector properties, format Persian prices, and fix SSR layout/SVG parity."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های فروشگاهی راند ۴",
+        slug="test-shop-r04",
+        root_elements=[
+            BuilderElement(
+                id="el_card_r04",
+                name="کارت محصول",
+                type="widget",
+                widget_type="product_card",
+                widget_props={
+                    "name": "گوشی تستی",
+                    "min_price": 4500000,
+                    "max_price": 5200000,
+                    "primary_image_url": "/placeholder.svg",
+                    "is_in_stock": False,
+                },
+            ),
+            BuilderElement(
+                id="el_gal_r04",
+                name="گالری",
+                type="widget",
+                widget_type="image_gallery",
+                widget_props={
+                    "images": [
+                        {"url": "/placeholder-hero.svg", "alt": "اول"},
+                        {"url": "/placeholder.svg", "alt": "دوم"},
+                    ]
+                },
+            ),
+            BuilderElement(
+                id="el_star_r04",
+                name="امتیاز",
+                type="widget",
+                widget_type="star_rating",
+                widget_props={"value": 3.7, "reviewCount": 99, "showValue": False},
+            ),
+            BuilderElement(
+                id="el_hist_r04",
+                name="هیستوگرام",
+                type="widget",
+                widget_type="review_histogram",
+                widget_props={"averageRating": 4.2, "totalReviews": 310, "verifiedCount": 245},
+            ),
+            BuilderElement(
+                id="el_rec_r04",
+                name="بازدید اخیر",
+                type="widget",
+                widget_type="recently_viewed",
+                widget_props={"title": "جدیدترین بازدیدها", "limit": 2},
+            ),
+            BuilderElement(
+                id="el_mega_r04",
+                name="مگامنو",
+                type="widget",
+                widget_type="mega_menu",
+                widget_props={"label": "منوی فروشگاه"},
+            ),
+            BuilderElement(
+                id="el_price_r04",
+                name="قیمت",
+                type="widget",
+                widget_type="product_price",
+                widget_props={"price": 980000, "compare_at_price": 1400000, "show_discount": False},
+            ),
+            BuilderElement(
+                id="el_atc_r04",
+                name="دکمه خرید",
+                type="widget",
+                widget_type="add_to_cart",
+                widget_props={"label": "خرید فوری", "show_quantity": True, "variant_id": "v_2"},
+            ),
+            BuilderElement(
+                id="el_mini_r04",
+                name="مینی کارت",
+                type="widget",
+                widget_type="mini_cart",
+                widget_props={"label": "کیف من", "show_badge": False, "item_count": 3},
+            ),
+            BuilderElement(
+                id="el_sum_r04",
+                name="خلاصه سبد",
+                type="widget",
+                widget_type="cart_summary",
+                widget_props={"title": "فاکتور من", "button_label": "پرداخت", "checkout_url": "/cart", "show_discount": False},
+            ),
+            BuilderElement(
+                id="el_grid_r04",
+                name="گرید محصول",
+                type="widget",
+                widget_type="product_grid",
+                widget_props={"limit": 2, "filter": "featured", "show_pagination": False},
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    # 1. product_card normalized image, max_price del, max-w-sm, out-of-stock disabled button
+    assert "max-w-sm" in result
+    assert "/placeholder-product.svg" in result
+    assert 'src="/placeholder.svg"' not in result
+    assert "<del" in result
+    assert "disabled" in result
+    # 2. image_gallery stage + thumbs
+    assert 'data-gallery-main="1"' in result
+    assert 'data-gallery-thumb="1"' in result
+    # 3. star_rating 5 stars + showValue=False omits 3.7
+    assert "3.7" not in result
+    assert result.count("text-amber-400") >= 3
+    # 4. review_histogram verifiedCount & 5 rows
+    assert "245 خرید تأییدشده" in result
+    # 5. recently_viewed custom title & cards
+    assert "جدیدترین بازدیدها" in result
+    assert result.count("<h5") == 2
+    # 6. mega_menu SVG & collapsible panel
+    assert 'data-mega-menu-toggle="1"' in result
+    assert 'data-mega-menu-panel="1"' in result
+    # 7. product_price Persian formatted & show_discount=False hides badge
+    assert "۹۸۰,۰۰۰ تومان" in result
+    assert "30٪ تخفیف" not in result
+    # 8. add_to_cart stepper + SVG
+    assert 'data-qty-inc="1"' in result
+    assert "lucide-shopping-cart" in result
+    # 9. mini_cart custom label & show_badge=False hides badge
+    assert "کیف من" in result
+    assert 'data-mc-badge="1"' not in result
+    # 10. cart_summary custom title/btn/url & hidden discount
+    assert "فاکتور من" in result
+    assert 'href="/cart"' in result
+    assert "پرداخت" in result
+    assert "- ۱۰۰,۰۰۰ تومان" not in result
+    # 11. product_grid filter pills & no pagination
+    assert 'data-grid-filter="featured"' in result
+    assert "مشاهده محصولات بیشتر" not in result
+
+
 
 
 

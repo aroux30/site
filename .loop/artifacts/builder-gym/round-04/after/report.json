@@ -1,0 +1,40 @@
+{
+  "idMap": {
+    "product_card": "el_81hsz924",
+    "product_grid": "el_yys3nkb7",
+    "image_gallery": "el_ktb6yf7s",
+    "star_rating": "el_xoo6113w",
+    "review_histogram": "el_0rmn84e9",
+    "recently_viewed": "el_vjemlaxl",
+    "mega_menu": "el_wo9pz9qe",
+    "product_price": "el_h79gfcra",
+    "product_variants": "el_j5heqagw",
+    "add_to_cart": "el_peqbe69k",
+    "mini_cart": "el_qv0chl8e",
+    "cart_summary": "el_jbi3hr3p"
+  },
+  "ssrAudit": {
+    "productCardHasMaxPriceDel": true,
+    "productCardDisabledWhenOos": true,
+    "productGridFilterAttr": "featured",
+    "galleryImgCount": 4,
+    "galleryStageSwapped": true,
+    "starCountSvg": 5,
+    "starHides37WhenOff": true,
+    "histBarsCount": 5,
+    "recentHasEditedTitle": true,
+    "recentImgCount": 2,
+    "megaPanelOpened": true,
+    "priceHidesDiscountWhenOff": true,
+    "variantsCount": 3,
+    "addCartHasSvg": true,
+    "miniCartHasEditedLabel": true,
+    "miniCartHasSvgIcon": true,
+    "miniCartLiveBadgeCount": "2",
+    "cartSummaryHasEditedTitle": true,
+    "cartSummaryHasEditedBtn": true,
+    "cartSummaryHidesDiscountWhenOff": true
+  },
+  "errors": [],
+  "failedRequests": []
+}

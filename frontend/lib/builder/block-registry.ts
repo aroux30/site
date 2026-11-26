@@ -915,7 +915,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetProps: {
         images: [
           { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
-          { url: "/placeholder.svg", alt: "تصویر ۲" },
+          { url: "/placeholder-product.svg", alt: "تصویر ۲" },
         ],
       },
       isLocked: false,
@@ -988,6 +988,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       type: "widget",
       widgetType: "recently_viewed",
       widgetProps: {
+        title: "بازدیدهای اخیر شما",
         limit: 4,
       },
       isLocked: false,
@@ -1517,7 +1518,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetProps: {
         images: [
           { url: "/placeholder-hero.svg", alt: "اسلاید ۱" },
-          { url: "/placeholder.svg", alt: "اسلاید ۲" },
+          { url: "/placeholder-product.svg", alt: "اسلاید ۲" },
           { url: "/placeholder-hero.svg", alt: "اسلاید ۳" },
         ],
         autoplay: true,

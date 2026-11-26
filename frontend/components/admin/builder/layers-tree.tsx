@@ -48,10 +48,12 @@ import {
   Hourglass,
   FormInput,
   List,
+  BookmarkPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useBuilderStore } from "@/stores/builder-store";
+import { SaveTemplateDialog } from "./save-template-dialog";
 import type { BuilderElement } from "@/types/builder";
 
 function getElementIcon(el: BuilderElement) {
@@ -174,6 +176,7 @@ const TreeItem = React.memo(function TreeItem({
     (s) => s.selectedElementId === element.id || s.selectedElementIds.includes(element.id)
   );
   const selectElement = useBuilderStore((s) => s.selectElement);
+  const toggleSelectElement = useBuilderStore((s) => s.toggleSelectElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
@@ -181,6 +184,7 @@ const TreeItem = React.memo(function TreeItem({
   const moveElement = useBuilderStore((s) => s.moveElement);
   const [isEditingName, setIsEditingName] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
 
   React.useEffect(() => {
     if (!contextMenu) return;
@@ -200,7 +204,13 @@ const TreeItem = React.memo(function TreeItem({
       style={{ marginRight: depth > 0 ? "24px" : 0 }}
     >
       <div
-        onClick={() => selectElement(element.id)}
+        onClick={(e) => {
+          if (e.ctrlKey || e.metaKey || e.shiftKey) {
+            toggleSelectElement(element.id, true);
+          } else {
+            selectElement(element.id);
+          }
+        }}
         onContextMenu={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -498,6 +508,20 @@ const TreeItem = React.memo(function TreeItem({
               <span>تبدیل به کامپوننت سراسری</span>
               <Globe className="w-3.5 h-3.5 text-primary" />
             </button>
+            {element.type === "container" && (
+              <button
+                type="button"
+                data-testid="navigator-save-template-btn"
+                onClick={() => {
+                  setSaveTemplateOpen(true);
+                  setContextMenu(null);
+                }}
+                className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between text-amber-600 dark:text-amber-400 font-semibold"
+              >
+                <span>ذخیره به عنوان قالب...</span>
+                <BookmarkPlus className="w-3.5 h-3.5" />
+              </button>
+            )}
             <div className="h-px bg-border/60 my-1" />
             <button
               type="button"
@@ -512,6 +536,14 @@ const TreeItem = React.memo(function TreeItem({
             </button>
           </div>
         </>
+      )}
+
+      {element.type === "container" && saveTemplateOpen && (
+        <SaveTemplateDialog
+          element={element}
+          open={saveTemplateOpen}
+          onOpenChange={setSaveTemplateOpen}
+        />
       )}
 
       {hasChildren && effectiveExpanded && (

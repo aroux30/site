@@ -34,6 +34,7 @@ export function BuilderContextMenu() {
   const { toast } = useToast();
   const [pos, setPos] = useState<ContextMenuPosition | null>(null);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [saveTemplateElement, setSaveTemplateElement] = useState<BuilderElement | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const ast = useBuilderStore((s) => s.ast);
@@ -105,14 +106,13 @@ export function BuilderContextMenu() {
     };
   }, [selectElement, closeMenu]);
 
-  if (!pos || !activeElement) return null;
-
-  const isContainer = activeElement.type === "container";
+  const isContainer = activeElement?.type === "container";
   const hasClipboardElement = Boolean(clipboard.element);
   const hasClipboardStyles = Boolean(clipboard.styles);
 
   return (
     <>
+      {pos && activeElement && (
       <div
         ref={menuRef}
         data-testid="builder-context-menu"
@@ -238,10 +238,12 @@ export function BuilderContextMenu() {
             <span>انتقال به پایین</span>
           </button>
 
-          {isContainer && (
+          {activeElement && isContainer && (
             <button
               type="button"
+              data-testid="context-menu-save-template"
               onClick={() => {
+                setSaveTemplateElement(activeElement);
                 setSaveTemplateOpen(true);
                 closeMenu();
               }}
@@ -311,7 +313,7 @@ export function BuilderContextMenu() {
             type="button"
             data-testid="context-menu-delete"
             onClick={() => {
-              deleteElement(activeElement.id);
+              if (activeElement) deleteElement(activeElement.id);
               closeMenu();
             }}
             className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-destructive hover:text-destructive-foreground transition text-start text-destructive font-semibold"
@@ -324,12 +326,16 @@ export function BuilderContextMenu() {
           </button>
         </div>
       </div>
+      )}
 
-      {isContainer && (
+      {saveTemplateElement && (
         <SaveTemplateDialog
-          element={activeElement}
+          element={saveTemplateElement}
           open={saveTemplateOpen}
-          onOpenChange={setSaveTemplateOpen}
+          onOpenChange={(nextOpen) => {
+            setSaveTemplateOpen(nextOpen);
+            if (!nextOpen) setSaveTemplateElement(null);
+          }}
         />
       )}
     </>

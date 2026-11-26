@@ -251,6 +251,33 @@ async def test_page_template_crud():
 
 
 @pytest.mark.asyncio
+async def test_page_template_commits_across_sessions():
+    sample_ast = _make_sample_ast_dict("قالب بخش پایدار", "تیتر پایدار")
+    slug = f"tpl-commit-{uuid.uuid4().hex[:8]}"
+
+    # Simulate real get_db route lifecycle: create_template without caller manual commit
+    async with async_session_factory() as s1:
+        created = await cms_page_service.create_template(
+            s1,
+            PageTemplateCreateRequest(
+                title="قالب پایدار بین سشن",
+                slug=slug,
+                template_type="page",
+                builder_data=sample_ast,
+            ),
+        )
+    # New independent session must immediately see committed template
+    async with async_session_factory() as s2:
+        fetched = await cms_page_service.get_template(s2, created.id)
+        assert fetched.title == "قالب پایدار بین سشن"
+        await cms_page_service.delete_template(s2, created.id)
+
+    async with async_session_factory() as s3:
+        with pytest.raises(Exception):
+            await cms_page_service.get_template(s3, created.id)
+
+
+@pytest.mark.asyncio
 async def test_revision_pruning_bounds_at_twenty():
     slug = f"test-prune-{uuid.uuid4().hex[:8]}"
     initial_ast = _make_sample_ast_dict("برگه با ریویژن زیاد", "نسخه ۰")

@@ -72,6 +72,16 @@ export function BlocksPalette() {
     }
   }, [activeTab, fetchTemplates]);
 
+  useEffect(() => {
+    const handleTemplatesUpdated = () => {
+      fetchTemplates();
+    };
+    window.addEventListener("builder:templates-updated", handleTemplatesUpdated);
+    return () => {
+      window.removeEventListener("builder:templates-updated", handleTemplatesUpdated);
+    };
+  }, [fetchTemplates]);
+
   // Load 28 block patterns from backend API
   useEffect(() => {
     let cancelled = false;
@@ -639,6 +649,9 @@ export function BlocksPalette() {
                   return (
                     <div
                       key={tpl.id}
+                      data-template-id={tpl.id}
+                      data-template-title={tpl.title}
+                      data-template-type={isPage ? "page" : "section"}
                       draggable={!isPage}
                       onDragStart={(e) => {
                         if (isPage) return;

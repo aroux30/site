@@ -1121,7 +1121,8 @@ async def create_template(
         author_id=author_id,
     )
     db.add(template)
-    await db.flush()
+    await db.commit()
+    await db.refresh(template)
     return PageTemplateResponse.model_validate(template)
 
 
@@ -1144,7 +1145,8 @@ async def update_template(
     for k, v in update_dict.items():
         setattr(template, k, v)
 
-    await db.flush()
+    await db.commit()
+    await db.refresh(template)
     return PageTemplateResponse.model_validate(template)
 
 
@@ -1156,5 +1158,5 @@ async def delete_template(
     if not template:
         raise NotFoundError("PageTemplate", f"Template {template_id} not found")
     await db.delete(template)
-    await db.flush()
+    await db.commit()
 

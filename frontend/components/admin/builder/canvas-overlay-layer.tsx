@@ -183,28 +183,26 @@ export function CanvasOverlayLayer({
   // Toolbar position calculation
   let toolbarTop = 0;
   let toolbarLeft = 0;
-  const TOOLBAR_HEIGHT = 36;
+  const TOOLBAR_HEIGHT = 28;
   const isCompactToolbar = docWidth < 460;
-  const effectiveToolbarWidth = isCompactToolbar ? Math.max(220, docWidth - 16) : Math.min(420, docWidth - 16);
+  const effectiveToolbarWidth = isCompactToolbar ? Math.max(220, docWidth - 16) : Math.min(260, docWidth - 16);
 
   if (selectedRect) {
     const scrollY = win.scrollY || 0;
     const viewportTop = selectedRect.top - scrollY;
     const viewportBottom = viewportTop + selectedRect.height;
 
-    // Place toolbar cleanly above the selected element when there is top clearance (>= 40px).
-    // Only pin inside tall scrolled sections when the section's top has scrolled off-screen.
-    if (selectedRect.top >= TOOLBAR_HEIGHT + 4 && viewportTop >= TOOLBAR_HEIGHT + 4) {
+    // Place toolbar cleanly above the selected element when there is viewport top clearance.
+    // Pin inside tall scrolled sections, or place cleanly below if scrolled to top edge.
+    if (viewportTop >= TOOLBAR_HEIGHT + 4) {
       toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
-    } else if (scrollY > 0 && viewportTop < TOOLBAR_HEIGHT + 4 && selectedRect.height > 250 && viewportBottom > TOOLBAR_HEIGHT + 40) {
+    } else if (scrollY > 0 && selectedRect.height > 250 && viewportBottom > TOOLBAR_HEIGHT + 40) {
       toolbarTop = Math.max(selectedRect.top + 8, scrollY + 8);
-    } else if (selectedRect.top < TOOLBAR_HEIGHT + 4) {
-      toolbarTop = selectedRect.top + selectedRect.height + 4;
     } else {
-      toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
+      toolbarTop = selectedRect.top + selectedRect.height + 4;
     }
 
-    // Clamp horizontally within document bounds so mobile 375px viewports never clip
+    // Keep compact left alignment in RTL so right-aligned headings/buttons and horizontal center remain unobstructed
     const marginX = 8;
     toolbarLeft = Math.max(
       marginX,
@@ -280,8 +278,8 @@ export function CanvasOverlayLayer({
               pointerEvents: "auto",
             }}
             className={cn(
-              "flex items-center bg-primary text-primary-foreground text-xs font-bold rounded-lg shadow-2xl border border-primary-foreground/20 transition-all select-none animate-in fade-in zoom-in-95 duration-100",
-              isCompactToolbar ? "gap-0.5 px-1.5 py-1 flex-wrap justify-between" : "gap-1.5 px-2.5 py-1.5"
+              "flex items-center bg-primary text-primary-foreground text-[11px] font-bold rounded-lg shadow-2xl border border-primary-foreground/20 transition-all select-none animate-in fade-in zoom-in-95 duration-100",
+              isCompactToolbar ? "gap-0.5 px-1.5 py-0.5 flex-wrap justify-between" : "gap-0.5 px-1.5 py-0.5"
             )}
             onClick={(e) => e.stopPropagation()}
           >
@@ -296,18 +294,18 @@ export function CanvasOverlayLayer({
                 );
                 e.dataTransfer.effectAllowed = "move";
               }}
-              className="cursor-grab active:cursor-grabbing p-1 hover:bg-primary-foreground/20 rounded shrink-0"
+              className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-primary-foreground/20 rounded shrink-0"
               title="جابه‌جایی"
             >
-              <GripVertical className="w-3.5 h-3.5" />
+              <GripVertical className="w-3 h-3" />
             </span>
 
-            <span className={cn("pe-1 truncate", isCompactToolbar ? "max-w-[72px]" : "max-w-[120px]")}>{selectedElement.name}</span>
+            <span className={cn("pe-0.5 truncate", isCompactToolbar ? "max-w-[72px]" : "max-w-[80px]")}>{selectedElement.name}</span>
 
-            {selectedElement.isLocked && <Lock className="w-3.5 h-3.5 text-amber-200 shrink-0" />}
-            {selectedElement.isHidden && <EyeOff className="w-3.5 h-3.5 text-primary-foreground/70 shrink-0" />}
+            {selectedElement.isLocked && <Lock className="w-3 h-3 text-amber-200 shrink-0" />}
+            {selectedElement.isHidden && <EyeOff className="w-3 h-3 text-primary-foreground/70 shrink-0" />}
 
-            <div className="flex items-center gap-0.5 ms-1 border-s border-primary-foreground/30 ps-1.5">
+            <div className="flex items-center gap-0.5 ms-0.5 border-s border-primary-foreground/30 ps-1 [&_button]:p-0.5">
               {selectedElement.globalComponentId ? (
                 <span className="flex items-center gap-1 text-[10px] text-emerald-300 font-bold px-1" title="کامپوننت سراسری همگام">
                   <Globe className="w-3.5 h-3.5 animate-pulse" />

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.exceptions.handlers import NotFoundError, ValidationError
-from app.core.security.dependencies import RequirePermissions, get_current_user
+from app.core.security.dependencies import RequirePermissions, get_current_user, get_current_user_optional
 from app.core.security.rate_limiter import limiter
 from app.modules.content.application import cms_page_service, content_service, single_type_service
 from app.modules.content.application.reusable_block_service import ReusableBlockService
@@ -410,9 +410,10 @@ async def get_sitemap_noindex(db: AsyncSession = Depends(get_db)) -> dict[str, l
 async def get_page(
     slug: str,
     db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] | None = Depends(get_current_user_optional),
 ) -> CmsPageResponse:
     page = await cms_page_service.get_page_by_slug(db, slug, only_published=True)
-    return await _rendered(db, page)
+    return await _rendered(db, page, is_authenticated=bool(current_user))
 
 
 @router.get(
@@ -423,6 +424,7 @@ async def get_page(
 async def get_page_by_path(
     path: str,
     db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] | None = Depends(get_current_user_optional),
 ) -> CmsPageResponse:
     """Resolve a nested page path, e.g. ``about/team/history``.
 
@@ -432,10 +434,15 @@ async def get_page_by_path(
     nothing that already links to a page breaks when a tree is introduced.
     """
     page = await cms_page_service.get_page_by_slug_path(db, path, only_published=True)
-    return await _rendered(db, page)
+    return await _rendered(db, page, is_authenticated=bool(current_user))
 
 
-async def _rendered(db: AsyncSession, page: CmsPageResponse) -> CmsPageResponse:
+async def _rendered(
+    db: AsyncSession,
+    page: CmsPageResponse,
+    *,
+    is_authenticated: bool = False,
+) -> CmsPageResponse:
     """Expand reusable blocks and shortcodes in a page body for display."""
     from app.shared.content.render import render_body
 
@@ -443,7 +450,16 @@ async def _rendered(db: AsyncSession, page: CmsPageResponse) -> CmsPageResponse:
         page.builder_data
         and (page.builder_data.get("root_elements") or page.builder_data.get("rootElements"))
     )
-    body = await render_body(db, page.body_html, demote_h1=not has_builder_data)
+    body_input = page.body_html
+    if has_builder_data and is_authenticated:
+        from app.modules.content.application.ast_compiler import ASTCompiler
+        from app.modules.content.domain.builder_ast import PageAST
+
+        body_input = ASTCompiler.compile(
+            PageAST.model_validate(page.builder_data),
+            is_authenticated=True,
+        )
+    body = await render_body(db, body_input, demote_h1=not has_builder_data)
 
     if body == page.body_html:
         return page

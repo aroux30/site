@@ -9,7 +9,7 @@
 - [x] **وزنه ۱ — ۵ کیلو**: اسکلت استودیو، دکمه‌های نوار ابزار، درخت لایه‌ها و بوم Iframe
 - [x] **وزنه ۲ — ۱۵ کیلو**: ممیزی تکان‌دادنی (Nudge) تک‌تک کنترل‌های ۳ تب (Content / Style / Advanced) برای همه ۳۵+ ویجت
 - [x] **وزنه ۳ — ۲۵ کیلو**: ممیزی تصویری و ساختاری ۲۸ الگوی آماده + پالت بلوک‌ها + Global Styles
-- [ ] **وزنه ۴ — ۴۰ کیلو**: تجربه واقعی المنتور (Drag & Drop، کپی/پیست، قالب‌ها و برابری کامل با SSR)
+- [x] **وزنه ۴ — ۴۰ کیلو**: تجربه واقعی المنتور (Drag & Drop، کپی/پیست، قالب‌ها و برابری کامل با SSR)
 - [ ] **وزنه ۵ — ۵۵ کیلو**: ریسپانسیو موبایل/تبلت، دارک‌مود کامل و تست فشار ۵۰+ المان
 - [ ] **وزنه ۶ — ۷۰ کیلو**: پورت المنتور موج ۱ (گروه‌های کنترل Style، تکمیل Advanced، کانتینر Grid، اشکال جداکننده SVG، Navigator کامل)
 - [ ] **وزنه ۷ — ۸۵ کیلو**: پورت المنتور موج ۲ (ویجت‌های Core مفقود، ویجت‌های Pro، Off-Canvas و Popup Builder)
@@ -189,3 +189,27 @@
   - `npx vitest run`: `71 passed (71)` — `463 passed (463)`
   - `python -m pytest app/tests/unit`: `665 passed, 2 skipped` (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts tests/e2e/builder-gym-r05.spec.ts --workers=1 --reporter=list`: `11 passed (11)`
+
+### دور ۶ (Round 06 — وزنه ۴: تجربه واقعی المنتور، Drag & Drop، قالب‌ها، کامپوننت سراسری و برابری authVisibility در SSR)
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-06/before/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision و Nudge:
+    - در `builder-context-menu.tsx`، کلیک روی «ذخیره به عنوان قالب...» تابع `closeMenu()` را صدا می‌زد که با `pos = null` باعث می‌شد `if (!pos || !activeElement) return null;` کل کامپوننت از جمله `SaveTemplateDialog` را فوراً unmount کند و هیچ دیالوگی باز نشود (`saveSecDialogVisible: false`).
+    - در `layers-tree.tsx`، کلیک با کلید `Ctrl+Click` چندانتخابی انجام نمی‌داد (`multiSelectedIdsInLayers: ["el_e2etext1"]`) و منوی راست‌کلیک آن فاقد گزینه ذخیره قالب بخش بود.
+    - در `canvas-overlay-layer.tsx`، خطای شرط `selectedRect.top` به جای `viewportTop` هنگام اسکرول بوم نوار ابزار شناور را از بالای کادر خارج می‌کرد و عرض زیاد نوار ابزار در میانه افقی مانع کلیک مستقیم روی المان هم‌جوار می‌شد.
+    - در بک‌اند (`cms_page_service.py`)، متدهای `create_template`، `update_template` و `delete_template` فقط `db.flush()` می‌زدند و در پایان درخواست به‌خاطر شرط `session.new or session.dirty or session.deleted` در `get_db()` بی‌سروصدا rollback می‌شدند و هیچ قالب بخش یا برگه‌ای در دیتابیس باقی نمی‌ماند.
+    - در خروجی عمومی SSR (`routes.py` و `frontend/app/(store)/[slug]/page.tsx`)، صفحات فقط یک بار با `is_authenticated=False` کامپایل می‌شدند و کاربران عضو واردشده نیز بلوک‌های `authenticated` را نمی‌دیدند و بلوک‌های `guest` به اشتباه برایشان نمایش داده می‌شد.
+  - `after/`: `.loop/artifacts/builder-gym/round-06/after/` (۷ تصویر + `report.json`) — مشاهده‌شده با Vision:
+    - Drag & Drop از پالت به بوم و جابه‌جایی در `LayersTree` بدون `force: true`، کپی/پیست استایل (`#dbeafe` پس‌زمینه)، چندانتخابی `Ctrl+Click`، بازشدن شفاف و کامل `SaveTemplateDialog` (`z-[125]`) از منوی راست‌کلیک بوم و `LayersTree`، ثبت پایدار قالب بخش و قالب برگه در PostgreSQL و نمایش در «قالب‌های من»، همگام‌سازی زنده و Detach کامپوننت سراسری و پنهان‌سازی/نمایش دقیق SSR برای مهمان (`06`) در برابر عضو واردشده (`07`) تأیید شد.
+- **فایل‌های اصلاح‌شده**:
+  - `frontend/components/admin/builder/builder-context-menu.tsx`, `frontend/components/admin/builder/save-template-dialog.tsx`, `frontend/components/admin/builder/save-page-template-dialog.tsx`, `frontend/components/admin/builder/blocks-palette.tsx` (جداکردن وضعیت `saveTemplateElement`، `z-[125]` و `builder:templates-updated`)
+  - `frontend/components/admin/builder/layers-tree.tsx` (`Ctrl+Click` چندانتخابی و گزینه ذخیره قالب در منوی درخت لایه‌ها)
+  - `frontend/components/admin/builder/canvas-overlay-layer.tsx`, `frontend/components/admin/builder/inspector-panel.tsx` (تثبیت موقعیت `viewportTop` و فشرده‌سازی عرض نوار ابزار شناور بوم و افزودن `data-testid="style-bg-color-input"`)
+  - `backend/app/modules/content/application/cms_page_service.py` (`db.commit()` و `db.refresh()` واقعی در CRUD قالب‌ها)
+  - `backend/app/modules/content/api/routes.py`, `frontend/app/(store)/[slug]/page.tsx` (`get_current_user_optional` و کامپایل زنده `is_authenticated=True` با fallback امن مهمان روی 401)
+  - تست‌های رگرسیون: `frontend/tests/builder-gym-r06-unit.test.ts` (+۳ تست)، `backend/app/tests/unit/test_ast_compiler.py` (+۱ تست)، `backend/app/tests/unit/test_cms_page_builder_db.py` (+۱ تست)، `frontend/tests/e2e/builder-gym-r06.spec.ts`
+- **نتایج راستی‌آزمایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `72 passed (72)` — `466 passed (466)`
+  - `python -m pytest app/tests/unit`: `667 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts tests/e2e/builder-gym-r05.spec.ts tests/e2e/builder-gym-r06.spec.ts --workers=1 --reporter=list`: `12 passed (12)`

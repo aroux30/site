@@ -1,0 +1,58 @@
+{
+  "checks": {
+    "dnd": {
+      "paletteDragAdded": true,
+      "layersDragMoved": true
+    },
+    "shortcutsAndStyles": {
+      "textAfterUndo": "سرتیتر اول",
+      "textAfterRedo": "تیتر ویرایش‌شده راند۶",
+      "headBg": "rgb(219, 234, 254)",
+      "pastedBgOnText": "rgb(219, 234, 254)",
+      "multiSelectedIdsInLayers": [
+        "el_e2ehead1",
+        "el_e2etext1"
+      ]
+    },
+    "dialogs": {
+      "secDialogInfo": {
+        "zIndex": "125",
+        "bg": "rgb(255, 255, 255)",
+        "opacity": "1",
+        "coveredByOther": null
+      },
+      "secStatus": 201,
+      "pageStatus": 201
+    },
+    "globalComponent": {
+      "gcIds": [
+        "el_e2ehead1",
+        "el_owomg49i"
+      ],
+      "canvasHeadings": [
+        "تیتر همگام‌سازی زنده راند۶",
+        "تیتر همگام‌سازی زنده راند۶"
+      ],
+      "toolbarRect": {
+        "x": 425,
+        "y": 24,
+        "width": 261.984375,
+        "height": 24
+      }
+    },
+    "authVisibilitySSR": {
+      "guestHasAuthSecret": false,
+      "guestHasGuestMsg": true,
+      "guestHasAll": true,
+      "authHasAuthSecret": true,
+      "authHasGuestMsg": false,
+      "authHasAll": true
+    }
+  },
+  "createdTemplateIds": [
+    "82f52985-7fba-4e46-8884-40e5c62df546",
+    "fab73ce6-80ee-44fa-b5ba-f023b52041f1"
+  ],
+  "errors": [],
+  "failedRequests": []
+}

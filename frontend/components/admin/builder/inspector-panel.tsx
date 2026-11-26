@@ -4097,6 +4097,7 @@ export function InspectorPanel() {
                   className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
                 />
                 <Input
+                  data-testid="style-bg-color-input"
                   value={currentDeviceStyle.background?.color || ""}
                   placeholder="#ffffff یا hsl(var(--primary))"
                   onChange={(e) =>

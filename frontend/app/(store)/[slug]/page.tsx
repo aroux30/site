@@ -99,10 +99,24 @@ function buildFallbackScratchpad(): CmsPage {
   };
 }
 
-async function fetchPage(slug: string): Promise<CmsPage | null> {
+async function fetchPage(slug: string, authToken?: string): Promise<CmsPage | null> {
   try {
+    const endpoint = `${API_BASE}/content/pages/${encodeURIComponent(slug)}`;
+    if (authToken) {
+      const authRes = await fetch(endpoint, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        cache: "no-store",
+      });
+      if (authRes.ok) {
+        return (await authRes.json()) as CmsPage;
+      }
+      if (authRes.status !== 401) {
+        return slug === "e2e-isolated-scratchpad" ? buildFallbackScratchpad() : null;
+      }
+      // Expired or invalid access_token must fall back cleanly to anonymous public HTML.
+    }
     const res = await fetch(
-      `${API_BASE}/content/pages/${encodeURIComponent(slug)}`,
+      endpoint,
       { next: { revalidate: 300, tags: [pageTag(slug)] } },
     );
     if (!res.ok) {
@@ -219,30 +233,29 @@ export default async function CmsPageRoute({ params, searchParams }: Props) {
     search?.builder === "true";
 
   let authToken: string | undefined;
-  if (isEditRequested) {
-    try {
-      const cookieStore = await cookies();
-      authToken =
-        cookieStore.get("access_token")?.value ||
-        cookieStore.get("refresh_token")?.value;
-    } catch {
-      authToken = undefined;
-    }
+  let editorToken: string | undefined;
+  try {
+    const cookieStore = await cookies();
+    authToken = cookieStore.get("access_token")?.value;
+    editorToken = authToken || cookieStore.get("refresh_token")?.value;
+  } catch {
+    authToken = undefined;
+    editorToken = undefined;
   }
 
   // An editor must be able to open their own draft. Try the admin view first
   // when the editor was requested, and fall back to the public one so a
   // signed-out visitor still gets the normal page (or a 404 for a draft).
   const page =
-    (isEditRequested ? await fetchPageForEditor(slug, authToken) : null) ??
-    (await fetchPage(slug));
+    (isEditRequested ? await fetchPageForEditor(slug, editorToken) : null) ??
+    (await fetchPage(slug, authToken));
   if (!page) notFound();
 
   if (isEditRequested) {
     let isAdmin = false;
     try {
-      if (authToken) {
-        const payload = decodeJwt(authToken);
+      if (editorToken) {
+        const payload = decodeJwt(editorToken);
         const roles: string[] = Array.isArray(payload.roles)
           ? (payload.roles as string[])
           : typeof payload.role === "string"

@@ -2460,6 +2460,85 @@ def test_render_body_preserves_builder_h1_when_demote_h1_false():
     assert "<h2>تیتر صفحه ساز</h2>" in demoted
 
 
+def test_rendered_filters_auth_visibility_for_guest_and_authenticated():
+    import asyncio
+    from unittest.mock import AsyncMock, MagicMock, patch
+    from app.modules.content.api.routes import _rendered
+    from app.modules.content.schemas.content import CmsPageResponse
+    from datetime import datetime, UTC
+    import uuid
+
+    ast_dict = {
+        "schemaVersion": 1,
+        "title": "Auth Visibility Test",
+        "slug": "auth-vis-test",
+        "rootElements": [
+            {
+                "id": "el_auth_u1",
+                "name": "اعضا",
+                "type": "widget",
+                "widgetType": "heading",
+                "widgetProps": {"text": "محتوای محرمانه اعضا", "tag": "h2"},
+                "authVisibility": "authenticated",
+                "styles": {"mobile": {}},
+                "children": [],
+            },
+            {
+                "id": "el_guest_u1",
+                "name": "مهمان",
+                "type": "widget",
+                "widgetType": "heading",
+                "widgetProps": {"text": "پیام خوشامد مهمان", "tag": "h2"},
+                "authVisibility": "guest",
+                "styles": {"mobile": {}},
+                "children": [],
+            },
+            {
+                "id": "el_all_u1",
+                "name": "عمومی",
+                "type": "widget",
+                "widgetType": "heading",
+                "widgetProps": {"text": "محتوای عمومی برای همه", "tag": "h2"},
+                "authVisibility": "all",
+                "styles": {"mobile": {}},
+                "children": [],
+            },
+        ],
+    }
+    guest_compiled = ASTCompiler.compile(PageAST.model_validate(ast_dict), is_authenticated=False)
+    page_resp = CmsPageResponse(
+        id=uuid.uuid4(),
+        title="Auth Visibility Test",
+        slug="auth-vis-test",
+        body_html=guest_compiled,
+        builder_data=ast_dict,
+        excerpt=None,
+        status="published",
+        seo_title=None,
+        seo_description=None,
+        author_id=None,
+        published_at=datetime.now(UTC),
+        revision_number=1,
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
+
+    async def fake_identity(_db, html_str, **_kw):
+        return html_str
+
+    with patch("app.shared.content.render.render_body", side_effect=fake_identity):
+        guest_out = asyncio.run(_rendered(MagicMock(), page_resp, is_authenticated=False))
+        auth_out = asyncio.run(_rendered(MagicMock(), page_resp, is_authenticated=True))
+
+    assert "محتوای محرمانه اعضا" not in guest_out.body_html
+    assert "پیام خوشامد مهمان" in guest_out.body_html
+    assert "محتوای عمومی برای همه" in guest_out.body_html
+
+    assert "محتوای محرمانه اعضا" in auth_out.body_html
+    assert "پیام خوشامد مهمان" not in auth_out.body_html
+    assert "محتوای عمومی برای همه" in auth_out.body_html
+
+
 
 
 

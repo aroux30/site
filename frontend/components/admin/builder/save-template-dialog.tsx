@@ -87,6 +87,9 @@ export function SaveTemplateDialog({
         title: "قالب ذخیره شد",
         description: `قالب «${title.trim()}» با موفقیت در کتابخانه قالب‌ها ذخیره شد.`,
       });
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("builder:templates-updated"));
+      }
       onOpenChange(false);
     } catch (err) {
       console.error("Save template error:", err);
@@ -102,7 +105,7 @@ export function SaveTemplateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" dir="rtl">
+      <DialogContent data-testid="save-section-template-dialog" className="max-w-md z-[125] bg-card text-foreground opacity-100" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-bold">
             <BookmarkPlus className="w-4 h-4 text-primary" />
@@ -114,6 +117,7 @@ export function SaveTemplateDialog({
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">عنوان قالب</Label>
             <Input
+              data-testid="save-section-template-title-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="h-8 text-xs"

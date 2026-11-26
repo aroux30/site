@@ -1,0 +1,172 @@
+{
+  "probes": {
+    "dnd": {
+      "countBeforeDnd": 4,
+      "paletteDragAdded": true,
+      "layersDragMoved": true
+    },
+    "shortcutsAndStyles": {
+      "textAfterUndo": "سرتیتر اول",
+      "textAfterRedo": "تیتر تست راند۶",
+      "headBgBeforeCopy": "rgba(0, 0, 0, 0)",
+      "storeHeadStyles": {
+        "mobile": {
+          "gap": null,
+          "top": null,
+          "left": null,
+          "mask": null,
+          "order": null,
+          "right": null,
+          "width": null,
+          "border": null,
+          "bottom": null,
+          "filter": null,
+          "margin": null,
+          "zIndex": null,
+          "display": "inherit",
+          "opacity": null,
+          "padding": null,
+          "flexGrow": null,
+          "flexWrap": "inherit",
+          "overflow": "inherit",
+          "position": "inherit",
+          "alignSelf": "inherit",
+          "boxShadow": null,
+          "minHeight": null,
+          "transform": null,
+          "alignItems": "inherit",
+          "background": null,
+          "filterBlur": null,
+          "typography": null,
+          "hoverBorder": null,
+          "backdropBlur": null,
+          "flexDirection": "inherit",
+          "hoverBoxShadow": null,
+          "justifyContent": "inherit",
+          "backgroundOverlay": null,
+          "transitionDuration": null,
+          "gridTemplateColumns": null
+        },
+        "tablet": null,
+        "desktop": {
+          "backgroundColor": "#dbeafe"
+        },
+        "animation": null,
+        "direction": "inherit",
+        "customCssId": null,
+        "animationDelay": null,
+        "customCssClass": null,
+        "shapeDividerTop": null,
+        "customAttributes": null,
+        "animationDuration": null,
+        "shapeDividerColor": null,
+        "shapeDividerBottom": null
+      },
+      "clipboardStylesAfterCopy": {
+        "mobile": {
+          "gap": null,
+          "top": null,
+          "left": null,
+          "mask": null,
+          "order": null,
+          "right": null,
+          "width": null,
+          "border": null,
+          "bottom": null,
+          "filter": null,
+          "margin": null,
+          "zIndex": null,
+          "display": "inherit",
+          "opacity": null,
+          "padding": null,
+          "flexGrow": null,
+          "flexWrap": "inherit",
+          "overflow": "inherit",
+          "position": "inherit",
+          "alignSelf": "inherit",
+          "boxShadow": null,
+          "minHeight": null,
+          "transform": null,
+          "alignItems": "inherit",
+          "background": null,
+          "filterBlur": null,
+          "typography": null,
+          "hoverBorder": null,
+          "backdropBlur": null,
+          "flexDirection": "inherit",
+          "hoverBoxShadow": null,
+          "justifyContent": "inherit",
+          "backgroundOverlay": null,
+          "transitionDuration": null,
+          "gridTemplateColumns": null
+        },
+        "tablet": null,
+        "desktop": {
+          "backgroundColor": "#dbeafe"
+        },
+        "animation": null,
+        "direction": "inherit",
+        "animationDelay": null,
+        "customCssClass": null,
+        "shapeDividerTop": null,
+        "customAttributes": null,
+        "animationDuration": null,
+        "shapeDividerColor": null,
+        "shapeDividerBottom": null
+      },
+      "layersMenuCopyStyle": true,
+      "pastedBgOnText": "rgba(0, 0, 0, 0)",
+      "cont1CountAfterCopyPaste": 3,
+      "multiSelectedIdsInLayers": [
+        "el_e2etext1"
+      ]
+    },
+    "saveSectionDialog": {
+      "ctxVisible": true,
+      "saveSecDialogVisible": false,
+      "saveSecDialogZInfo": null
+    },
+    "savePageDialog": {
+      "visible": true,
+      "zIndex": "120",
+      "bg": "rgb(255, 255, 255)",
+      "opacity": "1",
+      "coveredByOther": null,
+      "rect": {
+        "x": 496,
+        "y": 198.125,
+        "w": 448,
+        "h": 503.75
+      }
+    },
+    "globalComponent": {
+      "instancesAfterDup": [
+        {
+          "id": "el_e2ehead1",
+          "gc": "gc_6r9u2q9z",
+          "text": "سرتیتر اول"
+        },
+        {
+          "id": "el_hjv3r6k9",
+          "gc": "gc_6r9u2q9z",
+          "text": "سرتیتر اول"
+        }
+      ],
+      "gcInstanceClickErr": "TimeoutError: locator.click: Timeout 5000ms exceeded. Call log: \u001b[2m  - waiting for locator('iframe[data-testid=\"canvas-iframe\"]').contentFrame().locator('[data-element-id=\"el_e2ehead1\"]')\u001b[22m \u001b[2m    - locator resolved to <div data-widget-type=\"heading\" data-element-id=\"el_e2ehead1\" data-element-name=\"سرتیتر اول\" class=\"relative group/elem select-none block\">…</div>\u001b[22m \u001b[2m  - attempting click action\u001b[22m \u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m",
+      "canvasHeadings": [
+        "تیتر همگام‌سازی‌شده سرتاسری",
+        "تیتر همگام‌سازی‌شده سرتاسری"
+      ]
+    },
+    "authVisibilitySSR": {
+      "guestHasAuthSecret": false,
+      "guestHasGuestMsg": true,
+      "guestHasAll": true,
+      "authHasAuthSecret": false,
+      "authHasGuestMsg": true,
+      "authHasAll": true
+    }
+  },
+  "errors": [],
+  "failedRequests": []
+}

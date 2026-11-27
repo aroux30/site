@@ -149,11 +149,14 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         title: "پیش‌نویس ذخیره شد",
         description: "تغییرات صفحه با موفقیت در دیتابیس ثبت شد.",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Save draft error:", err);
+      const isValidation = err?.name === "ZodError";
       toast({
         title: "خطا در ذخیره‌سازی",
-        description: "اعتبارسنجی ساختار صفحه با خطا مواجه شد.",
+        description: isValidation
+          ? "اعتبارسنجی ساختار صفحه با خطا مواجه شد."
+          : "ذخیره پیش‌نویس در سرور با خطا مواجه شد. تغییرات شما همچنان در ویرایشگر حفظ شده است.",
         variant: "destructive",
       });
     } finally {
@@ -181,11 +184,14 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         title: "صفحه منتشر شد",
         description: "این برگه اکنون با خروجی بهینه‌شده در دسترس کاربران است.",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Publish error:", err);
+      const isValidation = err?.name === "ZodError";
       toast({
         title: "خطا در انتشار",
-        description: "امکان انتشار صفحه به دلیل خطای اعتبارسنجی میسر نشد.",
+        description: isValidation
+          ? "امکان انتشار صفحه به دلیل خطای اعتبارسنجی میسر نشد."
+          : "انتشار صفحه در سرور با خطا مواجه شد. تغییرات شما همچنان در ویرایشگر حفظ شده است.",
         variant: "destructive",
       });
     } finally {

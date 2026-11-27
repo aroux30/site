@@ -10,7 +10,7 @@
 - [x] **وزنه ۲ — ۱۵ کیلو**: ممیزی تکان‌دادنی (Nudge) تک‌تک کنترل‌های ۳ تب (Content / Style / Advanced) برای همه ۳۵+ ویجت
 - [x] **وزنه ۳ — ۲۵ کیلو**: ممیزی تصویری و ساختاری ۲۸ الگوی آماده + پالت بلوک‌ها + Global Styles
 - [x] **وزنه ۴ — ۴۰ کیلو**: تجربه واقعی المنتور (Drag & Drop، کپی/پیست، قالب‌ها و برابری کامل با SSR)
-- [ ] **وزنه ۵ — ۵۵ کیلو**: ریسپانسیو موبایل/تبلت، دارک‌مود کامل و تست فشار ۵۰+ المان
+- [x] **وزنه ۵ — ۵۵ کیلو**: ریسپانسیو موبایل/تبلت، دارک‌مود کامل و تست فشار ۵۰+ المان
 - [ ] **وزنه ۶ — ۷۰ کیلو**: پورت المنتور موج ۱ (گروه‌های کنترل Style، تکمیل Advanced، کانتینر Grid، اشکال جداکننده SVG، Navigator کامل)
 - [ ] **وزنه ۷ — ۸۵ کیلو**: پورت المنتور موج ۲ (ویجت‌های Core مفقود، ویجت‌های Pro، Off-Canvas و Popup Builder)
 - [ ] **وزنه ۸ — ۱۰۰ کیلو**: پورت المنتور موج ۳ (۱۲ تب Global Site Kit، Theme Builder، Loop Builder، فرم چندمرحله‌ای، Import/Export JSON)
@@ -213,3 +213,24 @@
   - `npx vitest run`: `72 passed (72)` — `466 passed (466)`
   - `python -m pytest app/tests/unit`: `667 passed, 2 skipped` (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts tests/e2e/builder-gym-r05.spec.ts tests/e2e/builder-gym-r06.spec.ts --workers=1 --reporter=list`: `12 passed (12)`
+
+### دور ۷ (Round 07 — وزنه ۵: ریسپانسیو تبلت ۷۶۸ و موبایل ۳۷۵، دارک‌مود کامل، تست فشار ۶۰ المان تودرتو و حفظ isDirty روی خطای ۵۰۰)
+- **وضعیت نردبان پایه**: `BUILDER_GYM_LEVELS_1_TO_5_CLEAN` — وزنه‌های ۱ تا ۵ همگی پاک و سبز شدند.
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-07/before/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision و Nudge:
+    - در `canvas-frame.tsx`، متغیرهای تم روشن لایه ۱ (`--background`, `--foreground`, `--card`, `--muted`, `--border`) با inline style روی `<html style>` داخل iframe نوشته می‌شدند و در حالت دارک‌مود قوانین `.dark` را خنثی می‌کردند؛ همچنین `MutationObserver` تنها کلاس و style والد را کپی می‌کرد بدون `syncStyles(doc)` (در نتیجه در دارک‌مود بوم Iframe کاملاً سفید `#ffffff` با متن سیاه می‌ماند: `03`).
+    - در `ast_compiler.py`، مخفی‌سازی شرطی بر اساس دستگاه (`visible_on_mobile=False`, `visible_on_tablet=False`) صرفاً به کلاس‌های `max-md:hidden` و `md:max-lg:hidden` متکی بود که در Tailwind باندل فرانت‌اند تولید نشده بودند؛ در نتیجه المان مخفی در موبایل همچنان با `display: block` در SSR `375px` دیده می‌شد (`05`).
+    - در `builder-studio.tsx`، خطای سرور `500` هنگام ذخیره پیش‌نویس یا انتشار پیام نادرست «اعتبارسنجی ساختار صفحه با خطا مواجه شد» را نشان می‌داد (`06`).
+  - `after/`: `.loop/artifacts/builder-gym/round-07/after/` (۶ تصویر + `report.json`) — مشاهده‌شده با Vision:
+    - در دارک‌مود استودیو (`03`) و دیالوگ (`04`) و خروجی SSR موبایل ۳۷۵px (`05`)، بوم Iframe اکنون هماهنگ با استودیو پس‌زمینه تیره (`rgb(11, 14, 13)`) و متن روشن (`rgb(242, 243, 242)`) دارد، ویجت مخفی در موبایل در خروجی SSR ۳۷۵px کاملاً حذف بصری می‌شود (`textDisplay: "none"`)، تغییرات breakpoint تبلت ۷۶۸px (`24px`, `#fef9c3`) و موبایل ۳۷۵px (`16px`, `#fee2e2`) در بوم و SSR برابرند، ۶۰ المان ۳-سطحی تودرتو بدون خطا و سرریز رندر و ذخیره می‌شوند، و روی خطای `500` سرور پیام صادقانه نمایش داده شده و `isDirty: true` حفظ می‌شود (`06`).
+- **فایل‌های اصلاح‌شده**:
+  - `frontend/components/admin/builder/canvas-frame.tsx` (حذف بازنویسی سطوح روشن هنگام فعال‌بودن `.dark` و فراخوانی `syncStyles(doc)` در `MutationObserver`)
+  - `backend/app/modules/content/application/ast_compiler.py` (تولید صریح `@media ... { #id { display: none !important; } }` برای `visible_on_mobile`/`tablet`/`desktop` در `_collect_responsive_rules`)
+  - `frontend/components/admin/builder/builder-studio.tsx` (تفکیک پیام خطای `ZodError` از خطای شبکه/سرور همراه با حفظ ویرایش‌ها)
+  - تست‌های رگرسیون: `backend/app/tests/unit/test_ast_compiler.py` (+۱ تست)، `frontend/tests/builder-gym-r07-unit.test.ts` (+۱ تست)، `frontend/tests/e2e/builder-gym-r07.spec.ts`
+- **نتایج راستی‌آزمایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `73 passed (73)` — `467 passed (467)`
+  - `python -m pytest app/tests/unit`: `668 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts tests/e2e/builder-gym-r05.spec.ts tests/e2e/builder-gym-r06.spec.ts tests/e2e/builder-gym-r07.spec.ts --workers=1 --reporter=list`: `13 passed (13)`

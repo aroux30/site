@@ -511,6 +511,9 @@ class ASTCompiler:
                 css_collector=css_collector,
                 grid_cols=layout.grid_columns if layout.kind == "grid" else None,
                 include_base_in_css=has_responsive_overrides,
+                visible_on_desktop=el.visible_on_desktop,
+                visible_on_tablet=el.visible_on_tablet,
+                visible_on_mobile=el.visible_on_mobile,
             )
 
         if el.styles.animation and el.styles.animation != "none":
@@ -624,6 +627,9 @@ class ASTCompiler:
                 css_collector=css_collector,
                 is_text_editor=widget_type in ("text_editor", "text", "paragraph"),
                 include_base_in_css=has_responsive_overrides,
+                visible_on_desktop=el.visible_on_desktop,
+                visible_on_tablet=el.visible_on_tablet,
+                visible_on_mobile=el.visible_on_mobile,
             )
 
         classes_list = []
@@ -2363,8 +2369,17 @@ class ASTCompiler:
         grid_cols: int | None = None,
         is_text_editor: bool = False,
         include_base_in_css: bool = False,
+        visible_on_desktop: bool = True,
+        visible_on_tablet: bool = True,
+        visible_on_mobile: bool = True,
     ) -> None:
         sel = cls._css_id_selector(element_id)
+        if not visible_on_mobile:
+            css_collector.append(f"@media (max-width: 767px) {{ {sel} {{ display: none !important; }} }}")
+        if not visible_on_tablet:
+            css_collector.append(f"@media (min-width: 768px) and (max-width: 1023px) {{ {sel} {{ display: none !important; }} }}")
+        if not visible_on_desktop:
+            css_collector.append(f"@media (min-width: 1024px) {{ {sel} {{ display: none !important; }} }}")
         if grid_cols is not None:
             cols = max(1, min(12, int(grid_cols)))
             tablet_cols = min(cols, 2)

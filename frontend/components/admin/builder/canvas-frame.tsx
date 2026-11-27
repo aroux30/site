@@ -86,9 +86,30 @@ export function CanvasFrame({
     });
 
     // Two-Layer Design Tokens:
-    // Layer 1 (Base): Active SiteTheme variables
+    // Layer 1 (Base): Active SiteTheme variables (light surfaces must not override .dark CSS vars)
+    const isDark = doc.documentElement.classList.contains("dark");
+    const lightSurfaceKeys = new Set([
+      "--background",
+      "--foreground",
+      "--card",
+      "--card-foreground",
+      "--popover",
+      "--popover-foreground",
+      "--muted",
+      "--muted-foreground",
+      "--border",
+      "--input",
+      "--accent",
+      "--accent-foreground",
+    ]);
     const hslKeys = new Set(["--primary", "--secondary", "--background", "--foreground", "--border", "--muted", "--ring", "--input", "--card", "--popover"]);
     for (const [key, val] of Object.entries(activeThemeVars)) {
+      if (isDark && lightSurfaceKeys.has(key)) {
+        doc.documentElement.style.removeProperty(key);
+        doc.documentElement.style.removeProperty(`--theme-${key.slice(2)}`);
+        doc.documentElement.style.removeProperty(`${key}-hex`);
+        continue;
+      }
       if (hslKeys.has(key) && String(val).startsWith("#")) {
         doc.documentElement.style.setProperty(key, hexToHslChannels(String(val)));
         doc.documentElement.style.setProperty(`--theme-${key.slice(2)}`, String(val));
@@ -276,9 +297,7 @@ export function CanvasFrame({
     if (!doc?.documentElement) return;
 
     const observer = new MutationObserver(() => {
-      doc.documentElement.className = document.documentElement.className;
-      const parentStyle = document.documentElement.getAttribute("style");
-      if (parentStyle) doc.documentElement.setAttribute("style", parentStyle);
+      syncStyles(doc);
     });
 
     observer.observe(document.documentElement, {
@@ -287,7 +306,7 @@ export function CanvasFrame({
     });
 
     return () => observer.disconnect();
-  }, [ready]);
+  }, [ready, syncStyles]);
 
   // Keep the frame tall enough for its content (no nested scrollbars).
   useEffect(() => {

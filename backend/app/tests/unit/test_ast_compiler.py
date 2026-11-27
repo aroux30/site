@@ -2539,6 +2539,49 @@ def test_rendered_filters_auth_visibility_for_guest_and_authenticated():
     assert "محتوای عمومی برای همه" in auth_out.body_html
 
 
+def test_responsive_overrides_and_device_visibility_media_queries():
+    ast = PageAST.model_validate(
+        {
+            "schemaVersion": 1,
+            "title": "Responsive Visibility Test",
+            "slug": "resp-vis",
+            "rootElements": [
+                {
+                    "id": "el_cont_vis5",
+                    "name": "کانتینر شرطی",
+                    "type": "container",
+                    "visibleOnTablet": False,
+                    "styles": {"mobile": {}},
+                    "children": [
+                        {
+                            "id": "el_head_resp5",
+                            "name": "هدینگ واکنشگرا",
+                            "type": "widget",
+                            "widgetType": "heading",
+                            "widgetProps": {"text": "تست رسپانسیو", "tag": "h2"},
+                            "visibleOnMobile": False,
+                            "styles": {
+                                "mobile": {"typography": {"fontSize": {"value": 16, "unit": "px"}}},
+                                "tablet": {"typography": {"fontSize": {"value": 24, "unit": "px"}}},
+                                "desktop": {"typography": {"fontSize": {"value": 36, "unit": "px"}}},
+                            },
+                            "children": [],
+                        }
+                    ],
+                }
+            ],
+        }
+    )
+    compiled = ASTCompiler.compile(ast)
+    assert "@media (max-width: 767px) { #el_head_resp5 { display: none !important; } }" in compiled
+    assert "@media (min-width: 768px) and (max-width: 1023px) { #el_cont_vis5 { display: none !important; } }" in compiled
+    assert "font-size: 16px;" in compiled
+    assert "@media (min-width: 768px) { #el_head_resp5" in compiled
+    assert "font-size: 24px;" in compiled
+    assert "@media (min-width: 1024px) { #el_head_resp5" in compiled
+    assert "font-size: 36px;" in compiled
+
+
 
 
 

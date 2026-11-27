@@ -1,0 +1,43 @@
+{
+  "checks": {
+    "darkMetrics": {
+      "parentHasDark": true,
+      "iframeHasDark": true,
+      "studioBg": "rgb(18, 22, 20)",
+      "canvasBodyBg": "rgb(11, 14, 13)",
+      "canvasHeadColor": "rgb(242, 243, 242)"
+    },
+    "ssrChecks": {
+      "desktop_1440": {
+        "fontSize": "36px",
+        "bg": "rgb(220, 252, 231)",
+        "textDisplay": "block",
+        "scrollW": 1440,
+        "clientW": 1440
+      },
+      "tablet_768": {
+        "fontSize": "24px",
+        "bg": "rgb(254, 249, 195)",
+        "textDisplay": "block",
+        "scrollW": 768,
+        "clientW": 768
+      },
+      "mobile_375": {
+        "fontSize": "16px",
+        "bg": "rgb(254, 226, 226)",
+        "textDisplay": "none",
+        "scrollW": 375,
+        "clientW": 375
+      }
+    },
+    "stressAndDirty": {
+      "stressCount": 60,
+      "dirtyAfter500": true,
+      "honestToastVisible": true
+    }
+  },
+  "errors": [
+    "console: {\"timestamp\":\"2026-11-26T23:58:09.050Z\",\"level\":\"error\",\"message\":\"API request failed: [PATCH] /content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7 (500) [10.8ms]\",\"context\":{\"durationMs\":10.8,\"status\":500,\"requestId\":\"07a1b8fe-3a10-4c47-9f05-8c3d008262ec\",\"traceId\":\"609f2083d67b7581030055885628ad37\"},\"traceId\":\"609f2083d67b7581030055885628ad37\",\"requestId\":\"07a1b8fe-3a10-4c47-9f05-8c3d008262ec\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:23742)\\n    at XMLHttpRequest.b (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:30697)\"},\"url\":\"http://127.0.0.1:3000/e2e-isolated-scratchpad?builder=1\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}"
+  ],
+  "failedRequests": []
+}

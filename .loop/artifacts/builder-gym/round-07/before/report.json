@@ -1,0 +1,75 @@
+{
+  "probes": {
+    "canvasResponsive": {
+      "tabletCanvasMetrics": {
+        "iframeW": 702,
+        "scrollW": 702,
+        "clientW": 702,
+        "fontSize": "24px",
+        "bg": "rgb(254, 249, 195)"
+      },
+      "mobileCanvasMetrics": {
+        "iframeW": 373,
+        "scrollW": 373,
+        "clientW": 373,
+        "fontSize": "16px",
+        "bg": "rgb(254, 226, 226)",
+        "hiddenBadgeVisible": true
+      }
+    },
+    "darkAndSSR": {
+      "darkMetrics": {
+        "parentHasDark": true,
+        "iframeHasDark": true,
+        "studioBg": "rgb(18, 22, 20)",
+        "canvasBodyBg": "rgb(255, 255, 255)",
+        "canvasHeadColor": "rgb(9, 9, 11)"
+      },
+      "darkDialogMetrics": {
+        "bg": "rgb(18, 22, 20)",
+        "color": "rgb(242, 243, 242)",
+        "opacity": "1"
+      },
+      "ssrChecks": {
+        "desktop_1440": {
+          "fontSize": "36px",
+          "bg": "rgb(220, 252, 231)",
+          "textDisplay": "block",
+          "scrollW": 1440,
+          "clientW": 1440
+        },
+        "tablet_768": {
+          "fontSize": "24px",
+          "bg": "rgb(254, 249, 195)",
+          "textDisplay": "block",
+          "scrollW": 768,
+          "clientW": 768
+        },
+        "mobile_375": {
+          "fontSize": "16px",
+          "bg": "rgb(254, 226, 226)",
+          "textDisplay": "block",
+          "scrollW": 375,
+          "clientW": 375
+        }
+      }
+    },
+    "stressAndDirty": {
+      "stressInfo": {
+        "flatCount": 60,
+        "isDirty": true
+      },
+      "dirtyAfterFailedSave": {
+        "isDirty": true,
+        "isSaving": false
+      },
+      "dirtyAfterSuccessSave": false
+    }
+  },
+  "errors": [
+    "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "console: {\"timestamp\":\"2026-11-26T23:51:42.327Z\",\"level\":\"error\",\"message\":\"API request failed: [PATCH] /content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7 (500) [11.9ms]\",\"context\":{\"durationMs\":11.9,\"status\":500,\"requestId\":\"a51c6ed0-89a1-48a3-90f3-1ad684821090\",\"traceId\":\"fddfc638f00426a6a079ac0427cbb77a\"},\"traceId\":\"fddfc638f00426a6a079ac0427cbb77a\",\"requestId\":\"a51c6ed0-89a1-48a3-90f3-1ad684821090\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:23742)\\n    at XMLHttpRequest.b (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:30697)\"},\"url\":\"http://127.0.0.1:3000/e2e-isolated-scratchpad?builder=1\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}",
+    "console: Save draft error: {status: 500, message: Simulated 500 failure, errors: null, response: Object, isAxiosError: true}"
+  ],
+  "failedRequests": []
+}

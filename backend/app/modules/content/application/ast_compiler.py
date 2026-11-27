@@ -187,6 +187,7 @@ class ASTCompiler:
             return trimmed
 
         return trimmed
+
     SHAPE_DIVIDER_PATHS: dict[str, str] = {
         "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
         "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
@@ -485,10 +486,17 @@ class ASTCompiler:
             classes.append("grid")
             cols = max(1, min(12, layout.grid_columns))
             classes.append(f"grid-cols-1 md:grid-cols-{min(cols, 2)} lg:grid-cols-{cols}")
+            if getattr(layout, "grid_rows", None):
+                style_parts.append(f"grid-template-rows: repeat({int(layout.grid_rows)}, minmax(0, 1fr));")
             if layout.gap and layout.gap.value > 0:
                 style_parts.append(f"gap: {layout.gap.to_css()};")
             if layout.grid_auto_flow:
                 style_parts.append(f"grid-auto-flow: {layout.grid_auto_flow};")
+            if getattr(layout, "justify_items", None):
+                style_parts.append(f"justify-items: {layout.justify_items};")
+            if getattr(layout, "align_content", None):
+                ac_map = {"between": "space-between", "around": "space-around", "evenly": "space-evenly"}
+                style_parts.append(f"align-content: {ac_map.get(layout.align_content, layout.align_content)};")
 
         # Boxed container layout: restrict maxWidth and auto-center
         if layout.boxed_width and layout.boxed_width.value > 0:
@@ -537,6 +545,39 @@ class ASTCompiler:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
         if el.styles.custom_attributes:
             extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
+        if getattr(el.styles, "motion_effects", None):
+            import json as _json
+            me = el.styles.motion_effects.model_dump(exclude_none=True, by_alias=True)
+            if me:
+                extra_attrs += f' data-motion="{html.escape(_json.dumps(me, ensure_ascii=False))}"'
+        if getattr(el.styles, "sticky_mode", None) and el.styles.sticky_mode != "none":
+            extra_attrs += f' data-sticky="{html.escape(el.styles.sticky_mode)}"'
+            if el.styles.sticky_offset is not None:
+                extra_attrs += f' data-sticky-offset="{int(el.styles.sticky_offset)}"'
+
+        # Compile background video if set (mobile base or desktop/tablet override)
+        bg_cfg = (
+            el.styles.mobile.background
+            or (el.styles.desktop.background if el.styles.desktop else None)
+            or (el.styles.tablet.background if el.styles.tablet else None)
+        )
+        bg_video_html = ""
+        if bg_cfg and bg_cfg.type == "video" and getattr(bg_cfg, "video_url", None):
+            vurl = str(bg_cfg.video_url).strip()
+            if vurl.startswith("/") or vurl.startswith("https://") or vurl.startswith("http://"):
+                if any(ext in vurl.lower() for ext in (".mp4", ".webm", ".ogg")):
+                    bg_video_html = (
+                        f'<div class="builder-background-video" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;" aria-hidden="true">'
+                        f'<video src="{html.escape(vurl)}" autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>'
+                        f'</div>'
+                    )
+                else:
+                    norm_v = cls._normalize_video_embed_url(vurl, "youtube" if ("youtu" in vurl.lower()) else "aparat")
+                    bg_video_html = (
+                        f'<div class="builder-background-video" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;" aria-hidden="true">'
+                        f'<iframe src="{html.escape(norm_v)}" style="width: 100%; height: 100%; border: 0; pointer-events: none;" allow="autoplay; encrypted-media"></iframe>'
+                        f'</div>'
+                    )
 
         # Compile background overlay if present (mobile base or desktop/tablet override)
         overlay = (
@@ -544,39 +585,63 @@ class ASTCompiler:
             or (el.styles.desktop.background_overlay if el.styles.desktop else None)
             or (el.styles.tablet.background_overlay if el.styles.tablet else None)
         )
-        overlay_html = ""
+        overlay_html = bg_video_html
         if overlay and overlay.type != "none":
             ov_styles = ["position: absolute;", "inset: 0;", "pointer-events: none;", "border-radius: inherit;"]
             if overlay.opacity is not None:
                 ov_styles.append(f"opacity: {overlay.opacity};")
+            if getattr(overlay, "blend_mode", None) and overlay.blend_mode != "normal":
+                ov_styles.append(f"mix-blend-mode: {overlay.blend_mode};")
             if overlay.type == "color" and overlay.color:
                 ov_styles.append(f"background-color: {overlay.color};")
             elif overlay.type == "gradient" and overlay.gradient:
+                grad = overlay.gradient
                 dir_map = {"to-r": "to right", "to-l": "to left", "to-b": "to bottom", "to-t": "to top", "to-tr": "to top right", "to-tl": "to top left"}
-                d = dir_map.get(overlay.gradient.direction, "to bottom")
-                ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
-            overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
+                if getattr(grad, "gradient_type", None) == "radial":
+                    ov_styles.append(f"background-image: radial-gradient(circle at center, {grad.from_color}, {grad.to_color});")
+                else:
+                    ang = getattr(grad, "angle", None)
+                    d = (f"{int(ang) if float(ang).is_integer() else ang}deg") if ang is not None else dir_map.get(grad.direction, "to bottom")
+                    ov_styles.append(f"background-image: linear-gradient({d}, {grad.from_color}, {grad.to_color});")
+            overlay_html += f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
 
-        # Compile shape dividers if present (Elementor Parity)
+        # Compile shape dividers if present (Elementor 29 SVG Shapes Parity)
+        from app.modules.content.application.shape_dividers import (
+            render_shape_divider_svg as _render_shape_divider_svg,
+        )
         top_divider = el.styles.shape_divider_top
         bottom_divider = el.styles.shape_divider_bottom
-        shape_color = html.escape(el.styles.shape_divider_color or "#ffffff")
+        default_shape_color = el.styles.shape_divider_color or "#ffffff"
         shape_dividers_html = ""
         if top_divider and top_divider != "none":
-            path_d = cls.SHAPE_DIVIDER_PATHS.get(top_divider)
-            if path_d:
-                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{shape_color}" d="{path_d}"></path></svg>'
-            else:
-                svg_inner = f'<img src="/shapes/{html.escape(top_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" />'
-            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10;">{svg_inner}</div>'
+            top_color = getattr(el.styles, "shape_divider_top_color", None) or default_shape_color
+            top_h = int(getattr(el.styles, "shape_divider_top_height", None) or 48)
+            top_w = int(getattr(el.styles, "shape_divider_top_width", None) or 100)
+            top_flip = " transform: scaleX(-1);" if getattr(el.styles, "shape_divider_top_flip", False) else ""
+            svg_inner = _render_shape_divider_svg(top_divider, top_color)
+            if not svg_inner and top_divider in cls.SHAPE_DIVIDER_PATHS:
+                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{html.escape(top_color)}" d="{cls.SHAPE_DIVIDER_PATHS[top_divider]}"></path></svg>'
+            if svg_inner:
+                shape_dividers_html += (
+                    f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" '
+                    f'style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: {top_w}%; height: {top_h}px; overflow: hidden; pointer-events: none; z-index: 10;">'
+                    f'<div style="width: 100%; height: 100%;{top_flip}">{svg_inner}</div></div>'
+                )
 
         if bottom_divider and bottom_divider != "none":
-            path_d = cls.SHAPE_DIVIDER_PATHS.get(bottom_divider)
-            if path_d:
-                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{shape_color}" d="{path_d}"></path></svg>'
-            else:
-                svg_inner = f'<img src="/shapes/{html.escape(bottom_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" />'
-            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10; transform: rotate(180deg);">{svg_inner}</div>'
+            bot_color = getattr(el.styles, "shape_divider_bottom_color", None) or default_shape_color
+            bot_h = int(getattr(el.styles, "shape_divider_bottom_height", None) or 48)
+            bot_w = int(getattr(el.styles, "shape_divider_bottom_width", None) or 100)
+            bot_flip = " scaleX(-1)" if getattr(el.styles, "shape_divider_bottom_flip", False) else ""
+            svg_inner = _render_shape_divider_svg(bottom_divider, bot_color)
+            if not svg_inner and bottom_divider in cls.SHAPE_DIVIDER_PATHS:
+                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{html.escape(bot_color)}" d="{cls.SHAPE_DIVIDER_PATHS[bottom_divider]}"></path></svg>'
+            if svg_inner:
+                shape_dividers_html += (
+                    f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" '
+                    f'style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(180deg){bot_flip}; width: {bot_w}%; height: {bot_h}px; overflow: hidden; pointer-events: none; z-index: 10;">'
+                    f'{svg_inner}</div>'
+                )
 
         if is_form:
             props = el.widget_props or {}
@@ -654,7 +719,17 @@ class ASTCompiler:
 
         style_attr = f' style="{" ".join(styles)}"' if styles else ""
         widget_id = el.styles.custom_css_id or el.id
-        id_attr = f' id="{html.escape(widget_id)}"'
+        widget_extra = ""
+        if getattr(el.styles, "motion_effects", None):
+            import json as _json
+            me = el.styles.motion_effects.model_dump(exclude_none=True, by_alias=True)
+            if me:
+                widget_extra += f' data-motion="{html.escape(_json.dumps(me, ensure_ascii=False))}"'
+        if getattr(el.styles, "sticky_mode", None) and el.styles.sticky_mode != "none":
+            widget_extra += f' data-sticky="{html.escape(el.styles.sticky_mode)}"'
+            if el.styles.sticky_offset is not None:
+                widget_extra += f' data-sticky-offset="{int(el.styles.sticky_offset)}"'
+        id_attr = f' id="{html.escape(widget_id)}"{widget_extra}'
         extra_attrs = ""
         if el.auth_visibility != "all":
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
@@ -2408,6 +2483,22 @@ class ASTCompiler:
             hover_decls: list[str] = []
             if dev.hover_box_shadow and dev.hover_box_shadow != "none":
                 hover_decls.append(f"box-shadow: {dev.hover_box_shadow};")
+            if getattr(dev, "hover_filter", None) and dev.hover_filter != "none":
+                hover_decls.append(f"filter: {dev.hover_filter};")
+            if getattr(dev, "hover_background", None):
+                hb_bg = dev.hover_background
+                if hb_bg.type == "color" and hb_bg.color:
+                    hc = f"hsl({hb_bg.color})" if hb_bg.color.startswith("var(--") else hb_bg.color
+                    hover_decls.append(f"background-color: {hc};")
+                elif hb_bg.type == "gradient" and hb_bg.gradient:
+                    g = hb_bg.gradient
+                    dmap = {"to-r": "to right", "to-l": "to left", "to-b": "to bottom", "to-t": "to top", "to-tr": "to top right", "to-tl": "to top left"}
+                    if getattr(g, "gradient_type", None) == "radial":
+                        hover_decls.append(f"background-image: radial-gradient(circle at center, {g.from_color}, {g.to_color});")
+                    else:
+                        ang = getattr(g, "angle", None)
+                        d = (f"{int(ang) if float(ang).is_integer() else ang}deg") if ang is not None else dmap.get(g.direction, "to right")
+                        hover_decls.append(f"background-image: linear-gradient({d}, {g.from_color}, {g.to_color});")
             if dev.hover_border and dev.hover_border.style != "none":
                 hb = dev.hover_border
                 hover_decls.append(f"border-style: {hb.style};")
@@ -2416,9 +2507,38 @@ class ASTCompiler:
                     hover_decls.append(f"border-color: {c};")
                 if hb.width and hb.width.top:
                     hover_decls.append(f"border-width: {hb.width.top.to_css()};")
+                if getattr(hb, "radius_token", None):
+                    hover_decls.append(f"border-radius: {hb.radius_token};")
+                elif hb.radius:
+                    hr = hb.radius
+                    hover_decls.append(f"border-radius: {hr.top.to_css()} {hr.right.to_css()} {hr.bottom.to_css()} {hr.left.to_css()};")
             if hover_decls:
                 rule = f"{sel}:hover {{ {' '.join(hover_decls)} }}"
                 css_collector.append(f"@media ({prefix}) {{ {rule} }}" if prefix else rule)
+
+        # Sticky positioning per active devices (Elementor Pro Sticky Parity)
+        sticky_mode = getattr(styles, "sticky_mode", None)
+        if sticky_mode in ("top", "bottom"):
+            offset = int(getattr(styles, "sticky_offset", 0) or 0)
+            sticky_on = getattr(styles, "sticky_on", None) or ["desktop", "tablet", "mobile"]
+            rule = f"{sel} {{ position: sticky; {sticky_mode}: {offset}px; z-index: 40; }}"
+            if set(sticky_on) == {"desktop", "tablet", "mobile"}:
+                css_collector.append(rule)
+            else:
+                if "mobile" in sticky_on:
+                    css_collector.append(f"@media (max-width: 767px) {{ {rule} }}")
+                if "tablet" in sticky_on:
+                    css_collector.append(f"@media (min-width: 768px) and (max-width: 1023px) {{ {rule} }}")
+                if "desktop" in sticky_on:
+                    css_collector.append(f"@media (min-width: 1024px) {{ {rule} }}")
+
+        # Scoped Custom CSS (supports Elementor Pro `selector` & `{{WRAPPER}}`)
+        raw_custom_css = getattr(styles, "custom_css", None)
+        if raw_custom_css and isinstance(raw_custom_css, str) and raw_custom_css.strip():
+            scoped = raw_custom_css.strip()
+            scoped = re.sub(r"\{\{\s*WRAPPER\s*\}\}", sel, scoped, flags=re.IGNORECASE)
+            scoped = re.sub(r"(^|[},;\s>+~])selector(?=\s*(?:[.{:[,>+~\s]|$))", rf"\1{sel}", scoped, flags=re.IGNORECASE)
+            css_collector.append(scoped)
 
         if is_text_editor:
             has_col = any(
@@ -2469,6 +2589,8 @@ class ASTCompiler:
                 parts.append(f"font-size: {typo.font_size.to_css()};")
             if typo.font_weight and typo.font_weight != "inherit":
                 parts.append(f"font-weight: {typo.font_weight};")
+            if getattr(typo, "font_style", None) and typo.font_style != "normal":
+                parts.append(f"font-style: {typo.font_style};")
             if typo.line_height:
                 parts.append(f"line-height: {typo.line_height.to_css()};")
             if typo.text_align and typo.text_align != "inherit":
@@ -2477,12 +2599,19 @@ class ASTCompiler:
                 parts.append(f"font-family: {typo.font_family};")
             if typo.letter_spacing:
                 parts.append(f"letter-spacing: {typo.letter_spacing.to_css()};")
+            if getattr(typo, "word_spacing", None):
+                parts.append(f"word-spacing: {typo.word_spacing.to_css()};")
             if typo.text_decoration and typo.text_decoration != "none":
                 parts.append(f"text-decoration: {typo.text_decoration};")
             if typo.text_transform and typo.text_transform != "none":
                 parts.append(f"text-transform: {typo.text_transform};")
             if typo.text_shadow:
                 parts.append(f"text-shadow: {typo.text_shadow};")
+            if getattr(typo, "text_stroke", None):
+                parts.append(f"-webkit-text-stroke-width: {typo.text_stroke.to_css()};")
+            if getattr(typo, "text_stroke_color", None):
+                sc = typo.text_stroke_color
+                parts.append(f"-webkit-text-stroke-color: {'hsl(' + sc + ')' if sc.startswith('var(--') else sc};")
         if base.border:
             b = base.border
             if b.style and b.style != "none":
@@ -2517,14 +2646,26 @@ class ASTCompiler:
                 "to-tr": "to top right",
                 "to-tl": "to top left",
             }
-            direction_css = dir_map.get(grad.direction, "to right")
-            parts.append(f"background-image: linear-gradient({direction_css}, {grad.from_color}, {grad.to_color});")
+            if getattr(grad, "gradient_type", None) == "radial":
+                parts.append(f"background-image: radial-gradient(circle at center, {grad.from_color}, {grad.to_color});")
+            else:
+                ang = getattr(grad, "angle", None)
+                direction_css = (f"{int(ang) if float(ang).is_integer() else ang}deg") if ang is not None else dir_map.get(grad.direction, "to right")
+                parts.append(f"background-image: linear-gradient({direction_css}, {grad.from_color}, {grad.to_color});")
         elif base.background and base.background.image_url:
             parts.append(f"background-image: url('{base.background.image_url}');")
             if base.background.position:
                 parts.append(f"background-position: {base.background.position};")
             if base.background.size:
                 parts.append(f"background-size: {base.background.size};")
+            if getattr(base.background, "repeat", None):
+                parts.append(f"background-repeat: {base.background.repeat};")
+            if getattr(base.background, "attachment", None):
+                parts.append(f"background-attachment: {base.background.attachment};")
+        if base.background and getattr(base.background, "blend_mode", None) and base.background.blend_mode != "normal":
+            parts.append(f"background-blend-mode: {base.background.blend_mode};")
+        if getattr(base, "mix_blend_mode", None) and base.mix_blend_mode != "normal":
+            parts.append(f"mix-blend-mode: {base.mix_blend_mode};")
 
         if base.box_shadow and base.box_shadow != "none":
             parts.append(f"box-shadow: {base.box_shadow};")
@@ -2571,6 +2712,11 @@ class ASTCompiler:
             parts.append(f"gap: {base.gap.to_css()};")
         if base.grid_template_columns:
             parts.append(f"grid-template-columns: {base.grid_template_columns};")
+        if getattr(base, "justify_items", None) and base.justify_items != "inherit":
+            parts.append(f"justify-items: {base.justify_items};")
+        if getattr(base, "align_content", None) and base.align_content != "inherit":
+            ac_map = {"between": "space-between", "around": "space-around", "evenly": "space-evenly"}
+            parts.append(f"align-content: {ac_map.get(base.align_content, base.align_content)};")
         if base.filter:
             parts.append(f"filter: {base.filter};")
 

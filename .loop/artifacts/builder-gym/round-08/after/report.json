@@ -1,0 +1,34 @@
+{
+  "shapeOptionCount": 30,
+  "canvasStats": {
+    "canvasSvgCount": 2,
+    "canvasShapeFills": [
+      "#10b981",
+      "#f59e0b"
+    ],
+    "canvasOutline": "solid",
+    "canvasBgImage": "linear-gradient(135deg, rgb(15, 23, 42), rgb(30, 58, 138))",
+    "canvasPosition": "sticky",
+    "hasDataMotion": true
+  },
+  "ssrStats": {
+    "found": true,
+    "ssrImgCount": 0,
+    "ssrSvgCount": 2,
+    "ssrShapeFills": [
+      "#10b981",
+      "#f59e0b"
+    ],
+    "ssrBgImage": "linear-gradient(135deg, rgb(15, 23, 42), rgb(30, 58, 138))",
+    "ssrOutline": "solid",
+    "ssrStickyPosition": "sticky",
+    "ssrStickyTop": "16px",
+    "ssrHasMotion": true,
+    "hdFontStyle": "italic",
+    "hdTextDecoration": "underline",
+    "hdWordSpacing": "4px",
+    "hdTextStrokeWidth": "1px"
+  },
+  "consoleErrors": [],
+  "failedRequests": []
+}

@@ -140,15 +140,26 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
 ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset({
     "color",
     "background-color",
+    "background-image",
+    "background-position",
+    "background-size",
+    "background-repeat",
+    "background-attachment",
+    "background-blend-mode",
+    "mix-blend-mode",
     "background",
     "font-size",
     "font-weight",
+    "font-style",
     "font-family",
     "line-height",
     "letter-spacing",
+    "word-spacing",
     "text-align",
     "text-transform",
     "text-decoration",
+    "-webkit-text-stroke-width",
+    "-webkit-text-stroke-color",
     "padding",
     "padding-top",
     "padding-bottom",
@@ -178,6 +189,11 @@ ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset({
     "text-shadow",
     "opacity",
     "transform",
+    "filter",
+    "backdrop-filter",
+    "-webkit-backdrop-filter",
+    "outline",
+    "outline-offset",
     "transition",
     "z-index",
     "overflow",
@@ -190,11 +206,16 @@ ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset({
     "flex-direction",
     "flex-wrap",
     "justify-content",
+    "justify-items",
     "align-items",
+    "align-content",
     "align-self",
+    "order",
+    "flex-grow",
     "display",
     "grid-template-columns",
     "grid-template-rows",
+    "grid-auto-flow",
     "grid-column",
     "grid-row",
     "position",
@@ -202,6 +223,7 @@ ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset({
     "bottom",
     "left",
     "right",
+    "inset",
 })
 
 FORBIDDEN_CSS_PATTERNS = re.compile(
@@ -347,6 +369,8 @@ def validate_page_ast(
     def _inspect_styles(el: BuilderElement) -> None:
         if el.styles.custom_css_class and FORBIDDEN_CSS_PATTERNS.search(el.styles.custom_css_class):
             raise InvalidCssError(detail="custom_css_class contains invalid characters.")
+        if el.styles.custom_css and FORBIDDEN_CSS_PATTERNS.search(el.styles.custom_css):
+            raise InvalidCssError(detail="custom_css contains disallowed tokens or URLs.")
         for child in el.children:
             _inspect_styles(child)
 

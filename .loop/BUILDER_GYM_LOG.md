@@ -73,7 +73,7 @@
 - [x] دسته ۶ (الگوهای ۲۵ تا ۲۸)
 
 ### پوشش موج‌های المنتور (وزنه‌های ۶ تا ۸)
-- [ ] **موج ۱ (وزنه ۶)**: Typography Group, Background Group (Classic/Gradient/Video+Overlay+Blend), Border/BoxShadow Normal+Hover+Transition, Text Shadow/Stroke, CSS Filters, Advanced (Units px/em/rem/%, Transform, Mask, Sticky, Motion, Custom Attributes, Scoped Custom CSS), CSS Grid Container, 30 Shape Dividers SVG, Navigator کامل
+- [x] **موج ۱ (وزنه ۶)**: Typography Group, Background Group (Classic/Gradient/Video+Overlay+Blend), Border/BoxShadow Normal+Hover+Transition, Text Shadow/Stroke, CSS Filters, Advanced (Units px/em/rem/%, Transform, Mask, Sticky, Motion, Custom Attributes, Scoped Custom CSS), CSS Grid Container, 30 Shape Dividers SVG, Navigator کامل
 - [ ] **موج ۲ (وزنه ۷)**: Core (`icon`, `icon_list`, `image_box`, `image_carousel`, `counter`, `progress_bar`, `testimonial`, `alert`, `toggle`, `menu_anchor`, `nested_tabs`, `nested_accordion`, `floating_bar`), Pro (`slides`/`nested_carousel`, `animated_headline`, `call_to_action`, `flip_box`, `price_table`, `price_list`, `hotspot`, `table_of_contents`, `progress_tracker`, `blockquote`, `share_buttons`, `lottie`), `off_canvas`, `popup_builder`
 - [ ] **موج ۳ (وزنه ۸)**: 12 Site Kit Tabs, `theme_builder` (Header/Footer/Single Product/Product Archive/404 + Display Conditions), `loop_builder` (`loop_grid`/`loop_carousel`), `multi_step_form`, `import_export` JSON
 
@@ -234,3 +234,30 @@
   - `npx vitest run`: `73 passed (73)` — `467 passed (467)`
   - `python -m pytest app/tests/unit`: `668 passed, 2 skipped` (`exit 0`)
   - `npx playwright test tests/e2e/builder-gym-r01.spec.ts tests/e2e/builder-gym-r02.spec.ts tests/e2e/builder-gym-r03.spec.ts tests/e2e/builder-gym-r04.spec.ts tests/e2e/builder-gym-r05.spec.ts tests/e2e/builder-gym-r06.spec.ts tests/e2e/builder-gym-r07.spec.ts --workers=1 --reporter=list`: `13 passed (13)`
+
+### دور ۸ (Round 08 — وزنه ۶: موج ۱ المنتور و المنتور پرو — تایپوگرافی، پس‌زمینه، هاور، فیلتر، استیکی، موشن، CSS اختصاصی، ۳۰ جداکننده SVG و ناویگیتور)
+- **شاخه**: `fix/builder-gym-360`
+- **مقایسه مرجع ↔ پیاده‌سازی (Elementor Wave 1)**:
+  - **Typography Group (`typography.php`, `text-shadow.php`, `text-stroke.php`)**: کنترل‌های `fontFamily`، `fontSize` (با واحدهای `px/em/rem/vw`)، `fontStyle` (`normal/italic/oblique`)، `textTransform`، `textDecoration` (`none/underline/overline/line-through`)، `lineHeight`، `letterSpacing`، `wordSpacing`، اسلایدر/ورودی‌های ۴گانه `textShadow` (`H/V/Blur/Color`) و `textStroke` + `textStrokeColor` به بازرس، بوم و `ASTCompiler` (SSR) اضافه شدند.
+  - **Background Group (`background.php`, `container.php`)**: حالت پس‌زمینه `video` (پشتیبانی MP4/WebM و YouTube/Aparat)، گرادیانت `linear`/`radial` + زاویه (`angle`)، تصویر `repeat`/`attachment`، `blendMode` در پس‌زمینه/روپوش/المان (`mix-blend-mode`) پیاده‌سازی شد. همچنین باگ ریشه‌ای حذف `background-image: linear-gradient(...)` در `html_sanitizer.py` (`ALLOWED_CSS_PROPERTIES`) ریشه‌کن شد.
+  - **Border & Box Shadow Normal + Hover + Transition**: تب‌های عادی/هاور برای `border` و `boxShadow`، ورودی‌های ساخت‌یافته `H/V/Blur/Spread/Color` + `Outline/Inset`، کنترل‌های `hoverBackground` و `hoverFilter`، و رفع باگ `isHovered` در dependency array بوم (`canvas-element.tsx`) و کامپایل `@media/:hover` در `ast_compiler.py`. *(اسلایدشو گالری چندتصویری `background.php` و timestamp ویدئو عمداً به موج ۲/ویجت کاروسل سپرده شده تا بار روی هر کانتینر سبک بماند).*
+  - **CSS Filters (`css-filter.php`)**: اسلایدرهای ۵گانه `blur`/`brightness`/`contrast`/`saturate`/`hue` با همگام‌سازی دوطرفه با `filter`.
+  - **Advanced (Units, Sticky, Motion, Custom CSS)**: انتخابگر واحد `px/em/rem/%/vw/vh` روی Padding، Margin، Width، MinHeight، Typography، Gap و مختصات `Top/Bottom/Left/Right`؛ کنترل‌های `stickyMode`/`stickyOffset`/`stickyOn` (کامپایل‌شده به `@media` CSS در SSR)؛ `motionEffects` (`scrollParallax`/`scrollScale`/`scrollOpacity`/`mouseTrack`) با رانتایم مشترک (`motion-runtime.ts`) در بوم و SSR؛ و ویرایشگر `customCss` ایزوله (`selector` و `{{WRAPPER}}`) در تب پیشرفته و کامپایل ایمن در `<style data-builder-responsive="1">`.
+  - **CSS Grid Container (`grid-container.php`)**: افزودن `gridRows`، `justifyItems`، `alignContent` در کنار `gridColumns`، `gridAutoFlow` و `Gap` چندواحدی.
+  - **30 Shape Dividers SVG (`shapes.php`, `assets/shapes/*.svg`)**: استخراج ۲۹ شکل SVG المنتور + حالت `none` (۳۰ گزینه کامل) در منبع واحد فرانت‌اند (`shape-dividers.ts`) و بک‌اند (`shape_dividers.py`) با رندر inline `<svg><path fill=.../></svg>` قابل رنگ‌آمیزی، ارتفاع/عرض/قرینه‌سازی برای بالا و پایین و حذف بلاک تکراری از تب پیشرفته و جایگزینی کامل `<img src="/shapes/...">` سیاه‌رنگ.
+  - **Navigator (`layers-tree.tsx`)**: برچسب‌های وضعیت زنده `S` (Sticky)، `M` (Motion) و `CSS` در ردیف درخت در کنار `expand-all-layers-btn` / `collapse-all-layers-btn`، فیلتر جست‌وجو، تغییرنام دابل‌کلیک، جابه‌جایی و منوی راست‌کلیک.
+- **مقایسه چشمی (Vision)**:
+  - `before/`: `.loop/artifacts/builder-gym/round-08/before/` (۴ تصویر + `report.json`) — مشاهده‌شده با Vision و Nudge: `shapeOptionCount: 5`؛ اشکال `clouds`/`zigzag` در بوم رندر نمی‌شدند (`canvasShapeEls: 0`) و در SSR با `<img src="/shapes/...">` به‌صورت کاملاً سیاه رندر می‌شدند و `shapeDividerColor` را نادیده می‌گرفتند (`imgBroken: 2, svgCount: 0`)؛ `html_sanitizer.py` گرادیانت پس‌زمینه را حذف می‌کرد (`04-ssr-before-parity.png` کاملاً سفید با تیتر محوشده)؛ کنترل‌های `fontStyle`/`wordSpacing`/`textStroke`، اسلایدرهای `CSS Filter`، تب `Hover`، `Sticky`، `Motion` و `Custom CSS` (`selector`) در UI/SSR غایب بودند.
+  - `after/`: `.loop/artifacts/builder-gym/round-08/after/` (۵ تصویر + `report.json`) — مشاهده‌شده با Vision: `shapeOptionCount: 30`؛ نمایش دقیق جداکننده‌های `clouds` زمردی (`#10b981`) و `zigzag` کهربایی (`#f59e0b`) با inline `<svg>` (`ssrImgCount: 0, ssrSvgCount: 2`)؛ تیتر ایتالیک زیرخط‌دار با فاصله‌کلمات `4px` و دورخط سبز (`1px`)؛ اسلایدرهای فیلتر گرافیکی، تب هاور، کنترل‌های Sticky/Motion/Scoped CSS با حاشیه کهربایی `3px` در بوم و `05-ssr-after-parity.png` با گرادیانت کامل `135deg`، `position: sticky; top: 16px` و صفر خطای کنسول و شبکه.
+- **فایل‌های ایجاد و اصلاح‌شده**:
+  - `frontend/lib/builder/shape-dividers.ts`, `backend/app/modules/content/application/shape_dividers.py` (رجیستری یکپارچه ۲۹ SVG المنتور)
+  - `frontend/lib/builder/motion-runtime.ts` (رانتایم مشترک اسکرول/ماوس موشن و پارسر/سازنده فیلتر CSS)
+  - `frontend/components/admin/builder/wave1-controls.tsx`, `inspector-panel.tsx`, `canvas-element.tsx`, `layers-tree.tsx`, `builder-interactive-runtime.tsx`
+  - `frontend/lib/builder/scoped-css.ts`, `frontend/types/builder.ts`, `frontend/lib/builder/schema.ts`, `frontend/lib/sanitize-html.ts`
+  - `backend/app/modules/content/domain/builder_ast.py`, `builder_validation.py`, `application/ast_compiler.py`, `app/shared/content/html_sanitizer.py`
+  - تست‌های رگرسیون: `frontend/tests/builder-gym-r08-unit.test.ts` (+۵ تست)، `backend/app/tests/unit/test_ast_compiler.py` (+۱ تست)، `frontend/tests/e2e/builder-gym-r08.spec.ts`
+- **نتایج راستی‌آزمایی نهایی**:
+  - `npx tsc --noEmit`: پاس (`exit 0`)
+  - `npx vitest run`: `74 passed (74)` — `472 passed (472)`
+  - `python -m pytest app/tests/unit`: `669 passed, 2 skipped` (`exit 0`)
+  - `npx playwright test tests/e2e/builder-gym-r01.spec.ts ... builder-gym-r08.spec.ts --workers=1 --reporter=list`: `14 passed (14)`

@@ -1,0 +1,24 @@
+{
+  "navHasExpandAll": 0,
+  "hasFontStyleUi": 0,
+  "hasTextStrokeUi": 0,
+  "hasFilterBlurSlider": 0,
+  "hasHoverBorderTab": 0,
+  "shapeOptionCount": 5,
+  "hasCustomCssTextarea": 0,
+  "hasStickyMode": 0,
+  "hasMotionParallax": 0,
+  "canvasStats": {
+    "canvasShapeEls": 0,
+    "canvasOutline": "none"
+  },
+  "ssrStats": {
+    "found": true,
+    "topShapeHtml": "<img src=\"/shapes/clouds.svg\" alt=\"\" style=\"width:100%;height:100%;display:block\">",
+    "imgBroken": 2,
+    "svgCount": 0,
+    "ssrOutline": "none"
+  },
+  "consoleErrors": [],
+  "failedRequests": []
+}

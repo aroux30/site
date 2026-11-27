@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { applyMotionTransformToNode } from "@/lib/builder/motion-runtime";
 
 function toPersianDigits(num: number): string {
   return Math.max(0, Math.floor(num)).toLocaleString("fa-IR", {
@@ -325,10 +326,54 @@ export function BuilderInteractiveRuntime({ pageSlug }: { pageSlug?: string }) {
 
     document.addEventListener("click", handleClick);
     document.addEventListener("submit", handleSubmit);
+
+    // 7. Elementor Motion Effects (scroll parallax / scale / opacity + mouse track)
+    const motionNodes = Array.from(
+      document.querySelectorAll<HTMLElement>(".builder-rendered-content [data-motion]")
+    );
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const mouseOffset = { nx: 0, ny: 0 };
+    let motionRaf = 0;
+    const runMotionUpdate = () => {
+      motionRaf = 0;
+      if (reducedMotion) return;
+      motionNodes.forEach((node) => {
+        const raw = node.getAttribute("data-motion");
+        if (!raw) return;
+        try {
+          if (node.dataset.baseTransform === undefined) {
+            node.dataset.baseTransform = node.style.transform || "";
+          }
+          const parsed = JSON.parse(raw);
+          applyMotionTransformToNode(node, parsed, window, mouseOffset);
+        } catch {}
+      });
+    };
+    const scheduleMotion = () => {
+      if (!motionRaf && motionNodes.length > 0) {
+        motionRaf = window.requestAnimationFrame(runMotionUpdate);
+      }
+    };
+    const handleMouseMove = (ev: MouseEvent) => {
+      mouseOffset.nx = (ev.clientX / Math.max(1, window.innerWidth)) - 0.5;
+      mouseOffset.ny = (ev.clientY / Math.max(1, window.innerHeight)) - 0.5;
+      scheduleMotion();
+    };
+    if (motionNodes.length > 0 && !reducedMotion) {
+      runMotionUpdate();
+      window.addEventListener("scroll", scheduleMotion, { passive: true });
+      window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    }
+
     return () => {
       window.clearInterval(timer);
+      if (motionRaf) window.cancelAnimationFrame(motionRaf);
       document.removeEventListener("click", handleClick);
       document.removeEventListener("submit", handleSubmit);
+      window.removeEventListener("scroll", scheduleMotion);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [pageSlug]);
 

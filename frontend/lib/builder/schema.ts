@@ -39,12 +39,16 @@ export const TypographyStyleSchema = z.object({
     .enum(["300", "400", "500", "600", "700", "800", "900", "inherit"])
     .nullable()
     .optional(),
+  fontStyle: z.enum(["normal", "italic", "oblique"]).nullable().optional(),
   lineHeight: UnitValueSchema.nullable().optional(),
   letterSpacing: UnitValueSchema.nullable().optional(),
+  wordSpacing: UnitValueSchema.nullable().optional(),
   textAlign: z.enum(["right", "center", "left", "justify", "inherit"]).nullable().optional(),
   textTransform: z.enum(["none", "uppercase", "lowercase", "capitalize"]).nullable().optional(),
-  textDecoration: z.enum(["none", "underline", "line-through"]).nullable().optional(),
+  textDecoration: z.enum(["none", "underline", "overline", "line-through"]).nullable().optional(),
   textShadow: z.string().nullable().optional(),
+  textStroke: UnitValueSchema.nullable().optional(),
+  textStrokeColor: z.string().nullable().optional(),
   color: z.string().nullable().optional(),
 });
 
@@ -58,17 +62,23 @@ export const BorderStyleSchema = z.object({
 
 export const BackgroundGradientSchema = z.object({
   direction: z.enum(["to-r", "to-l", "to-t", "to-b", "to-tr", "to-tl"]).default("to-l"),
+  gradientType: z.enum(["linear", "radial"]).nullable().optional(),
+  angle: z.number().nullable().optional(),
   fromColor: z.string(),
   toColor: z.string(),
 });
 
 export const BackgroundStyleSchema = z.object({
-  type: z.enum(["none", "color", "gradient", "image"]).default("none"),
+  type: z.enum(["none", "color", "gradient", "image", "video"]).default("none"),
   color: z.string().nullable().optional(),
   gradient: BackgroundGradientSchema.nullable().optional(),
   imageUrl: z.string().nullable().optional(),
+  videoUrl: z.string().nullable().optional(),
   position: z.enum(["center", "top", "bottom", "left", "right"]).nullable().optional(),
   size: z.enum(["cover", "contain", "auto"]).nullable().optional(),
+  repeat: z.enum(["no-repeat", "repeat", "repeat-x", "repeat-y"]).nullable().optional(),
+  attachment: z.enum(["scroll", "fixed"]).nullable().optional(),
+  blendMode: z.string().nullable().optional(),
 });
 
 export const BackgroundOverlayStyleSchema = z.object({
@@ -76,6 +86,18 @@ export const BackgroundOverlayStyleSchema = z.object({
   color: z.string().nullable().optional(),
   gradient: BackgroundGradientSchema.nullable().optional(),
   opacity: z.number().min(0).max(1).nullable().optional(),
+  blendMode: z.string().nullable().optional(),
+});
+
+export const MotionEffectsStyleSchema = z.object({
+  scrollParallax: z.boolean().nullable().optional(),
+  parallaxSpeed: z.number().nullable().optional(),
+  scrollScale: z.boolean().nullable().optional(),
+  scrollScaleSpeed: z.number().nullable().optional(),
+  scrollOpacity: z.boolean().nullable().optional(),
+  mouseTrack: z.boolean().nullable().optional(),
+  mouseSpeed: z.number().nullable().optional(),
+  mouseOpposite: z.boolean().nullable().optional(),
 });
 
 export const TransformStyleSchema = z.object({
@@ -109,12 +131,15 @@ export const DeviceStyleSchema = z.object({
     .nullable()
     .optional(),
   filter: z.string().nullable().optional(),
+  hoverFilter: z.string().nullable().optional(),
   opacity: z.number().min(0).max(1).nullable().optional(),
   zIndex: z.number().int().min(0).max(999).nullable().optional(),
   boxShadow: z.string().nullable().optional(),
   hoverBorder: BorderStyleSchema.nullable().optional(),
+  hoverBackground: BackgroundStyleSchema.nullable().optional(),
   hoverBoxShadow: z.string().nullable().optional(),
   transitionDuration: z.number().nullable().optional(),
+  mixBlendMode: z.string().nullable().optional(),
   // Advanced Layout (P4)
   position: z.enum(["static", "relative", "absolute", "sticky", "inherit"]).nullable().optional(),
   top: UnitValueSchema.nullable().optional(),
@@ -131,6 +156,8 @@ export const DeviceStyleSchema = z.object({
   flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse", "inherit"]).nullable().optional(),
   gap: UnitValueSchema.nullable().optional(),
   gridTemplateColumns: z.string().nullable().optional(),
+  justifyItems: z.enum(["start", "center", "end", "stretch", "inherit"]).nullable().optional(),
+  alignContent: z.enum(["start", "center", "end", "between", "around", "evenly", "stretch", "inherit"]).nullable().optional(),
   shadow: z.string().nullable().optional(),
   backdropBlur: z.string().nullable().optional(),
   filterBlur: z.number().nullable().optional(),
@@ -144,14 +171,28 @@ export const ResponsiveStylesSchema = z.object({
   desktop: DeviceStyleSchema.nullable().optional(),
   customCssClass: z.string().nullable().optional(),
   customCssId: z.string().nullable().optional(),
+  customCss: z.string().nullable().optional(),
   customAttributes: z.union([z.string(), z.record(z.string(), z.any())]).nullable().optional(),
   direction: z.enum(["rtl", "ltr", "inherit"]).default("inherit"),
   animation: z.string().nullable().optional(),
   animationDuration: z.number().nullable().optional(),
   animationDelay: z.number().nullable().optional(),
+  motionEffects: MotionEffectsStyleSchema.nullable().optional(),
+  stickyMode: z.enum(["none", "top", "bottom"]).nullable().optional(),
+  stickyOffset: z.number().nullable().optional(),
+  stickyOn: z.array(z.enum(["desktop", "tablet", "mobile"])).nullable().optional(),
+  stickyParent: z.boolean().nullable().optional(),
   shapeDividerTop: z.string().nullable().optional(),
   shapeDividerBottom: z.string().nullable().optional(),
   shapeDividerColor: z.string().nullable().optional(),
+  shapeDividerTopColor: z.string().nullable().optional(),
+  shapeDividerBottomColor: z.string().nullable().optional(),
+  shapeDividerTopHeight: z.number().nullable().optional(),
+  shapeDividerBottomHeight: z.number().nullable().optional(),
+  shapeDividerTopWidth: z.number().nullable().optional(),
+  shapeDividerBottomWidth: z.number().nullable().optional(),
+  shapeDividerTopFlip: z.boolean().nullable().optional(),
+  shapeDividerBottomFlip: z.boolean().nullable().optional(),
 });
 
 // ── 3. Container Layout Schema ──────────────────────────────────────────────
@@ -170,7 +211,10 @@ export const ContainerLayoutSchema = z.object({
   flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse"]).default("nowrap"),
   gap: UnitValueSchema.default({ value: 16, unit: "px" }),
   gridColumns: z.number().int().min(1).max(12).default(3),
+  gridRows: z.number().int().min(1).max(12).nullable().optional(),
   gridAutoFlow: z.enum(["row", "column", "dense", "row dense", "column dense"]).nullable().optional(),
+  justifyItems: z.enum(["start", "center", "end", "stretch"]).nullable().optional(),
+  alignContent: z.enum(["start", "center", "end", "between", "around", "evenly", "stretch"]).nullable().optional(),
   boxedWidth: UnitValueSchema.nullable().optional(),
 });
 

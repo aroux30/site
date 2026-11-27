@@ -28,12 +28,16 @@ export interface TypographyStyle {
   fontFamily?: "vazirmatn" | "system-ui" | "inherit" | string;
   fontSize?: UnitValue | null;
   fontWeight?: "300" | "400" | "500" | "600" | "700" | "800" | "900" | "inherit" | null;
+  fontStyle?: "normal" | "italic" | "oblique" | null;
   lineHeight?: UnitValue | null;
   letterSpacing?: UnitValue | null;
+  wordSpacing?: UnitValue | null;
   textAlign?: "right" | "center" | "left" | "justify" | "inherit" | null;
   textTransform?: "none" | "uppercase" | "lowercase" | "capitalize" | null;
-  textDecoration?: "none" | "underline" | "line-through" | null;
+  textDecoration?: "none" | "underline" | "overline" | "line-through" | null;
   textShadow?: string | null;
+  textStroke?: UnitValue | null;
+  textStrokeColor?: string | null;
   color?: string | null; // hex, hsl(var(--token)), or semantic token key
 }
 
@@ -47,17 +51,23 @@ export interface BorderStyle {
 
 export interface BackgroundGradient {
   direction: "to-r" | "to-l" | "to-t" | "to-b" | "to-tr" | "to-tl";
+  gradientType?: "linear" | "radial" | null;
+  angle?: number | null;
   fromColor: string;
   toColor: string;
 }
 
 export interface BackgroundStyle {
-  type: "none" | "color" | "gradient" | "image";
+  type: "none" | "color" | "gradient" | "image" | "video";
   color?: string | null;
   gradient?: BackgroundGradient | null;
   imageUrl?: string | null;
+  videoUrl?: string | null;
   position?: "center" | "top" | "bottom" | "left" | "right" | null;
   size?: "cover" | "contain" | "auto" | null;
+  repeat?: "no-repeat" | "repeat" | "repeat-x" | "repeat-y" | null;
+  attachment?: "scroll" | "fixed" | null;
+  blendMode?: string | null;
 }
 
 export interface BackgroundOverlayStyle {
@@ -65,6 +75,18 @@ export interface BackgroundOverlayStyle {
   color?: string | null;
   gradient?: BackgroundGradient | null;
   opacity?: number | null;
+  blendMode?: string | null;
+}
+
+export interface MotionEffectsStyle {
+  scrollParallax?: boolean | null;
+  parallaxSpeed?: number | null;
+  scrollScale?: boolean | null;
+  scrollScaleSpeed?: number | null;
+  scrollOpacity?: boolean | null;
+  mouseTrack?: boolean | null;
+  mouseSpeed?: number | null;
+  mouseOpposite?: boolean | null;
 }
 
 export interface TransformStyle {
@@ -96,12 +118,15 @@ export interface DeviceStyle {
   minHeight?: UnitValue | null;
   display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit" | null;
   filter?: string | null;
+  hoverFilter?: string | null;
   opacity?: number | null;
   zIndex?: number | null;
   boxShadow?: string | null;
   hoverBorder?: BorderStyle | null;
+  hoverBackground?: BackgroundStyle | null;
   hoverBoxShadow?: string | null;
   transitionDuration?: number | null; // seconds
+  mixBlendMode?: string | null;
   transform?: TransformStyle | null;
   mask?: MaskStyle | null;
   // Advanced Layout (P4)
@@ -120,6 +145,8 @@ export interface DeviceStyle {
   flexWrap?: "nowrap" | "wrap" | "wrap-reverse" | "inherit" | null;
   gap?: UnitValue | null;
   gridTemplateColumns?: string | null;
+  justifyItems?: "start" | "center" | "end" | "stretch" | "inherit" | null;
+  alignContent?: "start" | "center" | "end" | "between" | "around" | "evenly" | "stretch" | "inherit" | null;
   shadow?: string | null;
   backdropBlur?: "none" | "sm" | "md" | "lg" | "xl" | string | null;
   filterBlur?: number | null;
@@ -134,14 +161,28 @@ export interface ResponsiveStyles {
   desktop?: DeviceStyle | null;
   customCssClass?: string | null;
   customCssId?: string | null;
+  customCss?: string | null;
   customAttributes?: string | Record<string, any> | null;
   direction?: "rtl" | "ltr" | "inherit";
   animation?: "none" | "fade-in" | "slide-up" | "zoom-in" | string | null;
   animationDuration?: number | null; // seconds
   animationDelay?: number | null; // seconds
+  motionEffects?: MotionEffectsStyle | null;
+  stickyMode?: "none" | "top" | "bottom" | null;
+  stickyOffset?: number | null;
+  stickyOn?: Array<"desktop" | "tablet" | "mobile"> | null;
+  stickyParent?: boolean | null;
   shapeDividerTop?: "none" | "waves" | "curve" | "triangle" | "tilt" | string | null;
   shapeDividerBottom?: "none" | "waves" | "curve" | "triangle" | "tilt" | string | null;
   shapeDividerColor?: string | null;
+  shapeDividerTopColor?: string | null;
+  shapeDividerBottomColor?: string | null;
+  shapeDividerTopHeight?: number | null;
+  shapeDividerBottomHeight?: number | null;
+  shapeDividerTopWidth?: number | null;
+  shapeDividerBottomWidth?: number | null;
+  shapeDividerTopFlip?: boolean | null;
+  shapeDividerBottomFlip?: boolean | null;
 }
 
 export interface ContainerLayout {
@@ -152,7 +193,10 @@ export interface ContainerLayout {
   flexWrap: "nowrap" | "wrap" | "wrap-reverse";
   gap: UnitValue;
   gridColumns: number;
+  gridRows?: number | null;
   gridAutoFlow?: "row" | "column" | "dense" | "row dense" | "column dense" | null;
+  justifyItems?: "start" | "center" | "end" | "stretch" | null;
+  alignContent?: "start" | "center" | "end" | "between" | "around" | "evenly" | "stretch" | null;
   boxedWidth?: UnitValue | null;
 }
 

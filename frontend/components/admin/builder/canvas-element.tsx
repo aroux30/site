@@ -42,6 +42,9 @@ import { ReviewHistogram } from "@/components/store/review-histogram";
 import { RecentlyViewed } from "@/components/store/recently-viewed";
 import { MegaMenu } from "@/components/layout/mega-menu";
 import { ContainerPresetPicker } from "./container-preset-picker";
+import { SHAPE_DIVIDERS } from "@/lib/builder/shape-dividers";
+import { resolveScopedCss } from "@/lib/builder/scoped-css";
+import { applyMotionTransformToNode } from "@/lib/builder/motion-runtime";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
@@ -107,6 +110,56 @@ function CanvasElementComponent({
   const copyStyles = useBuilderStore((s) => s.copyStyles);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
   const previewMode = useBuilderStore((s) => s.previewMode);
+
+  const motionMarkerRef = useRef<HTMLSpanElement | null>(null);
+  const resolvedBg = resolveResponsiveValue(
+    {
+      mobile: element.styles?.mobile?.background,
+      tablet: element.styles?.tablet?.background,
+      desktop: element.styles?.desktop?.background,
+    },
+    activeBreakpoint
+  );
+
+  useEffect(() => {
+    const marker = motionMarkerRef.current;
+    const motion = element.styles?.motionEffects;
+    const host = marker?.parentElement as HTMLElement | null;
+    if (!marker || !host || !motion) return;
+    const hasActive =
+      motion.scrollParallax || motion.scrollScale || motion.scrollOpacity || motion.mouseTrack;
+    if (!hasActive) return;
+
+    const doc = host.ownerDocument;
+    const win = doc?.defaultView;
+    if (!win) return;
+
+    const mouseOffset = { nx: 0, ny: 0 };
+    let raf = 0;
+    const tick = () => {
+      raf = 0;
+      if (host.dataset.baseTransform === undefined) {
+        host.dataset.baseTransform = host.style.transform || "";
+      }
+      applyMotionTransformToNode(host, motion, win, mouseOffset);
+    };
+    const schedule = () => {
+      if (!raf) raf = win.requestAnimationFrame(tick);
+    };
+    const onMouse = (ev: MouseEvent) => {
+      mouseOffset.nx = ev.clientX / Math.max(1, win.innerWidth) - 0.5;
+      mouseOffset.ny = ev.clientY / Math.max(1, win.innerHeight) - 0.5;
+      schedule();
+    };
+    tick();
+    win.addEventListener("scroll", schedule, { passive: true });
+    doc.addEventListener("mousemove", onMouse, { passive: true });
+    return () => {
+      if (raf) win.cancelAnimationFrame(raf);
+      win.removeEventListener("scroll", schedule);
+      doc.removeEventListener("mousemove", onMouse);
+    };
+  }, [element.styles?.motionEffects]);
 
   // Custom Attributes (Elementor Pro Parity)
   const customAttrs = useMemo(() => {
@@ -297,6 +350,15 @@ function CanvasElementComponent({
       if (fontObj.textDecoration && fontObj.textDecoration !== "none") styleObj.textDecoration = fontObj.textDecoration;
       if (fontObj.textTransform && fontObj.textTransform !== "none") styleObj.textTransform = fontObj.textTransform;
       if (fontObj.textShadow) styleObj.textShadow = fontObj.textShadow;
+    if (fontObj.fontStyle && fontObj.fontStyle !== "normal") styleObj.fontStyle = fontObj.fontStyle;
+    if (fontObj.wordSpacing) styleObj.wordSpacing = `${fontObj.wordSpacing.value}${fontObj.wordSpacing.unit}`;
+    if (fontObj.textStroke) {
+      (styleObj as any).WebkitTextStrokeWidth = `${fontObj.textStroke.value}${fontObj.textStroke.unit}`;
+    }
+    if (fontObj.textStrokeColor) {
+      const sc = fontObj.textStrokeColor;
+      (styleObj as any).WebkitTextStrokeColor = sc.startsWith("var(--") ? `hsl(${sc})` : sc;
+    }
       if (fontObj.color) styleObj.color = normalizeCssColor(fontObj.color);
       if (fontObj.fontFamily && fontObj.fontFamily !== "inherit") {
         styleObj.fontFamily = fontObj.fontFamily.startsWith("var(")
@@ -339,20 +401,38 @@ function CanvasElementComponent({
           "to-tr": "to top right",
           "to-tl": "to top left",
         };
-        const dir = dirMap[bgObj.gradient.direction] || "to right";
-        styleObj.backgroundImage = `linear-gradient(${dir}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
+        if (bgObj.gradient.gradientType === "radial") {
+          styleObj.backgroundImage = `radial-gradient(circle at center, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
+        } else {
+          const dir =
+            bgObj.gradient.angle !== undefined && bgObj.gradient.angle !== null
+              ? `${bgObj.gradient.angle}deg`
+              : dirMap[bgObj.gradient.direction] || "to right";
+          styleObj.backgroundImage = `linear-gradient(${dir}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
+        }
       } else if (bgObj.type === "image" && bgObj.imageUrl) {
         styleObj.backgroundImage = `url(${bgObj.imageUrl})`;
         styleObj.backgroundPosition = bgObj.position || "center";
         styleObj.backgroundSize = bgObj.size || "cover";
-        styleObj.backgroundRepeat = "no-repeat";
+        styleObj.backgroundRepeat = bgObj.repeat || "no-repeat";
+        if (bgObj.attachment) styleObj.backgroundAttachment = bgObj.attachment;
+      }
+      if (bgObj.blendMode && bgObj.blendMode !== "normal") {
+        styleObj.backgroundBlendMode = bgObj.blendMode;
       }
     }
 
-    // Box Shadow & Hover Box Shadow (Elementor Parity)
+    const mixBlendMode = resolveResponsiveValue({ mobile: base?.mixBlendMode, tablet: tablet?.mixBlendMode, desktop: desktop?.mixBlendMode }, activeBreakpoint);
+    if (mixBlendMode && mixBlendMode !== "normal") {
+      (styleObj as any).mixBlendMode = mixBlendMode;
+    }
+
+    // Box Shadow, Background, Filter & Border Hover + Transition (Elementor Parity)
     const shadow = resolveResponsiveValue({ mobile: base?.shadow || base?.boxShadow, tablet: tablet?.shadow || tablet?.boxShadow, desktop: desktop?.shadow || desktop?.boxShadow }, activeBreakpoint);
     const hoverShadow = resolveResponsiveValue({ mobile: base?.hoverBoxShadow, tablet: tablet?.hoverBoxShadow, desktop: desktop?.hoverBoxShadow }, activeBreakpoint);
     const hoverBorder = resolveResponsiveValue({ mobile: base?.hoverBorder, tablet: tablet?.hoverBorder, desktop: desktop?.hoverBorder }, activeBreakpoint);
+    const hoverBg = resolveResponsiveValue({ mobile: base?.hoverBackground, tablet: tablet?.hoverBackground, desktop: desktop?.hoverBackground }, activeBreakpoint);
+    const hoverFilter = resolveResponsiveValue({ mobile: base?.hoverFilter, tablet: tablet?.hoverFilter, desktop: desktop?.hoverFilter }, activeBreakpoint);
     const transitionDuration = resolveResponsiveValue({ mobile: base?.transitionDuration, tablet: tablet?.transitionDuration, desktop: desktop?.transitionDuration }, activeBreakpoint);
 
     if (transitionDuration !== undefined && transitionDuration !== null) {
@@ -370,17 +450,26 @@ function CanvasElementComponent({
       styleObj.boxShadow = shadow;
     }
 
+    if (isHovered && hoverBg?.color) {
+      styleObj.backgroundColor = normalizeCssColor(hoverBg.color);
+    }
+
     if (isHovered && hoverBorder && hoverBorder.style !== "none") {
       styleObj.borderStyle = hoverBorder.style;
       if (hoverBorder.color) styleObj.borderColor = normalizeCssColor(hoverBorder.color);
       if (hoverBorder.width?.top) {
         styleObj.borderWidth = `${hoverBorder.width.top.value}${hoverBorder.width.top.unit}`;
       }
+      if ((hoverBorder as any).radiusToken) {
+        styleObj.borderRadius = (hoverBorder as any).radiusToken;
+      }
     }
 
     // CSS Filters & Backdrop Blur (Elementor Parity)
     const filter = resolveResponsiveValue({ mobile: base?.filter, tablet: tablet?.filter, desktop: desktop?.filter }, activeBreakpoint);
-    if (filter && filter !== "none") {
+    if (isHovered && hoverFilter && hoverFilter !== "none") {
+      styleObj.filter = hoverFilter;
+    } else if (filter && filter !== "none") {
       styleObj.filter = filter;
     }
 
@@ -408,9 +497,19 @@ function CanvasElementComponent({
       if (res.animationDelay) styleObj.animationDelay = `${res.animationDelay}s`;
     }
 
-    // Advanced Layout Controls (P4)
+    // Advanced Layout Controls (P4) + Elementor Pro Sticky
     const position = resolveResponsiveValue({ mobile: base?.position, tablet: tablet?.position, desktop: desktop?.position }, activeBreakpoint);
     if (position && position !== "inherit") styleObj.position = position as any;
+    if (res.stickyMode === "top" || res.stickyMode === "bottom") {
+      const stickyDevices = res.stickyOn || ["desktop", "tablet", "mobile"];
+      if (stickyDevices.includes(activeBreakpoint)) {
+        styleObj.position = "sticky";
+        const sOff = `${res.stickyOffset ?? 0}px`;
+        if (res.stickyMode === "top") styleObj.top = sOff;
+        else styleObj.bottom = sOff;
+        if (styleObj.zIndex === undefined) styleObj.zIndex = 40;
+      }
+    }
 
     const top = resolveResponsiveValue({ mobile: base?.top, tablet: tablet?.top, desktop: desktop?.top }, activeBreakpoint);
     if (top) styleObj.top = `${top.value}${top.unit}`;
@@ -529,10 +628,20 @@ function CanvasElementComponent({
       styleObj.marginRight = "auto";
     }
 
-    // Elementor CSS Grid auto-flow & responsive breakpoint column count
+    // Elementor CSS Grid auto-flow, rows, alignment & responsive breakpoint column count
     if (element.type === "container" && element.layout?.kind === "grid") {
       if (element.layout?.gridAutoFlow) {
         styleObj.gridAutoFlow = element.layout.gridAutoFlow;
+      }
+      if (element.layout?.gridRows) {
+        styleObj.gridTemplateRows = `repeat(${element.layout.gridRows}, minmax(0, 1fr))`;
+      }
+      if (element.layout?.justifyItems) {
+        styleObj.justifyItems = element.layout.justifyItems;
+      }
+      if (element.layout?.alignContent) {
+        const acMap: Record<string, string> = { between: "space-between", around: "space-around", evenly: "space-evenly" };
+        styleObj.alignContent = acMap[element.layout.alignContent] || element.layout.alignContent;
       }
       if (!styleObj.gridTemplateColumns) {
         const cols = Math.max(1, Math.min(12, element.layout.gridColumns || 1));
@@ -547,7 +656,7 @@ function CanvasElementComponent({
     }
 
     return styleObj;
-  }, [element.styles, element.layout, activeBreakpoint]);
+  }, [element.styles, element.layout, activeBreakpoint, isHovered]);
 
   const { wrapperStyles, buttonSurfaceStyles } = useMemo(() => {
     if (element.widgetType !== "button") {
@@ -556,9 +665,9 @@ function CanvasElementComponent({
     const surfaceKeys = new Set<keyof React.CSSProperties>([
       "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundSize",
       "backgroundRepeat", "color", "padding", "borderStyle", "borderColor",
-      "borderWidth", "borderRadius", "boxShadow", "fontSize", "fontWeight",
-      "fontFamily", "lineHeight", "letterSpacing", "textDecoration",
-      "textTransform", "textShadow", "transition",
+      "borderWidth", "borderRadius", "boxShadow", "fontSize", "fontWeight", "fontStyle",
+      "fontFamily", "lineHeight", "letterSpacing", "wordSpacing", "textDecoration",
+      "textTransform", "textShadow", "filter", "transition",
     ]);
     const wrap: Record<string, any> = {};
     const surf: Record<string, any> = {};
@@ -599,6 +708,9 @@ function CanvasElementComponent({
     if (overlay.opacity !== undefined && overlay.opacity !== null) {
       s.opacity = overlay.opacity;
     }
+    if (overlay.blendMode && overlay.blendMode !== "normal") {
+      (s as any).mixBlendMode = overlay.blendMode;
+    }
     if (overlay.type === "color" && overlay.color) {
       s.backgroundColor = normalizeCssColor(overlay.color);
     } else if (overlay.type === "gradient" && overlay.gradient) {
@@ -610,8 +722,15 @@ function CanvasElementComponent({
         "to-tr": "to top right",
         "to-tl": "to top left",
       };
-      const dir = dirMap[overlay.gradient.direction] || "to bottom";
-      s.backgroundImage = `linear-gradient(${dir}, ${overlay.gradient.fromColor}, ${overlay.gradient.toColor})`;
+      if (overlay.gradient.gradientType === "radial") {
+        s.backgroundImage = `radial-gradient(circle at center, ${overlay.gradient.fromColor}, ${overlay.gradient.toColor})`;
+      } else {
+        const dir =
+          overlay.gradient.angle !== undefined && overlay.gradient.angle !== null
+            ? `${overlay.gradient.angle}deg`
+            : dirMap[overlay.gradient.direction] || "to bottom";
+        s.backgroundImage = `linear-gradient(${dir}, ${overlay.gradient.fromColor}, ${overlay.gradient.toColor})`;
+      }
     }
     return s;
   }, [element.styles, activeBreakpoint]);
@@ -2591,15 +2710,43 @@ function CanvasElementComponent({
       data-element-id={element.id}
       data-element-name={element.name}
       data-widget-type={element.widgetType || element.type}
+      data-motion={element.styles?.motionEffects ? JSON.stringify(element.styles.motionEffects) : undefined}
       {...customAttrs}
     >
+      <span ref={motionMarkerRef} className="hidden" aria-hidden="true" />
       {/* Scoped Custom CSS */}
       {(element.styles as any)?.customCss && (
-        <style dangerouslySetInnerHTML={{ __html: String((element.styles as any).customCss) }} />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: resolveScopedCss(String((element.styles as any).customCss), element.id),
+          }}
+        />
+      )}
+      {/* Background Video (Elementor Wave 1 Parity) */}
+      {isContainer && resolvedBg?.type === "video" && resolvedBg.videoUrl && (
+        <div
+          data-testid="background-video-layer"
+          className="builder-background-video absolute inset-0 overflow-hidden pointer-events-none z-0"
+          aria-hidden="true"
+        >
+          {/\.(mp4|webm|ogg)(\?|$)/i.test(resolvedBg.videoUrl) ? (
+            <video src={resolvedBg.videoUrl} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+          ) : (
+            <iframe
+              src={normalizeVideoEmbedUrl(resolvedBg.videoUrl, resolvedBg.videoUrl.includes("youtu") ? "youtube" : "aparat")}
+              className="w-full h-full border-0 pointer-events-none"
+              title="background video"
+            />
+          )}
+        </div>
       )}
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
-        <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
+        <div
+          data-testid="background-overlay"
+          style={overlayStyle}
+          aria-hidden="true"
+        />
       )}
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
@@ -2683,89 +2830,61 @@ function CanvasElementComponent({
         />
       )}
 
-      {/* Top Shape Divider (Elementor Parity) */}
-      {isContainer && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) !== "none" && (
-        <div
-          data-testid="shape-divider-top"
-          className="absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none"
-          style={{ height: "48px" }}
-        >
-          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "waves") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
-              />
+      {/* Top Shape Divider (Elementor 29 SVG Shapes Parity) */}
+      {isContainer && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) !== "none" && (() => {
+        const sTop = element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop;
+        const sDef = SHAPE_DIVIDERS[sTop];
+        const fillCol = element.styles?.shapeDividerTopColor || element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff";
+        const sH = element.styles?.shapeDividerTopHeight || 48;
+        const sW = element.styles?.shapeDividerTopWidth || 100;
+        const sFlip = Boolean(element.styles?.shapeDividerTopFlip);
+        if (!sDef) return null;
+        return (
+          <div
+            data-testid="shape-divider-top"
+            className="builder-shape-divider builder-shape-divider-top absolute top-0 left-1/2 overflow-hidden leading-none z-10 pointer-events-none"
+            style={{
+              width: `${sW}%`,
+              height: `${sH}px`,
+              transform: `translateX(-50%)${sFlip ? " scaleX(-1)" : ""}`,
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox={sDef.viewBox} preserveAspectRatio={sDef.preserveAspectRatio} className="w-full h-full block">
+              {sDef.paths.map((p, idx) => (
+                <path key={idx} fill={fillCol} opacity={p.opacity} d={p.d} />
+              ))}
             </svg>
-          )}
-          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "curve") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z"
-              />
-            </svg>
-          )}
-          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "triangle") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z"
-              />
-            </svg>
-          )}
-          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "tilt") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M0,6V0h1000v100L0,6z"
-              />
-            </svg>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
-      {/* Bottom Shape Divider (Elementor Parity) */}
-      {isContainer && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) !== "none" && (
-        <div
-          data-testid="shape-divider-bottom"
-          className="absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none rotate-180"
-          style={{ height: "48px" }}
-        >
-          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "waves") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
-              />
+      {/* Bottom Shape Divider (Elementor 29 SVG Shapes Parity) */}
+      {isContainer && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) !== "none" && (() => {
+        const sBot = element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom;
+        const sDef = SHAPE_DIVIDERS[sBot];
+        const fillCol = element.styles?.shapeDividerBottomColor || element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff";
+        const sH = element.styles?.shapeDividerBottomHeight || 48;
+        const sW = element.styles?.shapeDividerBottomWidth || 100;
+        const sFlip = Boolean(element.styles?.shapeDividerBottomFlip);
+        if (!sDef) return null;
+        return (
+          <div
+            data-testid="shape-divider-bottom"
+            className="builder-shape-divider builder-shape-divider-bottom absolute bottom-0 left-1/2 overflow-hidden leading-none z-10 pointer-events-none"
+            style={{
+              width: `${sW}%`,
+              height: `${sH}px`,
+              transform: `translateX(-50%) rotate(180deg)${sFlip ? " scaleX(-1)" : ""}`,
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox={sDef.viewBox} preserveAspectRatio={sDef.preserveAspectRatio} className="w-full h-full block">
+              {sDef.paths.map((p, idx) => (
+                <path key={idx} fill={fillCol} opacity={p.opacity} d={p.d} />
+              ))}
             </svg>
-          )}
-          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "curve") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z"
-              />
-            </svg>
-          )}
-          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "triangle") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z"
-              />
-            </svg>
-          )}
-          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "tilt") && (
-            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
-              <path
-                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
-                d="M0,6V0h1000v100L0,6z"
-              />
-            </svg>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* Content Rendering */}
       {isContainer ? (

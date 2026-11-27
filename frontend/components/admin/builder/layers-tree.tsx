@@ -332,11 +332,39 @@ const TreeItem = React.memo(function TreeItem({
               <Sparkles className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-sky-200" : "text-sky-500")} />
             </span>
           )}
-          {(element.styles?.customCssClass || element.styles?.customCssId) && (
-            <span title="استایل CSS سفارشی" className="inline-flex items-center">
+          {(element.styles?.customCssClass || element.styles?.customCssId || element.styles?.customCss) && (
+            <span data-testid={`layer-css-badge-${element.id}`} title="استایل CSS سفارشی" className="inline-flex items-center">
               <Code className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-purple-200" : "text-purple-500")} />
             </span>
           )}
+          {element.styles?.stickyMode && element.styles.stickyMode !== "none" && (
+            <span
+              data-testid={`layer-sticky-badge-${element.id}`}
+              title={`چسبان (${element.styles.stickyMode})`}
+              className={cn(
+                "text-[9px] font-bold px-1 rounded ms-1 shrink-0",
+                isSelected ? "bg-white/20 text-white" : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+              )}
+            >
+              S
+            </span>
+          )}
+          {element.styles?.motionEffects &&
+            (element.styles.motionEffects.scrollParallax ||
+              element.styles.motionEffects.scrollScale ||
+              element.styles.motionEffects.scrollOpacity ||
+              element.styles.motionEffects.mouseTrack) && (
+              <span
+                data-testid={`layer-motion-badge-${element.id}`}
+                title="افکت حرکتی فعال"
+                className={cn(
+                  "text-[9px] font-bold px-1 rounded ms-1 shrink-0",
+                  isSelected ? "bg-white/20 text-white" : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                )}
+              >
+                M
+              </span>
+            )}
         </div>
 
         {/* Action Buttons: ALWAYS visible on all items with zero hiding */}

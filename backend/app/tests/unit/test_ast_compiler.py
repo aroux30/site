@@ -2582,6 +2582,128 @@ def test_responsive_overrides_and_device_visibility_media_queries():
     assert "font-size: 36px;" in compiled
 
 
+def test_elementor_wave1_gradient_shapes_sticky_motion_and_scoped_css_ssr():
+    from app.modules.content.application.shape_dividers import SHAPE_DIVIDERS
+    from app.modules.content.domain.builder_validation import InvalidCssError, validate_page_ast
+
+    assert len(SHAPE_DIVIDERS) == 29
+
+    ast = PageAST.model_validate(
+        {
+            "schemaVersion": 1,
+            "title": "Wave 1 Parity",
+            "slug": "wave-1-parity",
+            "rootElements": [
+                {
+                    "id": "sec_wave1_01",
+                    "name": "سکشن موج ۱",
+                    "type": "container",
+                    "layout": {
+                        "kind": "grid",
+                        "gridColumns": 4,
+                        "gridRows": 2,
+                        "justifyItems": "center",
+                        "alignContent": "between",
+                    },
+                    "styles": {
+                        "mobile": {
+                            "background": {
+                                "type": "gradient",
+                                "gradient": {
+                                    "direction": "to-l",
+                                    "gradientType": "linear",
+                                    "angle": 135,
+                                    "fromColor": "#0f172a",
+                                    "toColor": "#1e3a8a",
+                                },
+                                "blendMode": "multiply",
+                            },
+                            "backgroundOverlay": {
+                                "type": "color",
+                                "color": "rgba(16,185,129,0.2)",
+                                "opacity": 0.45,
+                                "blendMode": "overlay",
+                            },
+                            "hoverBackground": {"type": "color", "color": "#064e3b"},
+                            "hoverFilter": "brightness(115%)",
+                            "hoverBoxShadow": "0 12px 30px rgba(0,0,0,0.4)",
+                        },
+                        "shapeDividerTop": "clouds",
+                        "shapeDividerBottom": "zigzag",
+                        "shapeDividerTopColor": "#10b981",
+                        "shapeDividerBottomColor": "#f59e0b",
+                        "shapeDividerTopHeight": 64,
+                        "shapeDividerBottomFlip": True,
+                        "stickyMode": "top",
+                        "stickyOffset": 16,
+                        "stickyOn": ["desktop", "tablet"],
+                        "motionEffects": {"scrollParallax": True, "parallaxSpeed": 5, "mouseTrack": True},
+                        "customCss": "selector { outline: 3px solid #f59e0b; } {{WRAPPER}} h1 { font-style: italic; }",
+                    },
+                    "children": [
+                        {
+                            "id": "hd_wave1_01",
+                            "name": "تیتر موج ۱",
+                            "type": "widget",
+                            "widgetType": "heading",
+                            "widgetProps": {"text": "تست موج ۱", "tag": "h1"},
+                            "styles": {
+                                "mobile": {
+                                    "typography": {
+                                        "fontFamily": "vazirmatn",
+                                        "fontStyle": "italic",
+                                        "wordSpacing": {"value": 4, "unit": "px"},
+                                        "textDecoration": "overline",
+                                        "textStroke": {"value": 1.5, "unit": "px"},
+                                        "textStrokeColor": "#10b981",
+                                    },
+                                    "filter": "blur(1px) brightness(105%)",
+                                }
+                            },
+                            "children": [],
+                        }
+                    ],
+                }
+            ],
+        }
+    )
+
+    validated = validate_page_ast(ast)
+    compiled = ASTCompiler.compile(validated)
+
+    # Gradient must NOT be stripped by html_sanitizer
+    assert "linear-gradient(135deg, #0f172a, #1e3a8a)" in compiled
+    # All 29 SVGs render inline <svg><path fill=...> instead of <img>
+    assert 'data-shape="clouds"' in compiled
+    assert 'data-shape="zigzag"' in compiled
+    assert "<img " not in compiled
+    assert 'fill="#10b981"' in compiled
+    assert 'fill="#f59e0b"' in compiled
+    # Grid container fields
+    assert "grid-template-rows:repeat(2, minmax(0, 1fr))" in compiled
+    assert "justify-items:center" in compiled
+    assert "align-content:space-between" in compiled
+    # Scoped CSS + Sticky + Motion + Hover rules + Typography extras
+    assert "#sec_wave1_01 { outline: 3px solid #f59e0b; }" in compiled
+    assert "#sec_wave1_01 h1 { font-style: italic; }" in compiled
+    assert "position: sticky; top: 16px;" in compiled
+    assert "data-motion=" in compiled
+    assert "font-style:italic" in compiled
+    assert "word-spacing:4px" in compiled
+    assert "-webkit-text-stroke-width:1.5px" in compiled
+    assert "-webkit-text-stroke-color:#10b981" in compiled
+    assert "background-color: #064e3b;" in compiled
+    assert "filter: brightness(115%);" in compiled
+
+    # Unsafe Custom CSS is rejected cleanly by validator
+    bad_ast = ast.model_copy(deep=True)
+    bad_ast.root_elements[0].styles.custom_css = "selector { background: url(https://evil.test/x.png); }"
+    import pytest
+    with pytest.raises(InvalidCssError):
+        validate_page_ast(bad_ast)
+
+
+
 
 
 

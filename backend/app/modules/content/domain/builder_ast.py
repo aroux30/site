@@ -74,12 +74,16 @@ class TypographyStyle(ASTModel):
     font_family: str = "inherit"
     font_size: UnitValue | None = None
     font_weight: Literal["300", "400", "500", "600", "700", "800", "900", "inherit"] = "inherit"
+    font_style: Literal["normal", "italic", "oblique"] = "normal"
     line_height: UnitValue | None = None
     letter_spacing: UnitValue | None = None
+    word_spacing: UnitValue | None = None
     text_align: Literal["right", "center", "left", "justify", "inherit"] = "inherit"
     text_transform: Literal["none", "uppercase", "lowercase", "capitalize"] = "none"
-    text_decoration: Literal["none", "underline", "line-through"] = "none"
+    text_decoration: Literal["none", "underline", "overline", "line-through"] = "none"
     text_shadow: str | None = None
+    text_stroke: UnitValue | None = None
+    text_stroke_color: str | None = None
     color: str | None = None  # hex, hsl(var(--token)), or semantic token key
 
 
@@ -93,17 +97,23 @@ class BorderStyle(ASTModel):
 
 class BackgroundGradient(ASTModel):
     direction: Literal["to-r", "to-l", "to-t", "to-b", "to-tr", "to-tl"] = "to-l"
+    gradient_type: Literal["linear", "radial"] | None = None
+    angle: float | None = None
     from_color: str
     to_color: str
 
 
 class BackgroundStyle(ASTModel):
-    type: Literal["none", "color", "gradient", "image"] = "none"
+    type: Literal["none", "color", "gradient", "image", "video"] = "none"
     color: str | None = None
     gradient: BackgroundGradient | None = None
     image_url: str | None = None
+    video_url: str | None = None
     position: Literal["center", "top", "bottom", "left", "right"] = "center"
     size: Literal["cover", "contain", "auto"] = "cover"
+    repeat: Literal["no-repeat", "repeat", "repeat-x", "repeat-y"] | None = None
+    attachment: Literal["scroll", "fixed"] | None = None
+    blend_mode: str | None = None
 
 
 class BackgroundOverlayStyle(ASTModel):
@@ -111,6 +121,18 @@ class BackgroundOverlayStyle(ASTModel):
     color: str | None = None
     gradient: BackgroundGradient | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
+    blend_mode: str | None = None
+
+
+class MotionEffectsStyle(ASTModel):
+    scroll_parallax: bool | None = None
+    parallax_speed: float | None = None
+    scroll_scale: bool | None = None
+    scroll_scale_speed: float | None = None
+    scroll_opacity: bool | None = None
+    mouse_track: bool | None = None
+    mouse_speed: float | None = None
+    mouse_opposite: bool | None = None
 
 
 class TransformStyle(ASTModel):
@@ -145,9 +167,12 @@ class DeviceStyle(ASTModel):
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"
     box_shadow: str | None = None
     hover_border: BorderStyle | None = None
+    hover_background: BackgroundStyle | None = None
     hover_box_shadow: str | None = None
     transition_duration: float | None = None
     filter: str | None = None
+    hover_filter: str | None = None
+    mix_blend_mode: str | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
     # Advanced Layout (P4)
@@ -166,6 +191,8 @@ class DeviceStyle(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
+    justify_items: Literal["start", "center", "end", "stretch", "inherit"] | None = None
+    align_content: Literal["start", "center", "end", "between", "around", "evenly", "stretch", "inherit"] | None = None
     backdrop_blur: str | None = None
     filter_blur: float | None = None
     transform: TransformStyle | None = None
@@ -180,14 +207,28 @@ class ResponsiveStyles(ASTModel):
     desktop: DeviceStyle | None = None
     custom_css_class: str | None = None
     custom_css_id: str | None = None
+    custom_css: str | None = None
     custom_attributes: str | dict[str, Any] | None = None
     direction: Literal["rtl", "ltr", "inherit"] = "inherit"
     animation: str | None = None  # e.g. "fade-in", "slide-up", "zoom-in"
     animation_duration: float | None = None  # in seconds (e.g. 0.5)
     animation_delay: float | None = None  # in seconds (e.g. 0.2)
+    motion_effects: MotionEffectsStyle | None = None
+    sticky_mode: Literal["none", "top", "bottom"] | None = None
+    sticky_offset: float | None = None
+    sticky_on: list[Literal["desktop", "tablet", "mobile"]] | None = None
+    sticky_parent: bool | None = None
     shape_divider_top: str | None = None
     shape_divider_bottom: str | None = None
     shape_divider_color: str | None = None
+    shape_divider_top_color: str | None = None
+    shape_divider_bottom_color: str | None = None
+    shape_divider_top_height: float | None = None
+    shape_divider_bottom_height: float | None = None
+    shape_divider_top_width: float | None = None
+    shape_divider_bottom_width: float | None = None
+    shape_divider_top_flip: bool | None = None
+    shape_divider_bottom_flip: bool | None = None
 
 
 # ── 3. Layout and Containers ────────────────────────────────────────────────
@@ -203,7 +244,10 @@ class ContainerLayout(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse"] = "nowrap"
     gap: UnitValue = Field(default_factory=lambda: UnitValue(value=16, unit="px"))
     grid_columns: int = Field(default=3, ge=1, le=12)
+    grid_rows: int | None = Field(default=None, ge=1, le=12)
     grid_auto_flow: Literal["row", "column", "dense", "row dense", "column dense"] | None = None
+    justify_items: Literal["start", "center", "end", "stretch"] | None = None
+    align_content: Literal["start", "center", "end", "between", "around", "evenly", "stretch"] | None = None
     boxed_width: UnitValue | None = None  # None indicates full-width fluid
 
 

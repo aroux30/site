@@ -28,6 +28,16 @@ import { Switch } from "@/components/ui/switch";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { useBuilderStore, findElementById, type InspectorTab } from "@/stores/builder-store";
 import { toValidHexColor, normalizeCssColor } from "@/lib/builder/color-utils";
+import {
+  BLEND_MODES,
+  CssFilterSliders,
+  HoverStateSection,
+  ShapeDividerGroup,
+  StickyAndMotionSection,
+  TypographyExtrasSection,
+  UnitNumberInput,
+  UnitSelect,
+} from "./wave1-controls";
 import { BUILDER_ICON_OPTIONS } from "@/lib/builder/icon-map";
 import { cn } from "@/lib/utils";
 import type { DeviceStyle, SpacingBox, UnitType } from "@/types/builder";
@@ -125,6 +135,25 @@ export function InspectorPanel() {
     };
     handleDeviceStyleChange({
       [kind]: { ...currentBox, isLinked: !currentBox.isLinked },
+    });
+  };
+
+  const changeSpacingUnit = (kind: "padding" | "margin", unit: UnitType) => {
+    const currentBox: SpacingBox = currentDeviceStyle[kind] || {
+      top: { value: 0, unit: "px" },
+      right: { value: 0, unit: "px" },
+      bottom: { value: 0, unit: "px" },
+      left: { value: 0, unit: "px" },
+      isLinked: true,
+    };
+    handleDeviceStyleChange({
+      [kind]: {
+        ...currentBox,
+        top: { ...currentBox.top, unit },
+        right: { ...currentBox.right, unit },
+        bottom: { ...currentBox.bottom, unit },
+        left: { ...currentBox.left, unit },
+      },
     });
   };
 
@@ -282,17 +311,86 @@ export function InspectorPanel() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px]">ردیف‌ها (Grid Rows)</Label>
+                  <Input
+                    data-testid="grid-rows-input"
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={layout.gridRows ?? ""}
+                    placeholder="خودکار"
+                    onChange={(e) => {
+                      const v = e.target.value === "" ? null : Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1));
+                      updateElementLayout(selectedElement.id, { gridRows: v });
+                    }}
+                    className="h-8 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px]">چینش افقی سلول (Justify Items)</Label>
+                  <Select
+                    value={layout.justifyItems || "stretch"}
+                    onValueChange={(val: any) => updateElementLayout(selectedElement.id, { justifyItems: val })}
+                  >
+                    <SelectTrigger data-testid="grid-justify-items-select" className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="stretch">کشیده (Stretch)</SelectItem>
+                      <SelectItem value="start">شروع (Start)</SelectItem>
+                      <SelectItem value="center">وسط (Center)</SelectItem>
+                      <SelectItem value="end">پایان (End)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px]">ترازبندی محتوای شبکه (Align Content)</Label>
+                <Select
+                  value={layout.alignContent || "start"}
+                  onValueChange={(val: any) => updateElementLayout(selectedElement.id, { alignContent: val })}
+                >
+                  <SelectTrigger data-testid="grid-align-content-select" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start">شروع (Start)</SelectItem>
+                    <SelectItem value="center">وسط (Center)</SelectItem>
+                    <SelectItem value="end">پایان (End)</SelectItem>
+                    <SelectItem value="between">فاصله‌دار (Space Between)</SelectItem>
+                    <SelectItem value="stretch">کشیده (Stretch)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </>
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-xs">فاصله بین آیتم‌ها (Gap)</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">فاصله بین آیتم‌ها (Gap)</Label>
+              <UnitSelect
+                testId="container-gap-unit"
+                value={layout.gap.unit}
+                units={["px", "em", "rem", "%"]}
+                onChange={(u) =>
+                  updateElementLayout(selectedElement.id, {
+                    gap: { ...layout.gap, unit: u },
+                  })
+                }
+              />
+            </div>
             <div className="relative flex items-center" dir="ltr">
               <Input
                 data-testid="container-gap-input"
                 type="number"
                 min={0}
                 max={128}
+                step="any"
                 value={layout.gap.value}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value) || 0;
@@ -300,11 +398,11 @@ export function InspectorPanel() {
                     gap: { ...layout.gap, value: val },
                   });
                 }}
-                className="h-8 text-xs pe-8 ps-2"
+                className="h-8 text-xs pe-10 ps-2"
                 dir="ltr"
               />
               <span className="absolute end-2.5 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
-                px
+                {layout.gap.unit || "px"}
               </span>
             </div>
           </div>
@@ -3813,6 +3911,12 @@ export function InspectorPanel() {
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
             <div className="flex items-center gap-1.5">
+              <UnitSelect
+                testId="padding-unit-select"
+                value={pad.top.unit}
+                units={["px", "em", "rem", "%"]}
+                onChange={(u) => changeSpacingUnit("padding", u)}
+              />
               <button
                 type="button"
                 data-testid="reset-padding-btn"
@@ -3913,32 +4017,26 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Width & Layout Dimensions Tokens */}
-        <div className="space-y-1.5 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">عرض و محدوده عنصر (Width)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={currentDeviceStyle.width ? `${currentDeviceStyle.width.value}${currentDeviceStyle.width.unit}` : ""}
-              placeholder="100% یا 1280px / خودکار"
-              onChange={(e) => {
-                const raw = e.target.value.trim();
-                if (!raw || raw === "auto") {
-                  handleDeviceStyleChange({ width: undefined });
-                  return;
-                }
-                if (raw.endsWith("%")) {
-                  handleDeviceStyleChange({ width: { value: parseFloat(raw) || 100, unit: "%" } });
-                } else if (raw.endsWith("px")) {
-                  handleDeviceStyleChange({ width: { value: parseFloat(raw) || 0, unit: "px" } });
-                } else {
-                  const val = parseFloat(raw);
-                  if (!isNaN(val)) {
-                    handleDeviceStyleChange({ width: { value: val, unit: "px" } });
-                  }
-                }
-              }}
-              className="h-8 text-xs flex-1 font-mono"
-              dir="ltr"
+        {/* Width & Min Height Dimensions Tokens */}
+        <div className="space-y-2 pt-2 border-t">
+          <div className="grid grid-cols-2 gap-2">
+            <UnitNumberInput
+              label="عرض عنصر (Width)"
+              value={currentDeviceStyle.width}
+              onChange={(width) => handleDeviceStyleChange({ width })}
+              units={["%", "px", "vw", "em", "rem"]}
+              placeholder="خودکار"
+              testId="style-width-input"
+              unitTestId="style-width-unit"
+            />
+            <UnitNumberInput
+              label="حداقل ارتفاع (Min Height)"
+              value={currentDeviceStyle.minHeight}
+              onChange={(minHeight) => handleDeviceStyleChange({ minHeight })}
+              units={["px", "vh", "em", "rem", "%"]}
+              placeholder="خودکار"
+              testId="style-minheight-input"
+              unitTestId="style-minheight-unit"
             />
           </div>
           <div className="flex flex-wrap gap-1 mt-1">
@@ -3966,6 +4064,12 @@ export function InspectorPanel() {
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
             <div className="flex items-center gap-1.5">
+              <UnitSelect
+                testId="margin-unit-select"
+                value={mar.top.unit}
+                units={["px", "em", "rem", "%"]}
+                onChange={(u) => changeSpacingUnit("margin", u)}
+              />
               <button
                 type="button"
                 data-testid="reset-margin-btn"
@@ -4039,11 +4143,12 @@ export function InspectorPanel() {
         <div className="space-y-3 pt-2 border-t">
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">پس‌زمینه (Background - المنتور)</Label>
-            <div className="flex gap-1 text-[10px] bg-muted/60 p-0.5 rounded-md border border-border/60">
+            <div className="flex flex-wrap gap-1 text-[10px] bg-muted/60 p-0.5 rounded-md border border-border/60">
               {[
                 { id: "color", label: "تک‌رنگ" },
                 { id: "gradient", label: "گرادیانت" },
                 { id: "image", label: "تصویر" },
+                { id: "video", label: "ویدئو" },
                 { id: "none", label: "هیچ" },
               ].map((bgType) => {
                 const active = (currentDeviceStyle.background?.type || "color") === bgType.id;
@@ -4051,9 +4156,11 @@ export function InspectorPanel() {
                   <button
                     key={bgType.id}
                     type="button"
+                    data-testid={`bg-type-${bgType.id}`}
                     onClick={() => {
                       const existingGrad = currentDeviceStyle.background?.gradient;
                       const existingImg = currentDeviceStyle.background?.imageUrl;
+                      const existingVid = currentDeviceStyle.background?.videoUrl;
                       handleDeviceStyleChange({
                         background: {
                           ...currentDeviceStyle.background,
@@ -4064,11 +4171,12 @@ export function InspectorPanel() {
                             toColor: "#3b82f6",
                           }) : existingGrad,
                           imageUrl: bgType.id === "image" ? (existingImg || "/placeholder-hero.svg") : existingImg,
+                          videoUrl: bgType.id === "video" ? (existingVid || "") : existingVid,
                         },
                       });
                     }}
                     className={cn(
-                      "px-2 py-0.5 rounded transition",
+                      "px-1.5 py-0.5 rounded transition",
                       active ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
@@ -4225,16 +4333,80 @@ export function InspectorPanel() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">نوع گرادیانت</Label>
+                  <Select
+                    value={currentDeviceStyle.background?.gradient?.gradientType || "linear"}
+                    onValueChange={(gt: any) =>
+                      handleDeviceStyleChange({
+                        background: {
+                          ...currentDeviceStyle.background,
+                          type: "gradient",
+                          gradient: {
+                            direction: currentDeviceStyle.background?.gradient?.direction || "to-r",
+                            gradientType: gt,
+                            angle: currentDeviceStyle.background?.gradient?.angle ?? 135,
+                            fromColor: currentDeviceStyle.background?.gradient?.fromColor || "#10b981",
+                            toColor: currentDeviceStyle.background?.gradient?.toColor || "#3b82f6",
+                          },
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger data-testid="gradient-type-select" className="h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="linear">خطی (Linear)</SelectItem>
+                      <SelectItem value="radial">شعاعی (Radial)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">زاویه گرادیانت (درجه)</Label>
+                  <Input
+                    data-testid="gradient-angle-input"
+                    type="number"
+                    min={0}
+                    max={360}
+                    value={currentDeviceStyle.background?.gradient?.angle ?? 135}
+                    onChange={(e) => {
+                      const ang = parseFloat(e.target.value);
+                      handleDeviceStyleChange({
+                        background: {
+                          ...currentDeviceStyle.background,
+                          type: "gradient",
+                          gradient: {
+                            direction: currentDeviceStyle.background?.gradient?.direction || "to-r",
+                            gradientType: currentDeviceStyle.background?.gradient?.gradientType || "linear",
+                            angle: !Number.isNaN(ang) ? ang : 135,
+                            fromColor: currentDeviceStyle.background?.gradient?.fromColor || "#10b981",
+                            toColor: currentDeviceStyle.background?.gradient?.toColor || "#3b82f6",
+                          },
+                        },
+                      });
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground">جهت گرادیانت</Label>
+                <Label className="text-[10px] text-muted-foreground">جهت گرادیانت (پیش‌فرض)</Label>
                 <Select
                   value={currentDeviceStyle.background?.gradient?.direction || "to-r"}
                   onValueChange={(dir: any) =>
                     handleDeviceStyleChange({
                       background: {
+                        ...currentDeviceStyle.background,
                         type: "gradient",
                         gradient: {
                           direction: dir,
+                          gradientType: currentDeviceStyle.background?.gradient?.gradientType || "linear",
+                          angle: undefined,
                           fromColor: currentDeviceStyle.background?.gradient?.fromColor || "#10b981",
                           toColor: currentDeviceStyle.background?.gradient?.toColor || "#3b82f6",
                         },
@@ -4254,6 +4426,31 @@ export function InspectorPanel() {
                     <SelectItem value="to-tl">مورب به گوشه بالا چپ (to top left)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+          )}
+
+          {/* Video Mode */}
+          {currentDeviceStyle.background?.type === "video" && (
+            <div className="space-y-2 p-2.5 rounded-lg border bg-muted/20">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">لینک ویدئو پس‌زمینه (MP4 یا YouTube / Aparat)</Label>
+                <Input
+                  data-testid="bg-video-url-input"
+                  value={currentDeviceStyle.background?.videoUrl || ""}
+                  placeholder="https://example.com/bg.mp4"
+                  onChange={(e) =>
+                    handleDeviceStyleChange({
+                      background: {
+                        ...currentDeviceStyle.background,
+                        type: "video",
+                        videoUrl: e.target.value.trim(),
+                      },
+                    })
+                  }
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
               </div>
             </div>
           )}
@@ -4332,6 +4529,55 @@ export function InspectorPanel() {
                       <SelectItem value="cover">پوشش کامل (Cover)</SelectItem>
                       <SelectItem value="contain">دربرگیرنده (Contain)</SelectItem>
                       <SelectItem value="auto">اندازه اصلی (Auto)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">تکرار تصویر (Repeat)</Label>
+                  <Select
+                    value={currentDeviceStyle.background?.repeat || "no-repeat"}
+                    onValueChange={(rep: any) =>
+                      handleDeviceStyleChange({
+                        background: {
+                          ...currentDeviceStyle.background,
+                          type: "image",
+                          repeat: rep,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger data-testid="bg-image-repeat-select" className="h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-repeat">بدون تکرار (No-repeat)</SelectItem>
+                      <SelectItem value="repeat">تکرار کامل (Repeat)</SelectItem>
+                      <SelectItem value="repeat-x">تکرار افقی (Repeat-X)</SelectItem>
+                      <SelectItem value="repeat-y">تکرار عمودی (Repeat-Y)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">پیوست تصویر (Attachment)</Label>
+                  <Select
+                    value={currentDeviceStyle.background?.attachment || "scroll"}
+                    onValueChange={(att: any) =>
+                      handleDeviceStyleChange({
+                        background: {
+                          ...currentDeviceStyle.background,
+                          type: "image",
+                          attachment: att,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger data-testid="bg-image-attachment-select" className="h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="scroll">اسکرول (Scroll)</SelectItem>
+                      <SelectItem value="fixed">ثابت / پارالاکس (Fixed)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -4433,6 +4679,31 @@ export function InspectorPanel() {
                     dir="ltr"
                   />
                 </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">ترکیب لایه رویی (Blend Mode)</Label>
+                  <Select
+                    value={currentDeviceStyle.backgroundOverlay.blendMode || "normal"}
+                    onValueChange={(val) =>
+                      handleDeviceStyleChange({
+                        backgroundOverlay: {
+                          ...currentDeviceStyle.backgroundOverlay!,
+                          blendMode: val === "normal" ? undefined : val,
+                        },
+                      })
+                    }
+                  >
+                    <SelectTrigger data-testid="bg-overlay-blend-select" className="h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BLEND_MODES.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             )}
           </div>
@@ -4504,28 +4775,24 @@ export function InspectorPanel() {
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">اندازه فونت (Font Size)</Label>
-              <Input
-                data-testid="typography-fontsize-input"
-                type="number"
-                min={8}
-                max={96}
-                value={currentDeviceStyle.typography?.fontSize?.value || ""}
-                placeholder="مثلاً 16"
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleDeviceStyleChange({
-                    typography: {
-                      ...currentDeviceStyle.typography,
-                      fontSize: !isNaN(val) ? { value: val, unit: "px" } : undefined,
-                    },
-                  });
-                }}
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
+            <UnitNumberInput
+              label="اندازه فونت (Font Size)"
+              value={currentDeviceStyle.typography?.fontSize}
+              onChange={(fontSize) =>
+                handleDeviceStyleChange({
+                  typography: {
+                    ...currentDeviceStyle.typography,
+                    fontSize,
+                  },
+                })
+              }
+              units={["px", "em", "rem", "vw"]}
+              min={8}
+              max={160}
+              placeholder="مثلاً 16"
+              testId="typography-fontsize-input"
+              unitTestId="typography-fontsize-unit"
+            />
 
             <div className="space-y-1">
               <Label className="text-[11px] text-muted-foreground">وزن فونت (Weight)</Label>
@@ -4637,6 +4904,18 @@ export function InspectorPanel() {
               ))}
             </div>
           </div>
+
+          <TypographyExtrasSection
+            typography={currentDeviceStyle.typography}
+            onChange={(patch) =>
+              handleDeviceStyleChange({
+                typography: {
+                  ...currentDeviceStyle.typography,
+                  ...patch,
+                },
+              })
+            }
+          />
         </div>
 
         {/* CSS Filters (Elementor Parity) */}
@@ -4679,88 +4958,17 @@ export function InspectorPanel() {
               </button>
             ))}
           </div>
+          <CssFilterSliders
+            value={currentDeviceStyle.filter}
+            onChange={(filter) => handleDeviceStyleChange({ filter })}
+          />
         </div>
 
-        {/* Box Shadow Preset Tokens (Elementor Grouped Controls) */}
-        <div className="space-y-1.5 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">سایه کادر (Box Shadow - المنتور)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={currentDeviceStyle.boxShadow || ""}
-              placeholder="مثلاً 0 10px 15px -3px rgba(0,0,0,0.1)"
-              onChange={(e) =>
-                handleDeviceStyleChange({
-                  boxShadow: e.target.value.trim() || undefined,
-                })
-              }
-              className="h-8 text-xs flex-1 font-mono"
-              dir="ltr"
-            />
-          </div>
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            <span className="text-[10px] text-muted-foreground me-1 self-center">پریست‌های سایه:</span>
-            {[
-              { label: "بدون سایه", val: "none" },
-              { label: "بسیار ظریف (xs)", val: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
-              { label: "نرم (sm)", val: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)" },
-              { label: "متوسط (md)", val: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
-              { label: "عمیق (lg)", val: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" },
-              { label: "شناور (xl)", val: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" },
-            ].map((tok) => (
-              <button
-                key={tok.label}
-                type="button"
-                onClick={() =>
-                  handleDeviceStyleChange({
-                    boxShadow: tok.val === "none" ? undefined : tok.val,
-                  })
-                }
-                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
-              >
-                {tok.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="space-y-1 pt-1.5">
-            <Label className="text-[11px] text-muted-foreground">سایه کادر در حالت هاور (Hover Box Shadow)</Label>
-            <Input
-              data-testid="hover-box-shadow-input"
-              value={currentDeviceStyle.hoverBoxShadow || ""}
-              placeholder="مثلاً 0 20px 25px -5px rgba(0,0,0,0.2)"
-              onChange={(e) =>
-                handleDeviceStyleChange({
-                  hoverBoxShadow: e.target.value.trim() || undefined,
-                })
-              }
-              className="h-8 text-xs font-mono"
-              dir="ltr"
-            />
-          </div>
-
-          <div className="flex items-center justify-between pt-1">
-            <Label className="text-[11px] text-muted-foreground">مدت زمان گذار (Transition Duration)</Label>
-            <div className="flex items-center gap-1.5 w-28">
-              <Input
-                data-testid="transition-duration-input"
-                type="number"
-                step="0.05"
-                min={0}
-                max={2}
-                value={currentDeviceStyle.transitionDuration ?? 0.3}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleDeviceStyleChange({
-                    transitionDuration: !isNaN(val) ? val : 0.3,
-                  });
-                }}
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-              <span className="text-[10px] text-muted-foreground">ثانیه</span>
-            </div>
-          </div>
-        </div>
+        {/* Border, Box Shadow Normal+Hover & Transition (Elementor Parity) */}
+        <HoverStateSection
+          currentDeviceStyle={currentDeviceStyle}
+          onChange={handleDeviceStyleChange}
+        />
 
         {/* Backdrop Filter & CSS Blur (Glassmorphism & Frosted Glass - Elementor Parity) */}
         <div className="space-y-2 pt-2 border-t">
@@ -4784,210 +4992,13 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Section Shape Dividers (Elementor Parity) */}
+        {/* Authoritative 30 SVG Shape Dividers Section (Elementor Parity) */}
         {selectedElement.type === "container" && (
-          <div className="space-y-3 pt-2 border-t">
-            <Label className="text-xs font-bold text-foreground block">جداکننده شکل کانتینر (Shape Divider)</Label>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground">شکل بالا (Top)</Label>
-                <Select
-                  value={selectedElement.styles?.shapeDividerTop || "none"}
-                  onValueChange={(val: string) =>
-                    updateElementStyles(selectedElement.id, {
-                      shapeDividerTop: val === "none" ? null : val,
-                    })
-                  }
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">بدون شکل</SelectItem>
-                    <SelectItem value="waves">موجی (Waves)</SelectItem>
-                    <SelectItem value="curve">منحنی (Curve)</SelectItem>
-                    <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-                    <SelectItem value="tilt">مورب (Tilt)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground">شکل پایین (Bottom)</Label>
-                <Select
-                  value={selectedElement.styles?.shapeDividerBottom || "none"}
-                  onValueChange={(val: string) =>
-                    updateElementStyles(selectedElement.id, {
-                      shapeDividerBottom: val === "none" ? null : val,
-                    })
-                  }
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">بدون شکل</SelectItem>
-                    <SelectItem value="waves">موجی (Waves)</SelectItem>
-                    <SelectItem value="curve">منحنی (Curve)</SelectItem>
-                    <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-                    <SelectItem value="tilt">مورب (Tilt)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+          <ShapeDividerGroup
+            styles={selectedElement.styles}
+            onUpdate={(patch) => updateElementStyles(selectedElement.id, patch)}
+          />
         )}
-
-        {/* Border Style, Width, Color & Radius Grouped Controls */}
-        <div className="space-y-3 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">کادر و حاشیه (Border & Radius - المنتور)</Label>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">نوع خط کادر</Label>
-              <Select
-                value={currentDeviceStyle.border?.style || "none"}
-                onValueChange={(val: any) =>
-                  handleDeviceStyleChange({
-                    border: {
-                      ...currentDeviceStyle.border,
-                      style: val,
-                    },
-                  })
-                }
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون کادر (None)</SelectItem>
-                  <SelectItem value="solid">یکپارچه (Solid)</SelectItem>
-                  <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
-                  <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
-                  <SelectItem value="double">دوتایی (Double)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">ضخامت کادر (Width)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={24}
-                value={currentDeviceStyle.border?.width?.top?.value ?? 0}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value) || 0;
-                  const prevStyle = currentDeviceStyle.border?.style;
-                  const nextStyle = prevStyle && prevStyle !== "none" ? prevStyle : (val > 0 ? "solid" : "none");
-                  handleDeviceStyleChange({
-                    border: {
-                      ...currentDeviceStyle.border,
-                      style: nextStyle,
-                      width: {
-                        top: { value: val, unit: "px" },
-                        right: { value: val, unit: "px" },
-                        bottom: { value: val, unit: "px" },
-                        left: { value: val, unit: "px" },
-                        isLinked: true,
-                      },
-                    },
-                  });
-                }}
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-[11px] text-muted-foreground">رنگ کادر</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={toValidHexColor(currentDeviceStyle.border?.color, "#e4e4e7")}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    border: {
-                      ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "solid",
-                      color: e.target.value,
-                    },
-                  })
-                }
-                className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
-              />
-              <Input
-                data-testid="border-color-input"
-                value={currentDeviceStyle.border?.color || ""}
-                placeholder="#e4e4e7 یا var(--border)"
-                onChange={(e) => {
-                  const prevStyle = currentDeviceStyle.border?.style;
-                  handleDeviceStyleChange({
-                    border: {
-                      ...currentDeviceStyle.border,
-                      style: prevStyle && prevStyle !== "none" ? prevStyle : "solid",
-                      color: normalizeCssColor(e.target.value) || e.target.value,
-                    },
-                  });
-                }}
-                className="h-8 text-xs flex-1 font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                data-testid="border-radius-input"
-                value={(currentDeviceStyle.border as any)?.radiusToken || ""}
-                placeholder="مثلاً 12px یا var(--radius)"
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    border: {
-                      ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "none",
-                      radiusToken: e.target.value,
-                    } as any,
-                  })
-                }
-                className="h-8 text-xs flex-1 font-mono"
-                dir="ltr"
-              />
-            </div>
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
-              {[
-                { label: "بدون گردی", val: "0px" },
-                { label: "شعاع تم سازمانی", val: "var(--radius)" },
-                { label: "کوچک (6px)", val: "6px" },
-                { label: "متوسط (12px)", val: "12px" },
-                { label: "بزرگ (16px)", val: "16px" },
-                { label: "کپسولی", val: "9999px" },
-              ].map((tok) => (
-                <button
-                  key={tok.val}
-                  type="button"
-                  onClick={() =>
-                    handleDeviceStyleChange({
-                      border: {
-                        ...currentDeviceStyle.border,
-                        style: currentDeviceStyle.border?.style || "none",
-                        radiusToken: tok.val,
-                      } as any,
-                    })
-                  }
-                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
-                >
-                  {tok.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
 
         {/* Advanced Layout & Flexbox/Grid (P4) */}
         <div className="space-y-4 pt-3 border-t border-border/80">
@@ -5292,6 +5303,13 @@ export function InspectorPanel() {
           />
         </div>
 
+        <StickyAndMotionSection
+          styles={selectedElement.styles}
+          currentDeviceStyle={currentDeviceStyle}
+          onUpdateStyles={(patch) => updateElementStyles(selectedElement.id, patch)}
+          onChangeDeviceStyle={handleDeviceStyleChange}
+        />
+
         {/* Transform (Elementor Parity Wave 1) */}
         <div className="space-y-3 pt-2 border-t border-border/80">
           <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform)</Label>
@@ -5526,75 +5544,6 @@ export function InspectorPanel() {
             }}
           />
         </div>
-
-        {/* Shape Dividers (Elementor Parity Wave 1) */}
-        {selectedElement.type === "container" && (
-          <div className="space-y-3 pt-3 border-t border-border/80">
-            <Label className="text-xs font-bold text-foreground block">اشکال جداکننده بخش (Shape Dividers)</Label>
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">شکل جداکننده بالا (Top Shape)</Label>
-              <Select
-                value={selectedElement.styles?.shapeDividerTop || "none"}
-                onValueChange={(val) =>
-                  updateElementStyles(selectedElement.id, {
-                    shapeDividerTop: val,
-                  })
-                }
-              >
-                <SelectTrigger data-testid="shape-divider-top-select" className="h-8 text-xs">
-                  <SelectValue placeholder="انتخاب شکل بالا" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
-                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
-                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
-                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">شکل جداکننده پایین (Bottom Shape)</Label>
-              <Select
-                value={selectedElement.styles?.shapeDividerBottom || "none"}
-                onValueChange={(val) =>
-                  updateElementStyles(selectedElement.id, {
-                    shapeDividerBottom: val,
-                  })
-                }
-              >
-                <SelectTrigger data-testid="shape-divider-bottom-select" className="h-8 text-xs">
-                  <SelectValue placeholder="انتخاب شکل پایین" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
-                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
-                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
-                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">رنگ شکل جداکننده</Label>
-              <Input
-                data-testid="shape-divider-color-input"
-                type="text"
-                placeholder="#ffffff"
-                value={selectedElement.styles?.shapeDividerColor || "#ffffff"}
-                onChange={(e) =>
-                  updateElementStyles(selectedElement.id, {
-                    shapeDividerColor: e.target.value,
-                  })
-                }
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Conditional Visibility (P4) */}
         <div className="space-y-3 pt-3 border-t border-border/80">

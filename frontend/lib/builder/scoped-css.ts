@@ -34,11 +34,13 @@ export function resolveScopedCss(
   const sanitized = sanitizeScopedCss(cssText);
   if (!sanitized) return "";
 
-  // The wrapper selector targets either the ID or the data-element-id
+  // The wrapper selector targets data-element-id inside Canvas and matches #id/data-element-id safely
   const wrapperSelector = `[data-element-id="${elementId}"]`;
 
-  // Replace case-insensitive {{WRAPPER}} with scoped selector
-  const resolved = sanitized.replace(/\{\{\s*WRAPPER\s*\}\}/gi, wrapperSelector);
+  // Support both {{WRAPPER}} and Elementor's `selector` keyword cleanly (when used as CSS selector token)
+  const resolved = sanitized
+    .replace(/\{\{\s*WRAPPER\s*\}\}/gi, wrapperSelector)
+    .replace(/(^|[},;\s>+~])selector(?=\s*(?:[.{:[,>+~\s]|$))/gi, `$1${wrapperSelector}`);
 
   return resolved;
 }
